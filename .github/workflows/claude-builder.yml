@@ -1,0 +1,70 @@
+name: Claude ROADMAP Builder
+ 
+# Runs every 2 days at 10:00 UTC, and can be triggered manually from the Actions tab.
+on:
+  schedule:
+    - cron: "0 10 */2 * *"
+  workflow_dispatch:
+ 
+permissions:
+  contents: write        # commit the change + push the branch
+  pull-requests: write   # open the PR
+  issues: read
+ 
+jobs:
+  build-next-roadmap-item:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+ 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+ 
+      - name: Claude Code Action Official
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: |
+            --max-turns 40
+            --allowedTools Edit,Read,Write,Bash,Glob,Grep
+          prompt: |
+            You are advancing this monorepo of 15 AI-engineering projects by exactly ONE ROADMAP item per run.
+ 
+            STEPS:
+            1. Read `ROADMAP.md` at the repo root. Find the FIRST unchecked `- [ ]` item, top-to-bottom.
+               Each item is tagged with its project, e.g. "(P1) Phase 3 ...".
+               If every item is checked, do nothing and stop.
+            2. Read `docs/BUILD_SKILLS.md` if it exists and follow its stage-to-skill guidance.
+               If it does NOT exist, create it as part of this run (a table mapping build stages to
+               practices: architecture, backend/API/Docker/CI, code review on every change,
+               testing strategy, a security pass before every PR, debugging, UI/design, tech debt).
+            3. Open the matching project folder (e.g. `01-support-knowledge-copilot/`). Read its
+               README.md and existing code, and match the conventions:
+               Python 3.11+, FastAPI, Pydantic v2, offline-runnable keyless stubs by default
+               (real providers behind env vars so tests run without API keys), pytest + ruff.
+            4. Implement exactly that ONE item. Keep scope tight. Do not batch multiple items.
+            5. Add or update tests. Then run, inside the project folder:
+                 pip install -r requirements-dev.txt
+                 ruff check .
+                 pytest -q
+               Fix anything you broke. Do not finish while tests fail.
+            6. Run a security pass before finishing: no hardcoded secrets, server-side input
+               validation on every endpoint, rate limiting/abuse protection on public endpoints,
+               and no committed .env files.
+            7. Tick the item off (`- [x]`) in `ROADMAP.md`.
+            8. Create a branch named `feat/<short-item-slug>`, commit, and open a pull request
+               against the default branch. The PR body must state: which ROADMAP item was built,
+               a summary of the changes, the ruff + pytest results, and any follow-ups.
+ 
+            RULES:
+            - One ROADMAP item per run. Never batch.
+            - Never push directly to `main`. Never merge the PR yourself. Leave it for human review.
+            - Secrets only via environment variables; never commit a `.env` or any key.
+            - If blocked (ambiguous item, broken environment), stop and explain the blocker in the PR
+              or in the run log rather than guessing destructively.
