@@ -7,9 +7,10 @@ on:
   workflow_dispatch:
  
 permissions:
-  contents: write        # commit the change + push the branch
-  pull-requests: write   # open the PR
+  contents: write
+  pull-requests: write
   issues: read
+  id-token: write
  
 jobs:
   build-next-roadmap-item:
