@@ -28,6 +28,24 @@ class AccessLevel(str, Enum):
     restricted = "restricted"
 
 
+class DocFormat(str, Enum):
+    markdown = "markdown"
+    html = "html"
+    text = "text"
+    pdf = "pdf"
+
+
+class NormalizedDocument(BaseModel):
+    """Output of ingestion normalization (Phase 2, step 1): both the raw
+    source text and the cleaned/normalized text are kept so indexing issues
+    can be debugged by diffing the two."""
+    source_name: str
+    doc_format: DocFormat
+    raw_text: str
+    cleaned_text: str
+    page_count: Optional[int] = None
+
+
 class ChunkMetadata(BaseModel):
     """Metadata rules (Phase 1, step 3): stored from the very beginning so
     retrieval can be filtered later."""
