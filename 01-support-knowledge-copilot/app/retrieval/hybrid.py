@@ -1,8 +1,11 @@
 """Hybrid retrieval: dense (cosine over stub embeddings) + sparse (BM25),
-fused with Reciprocal Rank Fusion (RRF). Phases 2-3 of the build guide.
+fused with Reciprocal Rank Fusion (RRF), then reranked. Phases 2-3 of the
+build guide.
 
 Dense and sparse indexes point at the SAME chunk IDs so fusion stays clean —
-the key design decision to explain in interviews.
+the key design decision to explain in interviews. RRF is a cheap rank-merge,
+so the top `rerank_candidates` fused chunks are rescored by a reranking pass
+(see `app.retrieval.reranker`) before the top `rerank_top_k` go to generation.
 """
 from __future__ import annotations
 
@@ -11,6 +14,7 @@ from rank_bm25 import BM25Okapi
 from app.core.config import settings
 from app.core.models import Chunk, RetrievedChunk
 from app.retrieval.embeddings import _tokenize, cosine, embed
+from app.retrieval.reranker import rerank
 
 
 class HybridRetriever:
@@ -63,12 +67,12 @@ class HybridRetriever:
         order = sorted(fused.items(), key=lambda x: x[1], reverse=True)
         dense_map = dict(dense)
         sparse_rank = {cid: i + 1 for i, (cid, _) in enumerate(sparse)}
-        out = []
-        for cid, score in order[: settings.rerank_top_k]:
-            out.append(RetrievedChunk(
+        pool = []
+        for cid, score in order[: settings.rerank_candidates]:
+            pool.append(RetrievedChunk(
                 chunk=self._chunks[cid],
                 dense_score=dense_map.get(cid),
                 sparse_rank=sparse_rank.get(cid),
                 fused_score=score,
             ))
-        return out
+        return rerank(question, pool)

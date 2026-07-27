@@ -13,8 +13,8 @@ client → FastAPI /ask
             │
             ▼
    HybridRetriever ── dense (embeddings, cosine) ─┐
-            │        └ sparse (BM25) ─────────────┤→ RRF fuse → top-k
-            ▼                                       (rerank pass: TODO Phase 3.4)
+            │        └ sparse (BM25) ─────────────┤→ RRF fuse → top-20 → rerank → top-5
+            ▼
    grounded generator (extractive V1 / LLM later)
             │  → citation verification (lexical overlap V1 / LLM-judge later)
             ▼
@@ -32,6 +32,7 @@ Every chunk stores: `source_name`, `section_heading`, `last_updated`,
 | Dense | stub hashing-embedder (default) | runs offline/keyless; swap to `text-embedding-3-small` or `bge-small` |
 | Sparse | BM25 via `rank_bm25` | catches exact matches: error codes, API names, SKUs |
 | Fusion | Reciprocal Rank Fusion | merges dense + sparse over shared chunk IDs |
+| Rerank | stub token-overlap reranker (default) | rescores top-20 fused chunks; swap to a cross-encoder or LLM-as-reranker |
 | Container | Docker Compose | reproducible local + CI |
 
 ## Tradeoffs / decisions

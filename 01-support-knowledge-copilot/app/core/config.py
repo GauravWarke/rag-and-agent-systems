@@ -17,7 +17,9 @@ class Settings(BaseSettings):
     vector_store: str = "memory"
     dense_top_k: int = 20
     sparse_top_k: int = 20
+    rerank_candidates: int = 20
     rerank_top_k: int = 5
+    rerank_model: str = "stub"
     rrf_k: int = 60
     min_retrieval_score: float = 0.15
 
