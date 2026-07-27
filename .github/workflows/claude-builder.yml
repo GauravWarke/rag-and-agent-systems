@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 jobs:
-  build-next-project:
+  build-half-project:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -26,37 +26,41 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Claude builds the next project
+      - name: Claude builds ~half of the next project
+        continue-on-error: true   # if it runs out of turns, still commit what passed
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
             --model sonnet
-            --max-turns 60
+            --max-turns 100
             --allowedTools Edit,Read,Write,Bash,Glob,Grep
           prompt: |
-            Advance this monorepo of 15 AI-engineering projects by completing ONE WHOLE PROJECT this run.
+            Advance this monorepo of 15 AI-engineering projects by completing ABOUT HALF of ONE project this run.
 
             1. Read ROADMAP.md at the repo root. Identify the FIRST project (P1..P15, in order) that
                still has ANY unchecked "- [ ]" items. Work ONLY on that single project this run.
                If every project is fully checked, make no changes and stop.
-            2. Open that project's folder (e.g. 01-support-knowledge-copilot/). Read its README and
-               code. Conventions: Python 3.11+, FastAPI, Pydantic v2, offline-runnable keyless stubs
-               by default (real providers behind env vars), pytest + ruff.
-            3. Implement EVERY remaining unchecked item for that one project, in order, phase by phase.
-               Medium effort: correct, tested, readable code — simple working implementations, not
-               gold-plating.
-            4. After each item, tick it off ("- [x]") in ROADMAP.md so progress is saved.
-            5. Add/update tests. Before finishing, inside the project folder, ensure these pass:
+            2. Count that project's remaining unchecked items. Your target for THIS run is to complete
+               roughly HALF of them (about 3 of its 6 phases). Do NOT try to finish the whole project.
+               Tomorrow's run continues where you stop.
+            3. Open the project's folder (e.g. 01-support-knowledge-copilot/). Read its README and code.
+               Conventions: Python 3.11+, FastAPI, Pydantic v2, offline-runnable keyless stubs by
+               default (real providers behind env vars), pytest + ruff.
+            4. Implement that half, in order, phase by phase. Medium effort: correct, tested, readable
+               code — simple working implementations, not gold-plating.
+            5. After each item, tick it off ("- [x]") in ROADMAP.md so progress is saved.
+            6. Add/update tests. Before finishing, inside the project folder ensure these pass:
                pip install -r requirements-dev.txt ; ruff check . ; pytest -q
-               Fix anything you broke. Do NOT finish with failing tests or lint errors — a CI gate
-               re-runs them and will block the merge if they fail.
-            6. Security: no hardcoded secrets, server-side input validation, rate limiting on public
+               Do NOT finish with failing tests or lint errors — a CI gate re-runs them and blocks the
+               merge if they fail.
+            7. Security: no hardcoded secrets, server-side input validation, rate limiting on public
                endpoints, no committed .env files.
 
-            IMPORTANT: Only EDIT files in the working tree. Do NOT run git, branch, commit, push, or
-            open a PR. If low on turns, stop cleanly with tests passing and ROADMAP checkboxes
-            matching exactly what you finished. End with a one-line summary.
+            CRITICAL: Stop while you still have turns left. When you have done about half, or when you
+            sense you are running low on turns, STOP CLEANLY: make sure ruff + pytest pass and the
+            ROADMAP checkboxes reflect EXACTLY what you finished. A clean half is far better than a
+            broken whole. Only EDIT files — do NOT git/branch/commit/push/PR. End with a one-line summary.
 
       - name: Verify — independent CI gate (ruff + pytest on changed projects)
         id: verify
@@ -79,17 +83,19 @@ jobs:
           done
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Open a pull request
+      - name: Open a pull request (authored as you, for contribution credit)
         id: cpr
         if: steps.verify.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           branch: builder/run-${{ github.run_id }}
           base: main
+          author: "GauravWarke <gauravwarke8@gmail.com>"
+          committer: "GauravWarke <gauravwarke8@gmail.com>"
           commit-message: "build: advance next project (run ${{ github.run_id }})"
-          title: "Automated build: next project (run ${{ github.run_id }})"
+          title: "Automated build: ~half of next project (run ${{ github.run_id }})"
           body: |
-            Automated daily build by the Claude ROADMAP Builder.
+            Automated daily build by the Claude ROADMAP Builder (~half a project per run).
             CI gate (ruff + pytest) passed before this PR was opened. Auto-merged after creation.
 
             Triggered by: ${{ github.event_name }} · Run: ${{ github.run_id }}
