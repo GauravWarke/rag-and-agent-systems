@@ -10,7 +10,7 @@ from rank_bm25 import BM25Okapi
 
 from app.core.config import settings
 from app.core.models import Chunk, RetrievedChunk
-from app.retrieval.embeddings import cosine, embed, _tokenize
+from app.retrieval.embeddings import _tokenize, cosine, embed
 
 
 class HybridRetriever:

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from datetime import date
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -43,7 +42,7 @@ class NormalizedDocument(BaseModel):
     doc_format: DocFormat
     raw_text: str
     cleaned_text: str
-    page_count: Optional[int] = None
+    page_count: int | None = None
 
 
 class ChunkMetadata(BaseModel):
@@ -51,7 +50,7 @@ class ChunkMetadata(BaseModel):
     retrieval can be filtered later."""
     source_name: str
     section_heading: str = ""
-    last_updated: Optional[date] = None
+    last_updated: date | None = None
     doc_type: DocType
     access_level: AccessLevel = AccessLevel.internal
 

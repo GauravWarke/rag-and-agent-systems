@@ -8,7 +8,7 @@ def test_ask_returns_grounded_answer_with_citations():
         r = client.post("/ask", json={"question": "What does error 429 mean?"})
         assert r.status_code == 200
         body = r.json()
-        assert "answer" in body and body["answer"]
+        assert body.get("answer")
         assert body["confidence"]["final"] >= 0.0
         # a relevant question should retrieve at least one chunk
         assert len(body["retrieved"]) >= 1
