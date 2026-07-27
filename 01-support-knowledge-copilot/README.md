@@ -65,6 +65,19 @@ A support knowledge assistant that answers employee or customer support question
 - Record a short walkthrough: Show ingestion, a good answer with verified citations, a failed citation being caught, and a no-answer case handled correctly.
 - Write the case study: Start with a measurable result like: "Hybrid retrieval improved correct-source retrieval from 72% to 88% on a 60-question eval set." Then explain the architecture and tradeoffs.
 
+## Re-index CLI
+
+Rebuild the retrieval index from a directory of documents (Markdown, HTML, text, or PDF):
+
+```bash
+python ingest.py --source data/sample_docs --rebuild
+```
+
+`--strategy heading|fixed` picks the chunking strategy (default `heading`), and `--out`
+sets the output directory (default `storage/index`, gitignored). The command writes
+`manifest.json` (chunk count and per-document counts) and `chunks.jsonl` (one chunk per
+line) to `--out`, and refuses to overwrite an existing index unless `--rebuild` is passed.
+
 ## Interview talking point
 
 > Explain why you kept dense and sparse indexes over the same chunk IDs. It shows you understand that semantic search and keyword search solve different failure modes.

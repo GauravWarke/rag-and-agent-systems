@@ -26,12 +26,17 @@ _DOC_TYPES = {
 _SAMPLE_DIR = Path(__file__).resolve().parents[2] / "data" / "sample_docs"
 
 
-def load_sample_corpus(chunking_strategy: str = "heading") -> list[Chunk]:
+def load_corpus_from_dir(source_dir: Path, chunking_strategy: str = "heading") -> list[Chunk]:
+    """Load, normalize, and chunk every supported document in `source_dir`.
+
+    Shared by `load_sample_corpus` (bundled demo corpus) and the `ingest.py`
+    re-index CLI (arbitrary `--source` directory), so both paths stay in sync.
+    """
     if chunking_strategy not in {"heading", "fixed"}:
         raise ValueError(f"Unknown chunking strategy: {chunking_strategy!r}")
 
     chunks: list[Chunk] = []
-    paths = sorted(p for p in _SAMPLE_DIR.iterdir() if p.suffix.lower() in SUPPORTED_EXTENSIONS)
+    paths = sorted(p for p in source_dir.iterdir() if p.suffix.lower() in SUPPORTED_EXTENSIONS)
     for path in paths:
         stem = path.stem
         doc_type = next((v for k, v in _DOC_TYPES.items() if k in stem), DocType.faq)
@@ -51,3 +56,7 @@ def load_sample_corpus(chunking_strategy: str = "heading") -> list[Chunk]:
                 last_updated=date(2025, 1, 1),
             ))
     return chunks
+
+
+def load_sample_corpus(chunking_strategy: str = "heading") -> list[Chunk]:
+    return load_corpus_from_dir(_SAMPLE_DIR, chunking_strategy=chunking_strategy)
