@@ -2,7 +2,7 @@ name: Claude ROADMAP Builder
 
 on:
   schedule:
-    - cron: "30 4 */2 * *"
+    - cron: "30 4 */2 * *"   # every 2 days, 10:00 AM IST
   workflow_dispatch:
 
 permissions:
@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Claude Code Action Official
+      - name: Claude implements the next ROADMAP item
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -37,7 +37,7 @@ jobs:
             Advance this monorepo of 15 AI-engineering projects by exactly ONE ROADMAP item.
 
             1. Read ROADMAP.md at the repo root. Find the FIRST unchecked "- [ ]" item,
-               top-to-bottom. If all are checked, stop and do nothing.
+               top-to-bottom. If all are checked, make no changes and stop.
             2. Open the matching project folder (e.g. 01-support-knowledge-copilot/).
                Read its README and code and match conventions: Python 3.11+, FastAPI,
                Pydantic v2, offline-runnable keyless stubs (real providers behind env vars).
@@ -50,8 +50,24 @@ jobs:
             5. Security check: no hardcoded secrets, server-side input validation,
                rate limiting on public endpoints, no committed .env files.
             6. Tick the item off ("- [x]") in ROADMAP.md.
-            7. Create a branch, commit, and open a pull request against the default branch.
-               PR body: which item was built, summary, ruff and pytest results, follow-ups.
 
-            RULES: One item per run. Never push to main. Never self-merge.
-            Secrets only via env vars. If blocked, stop and explain rather than guessing.
+            IMPORTANT: Only EDIT files in the working tree. Do NOT run git, do NOT create
+            branches, do NOT commit, do NOT push, do NOT open a PR — a later workflow step
+            handles all of that. Just leave your changes on disk. At the end, print a one-line
+            summary of which ROADMAP item you implemented.
+
+      - name: Open a pull request with the changes
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: builder/run-${{ github.run_id }}
+          base: main
+          commit-message: "build: advance ROADMAP (run ${{ github.run_id }})"
+          title: "Automated build: next ROADMAP item (run ${{ github.run_id }})"
+          body: |
+            Automated build by the Claude ROADMAP Builder.
+
+            This PR implements the next unchecked item in `ROADMAP.md`, with tests run
+            (ruff + pytest) and a security pass. Review the diff and merge if it looks right.
+
+            Triggered by: ${{ github.event_name }} · Run: ${{ github.run_id }}
+          delete-branch: true
