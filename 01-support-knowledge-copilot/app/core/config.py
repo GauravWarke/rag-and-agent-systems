@@ -23,5 +23,7 @@ class Settings(BaseSettings):
     rrf_k: int = 60
     min_retrieval_score: float = 0.15
 
+    generation_model: str = "stub"
+
 
 settings = Settings()
