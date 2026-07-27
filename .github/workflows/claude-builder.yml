@@ -107,5 +107,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" \
-            --squash --delete-branch \
+            --merge --delete-branch \
             --repo "${{ github.repository }}"
