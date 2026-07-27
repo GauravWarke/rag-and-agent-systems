@@ -28,6 +28,21 @@ def _generate_llm(question: str, retrieved: list[RetrievedChunk]) -> AskResponse
     )
 
 
+def _top_score(retrieved: list[RetrievedChunk]) -> float:
+    """Best relevance score across retrieved chunks, for the no-answer
+    threshold and confidence scoring. Prefers `rerank_score` (a 0-1 relevance
+    estimate set by the hybrid strategy's reranking pass) over `fused_score`,
+    which for the hybrid strategy is a raw RRF value (bounded by `1/rrf_k`,
+    e.g. ~0.03 at the default `rrf_k=60`) and would otherwise never clear a
+    threshold calibrated for the 0-1 scale used by the dense/sparse strategies."""
+    if not retrieved:
+        return 0.0
+    return max(
+        r.rerank_score if r.rerank_score is not None else (r.fused_score or 0.0)
+        for r in retrieved
+    )
+
+
 def _no_answer_response(question: str, retrieved: list[RetrievedChunk]) -> AskResponse:
     """Handle missing knowledge gracefully (Phase 4, step 4): tell the user
     plainly and surface the closest matching sections instead of guessing."""
@@ -48,7 +63,7 @@ def _generate_stub(question: str, retrieved: list[RetrievedChunk]) -> AskRespons
     citations = verify_citations(claims)
     answer = " ".join(f"{claim} [{r.chunk.chunk_id}]" for claim, r in claims)
 
-    top_score = max((r.fused_score or 0.0) for r in retrieved) if retrieved else 0.0
+    top_score = _top_score(retrieved)
     breakdown = confidence.score(
         top_score=top_score,
         citations=citations,
@@ -66,7 +81,7 @@ def _generate_stub(question: str, retrieved: list[RetrievedChunk]) -> AskRespons
 
 
 def generate(question: str, retrieved: list[RetrievedChunk]) -> AskResponse:
-    top_score = max((r.fused_score or 0.0) for r in retrieved) if retrieved else 0.0
+    top_score = _top_score(retrieved)
     if not retrieved or top_score < settings.min_retrieval_score:
         return _no_answer_response(question, retrieved)
 
