@@ -78,10 +78,30 @@ sets the output directory (default `storage/index`, gitignored). The command wri
 `manifest.json` (chunk count and per-document counts) and `chunks.jsonl` (one chunk per
 line) to `--out`, and refuses to overwrite an existing index unless `--rebuild` is passed.
 
+## Eval CLI
+
+Run the golden Q&A set through the retrieval + generation pipeline and score
+retrieval, answer correctness, citation validity, and refusal behavior
+separately:
+
+```bash
+python eval.py --strategy hybrid
+```
+
+`--strategy hybrid|dense|sparse` picks which retrieval strategy to score
+(default `hybrid`), and `--out` sets the report directory (default
+`reports/`, gitignored). The command writes `eval_<strategy>.md` (an
+aggregate scorecard plus a per-question pass/fail table) and `dashboard.html`
+(a single static file with a strategy toggle showing each question, answer,
+retrieved sources, citation verdicts, and confidence breakdown — comparing
+`--strategy` against the dense-only baseline).
+
 ## Interview talking point
 
 > Explain why you kept dense and sparse indexes over the same chunk IDs. It shows you understand that semantic search and keyword search solve different failure modes.
 
 ## Status
 
-Active flagship — scaffold in progress. See root `ROADMAP.md`.
+Active flagship — Phases 1-5 complete (scope, ingestion, hybrid retrieval,
+grounded generation, eval suite + dashboard). Phase 6 (portfolio polish)
+remains. See root `ROADMAP.md`.
