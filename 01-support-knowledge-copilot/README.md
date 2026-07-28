@@ -100,8 +100,14 @@ retrieved sources, citation verdicts, and confidence breakdown — comparing
 
 > Explain why you kept dense and sparse indexes over the same chunk IDs. It shows you understand that semantic search and keyword search solve different failure modes.
 
+## Walkthrough
+
+See [`docs/walkthrough.md`](docs/walkthrough.md) for a transcript walkthrough
+(real commands and real output) of ingestion, a good answer with verified
+citations, a failed citation being caught, and a no-answer case.
+
 ## Status
 
 Active flagship — Phases 1-5 complete (scope, ingestion, hybrid retrieval,
-grounded generation, eval suite + dashboard). Phase 6 (portfolio polish)
-remains. See root `ROADMAP.md`.
+grounded generation, eval suite + dashboard). Phase 6 (portfolio polish):
+walkthrough done, case study still to come. See root `ROADMAP.md`.
