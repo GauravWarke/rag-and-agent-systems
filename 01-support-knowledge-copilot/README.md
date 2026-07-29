@@ -106,8 +106,15 @@ See [`docs/walkthrough.md`](docs/walkthrough.md) for a transcript walkthrough
 (real commands and real output) of ingestion, a good answer with verified
 citations, a failed citation being caught, and a no-answer case.
 
+## Case study
+
+See [`docs/case_study.md`](docs/case_study.md) for the measurable eval
+result (sparse-only retrieval never correctly refuses a no-answer question,
+0/6, vs. 2/6 for dense and hybrid) plus the architecture and tradeoffs
+behind it.
+
 ## Status
 
-Active flagship — Phases 1-5 complete (scope, ingestion, hybrid retrieval,
-grounded generation, eval suite + dashboard). Phase 6 (portfolio polish):
-walkthrough done, case study still to come. See root `ROADMAP.md`.
+Complete — all 6 phases done (scope, ingestion, hybrid retrieval, grounded
+generation, eval suite + dashboard, portfolio polish). See root
+`ROADMAP.md`.

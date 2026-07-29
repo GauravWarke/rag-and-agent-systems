@@ -34,7 +34,7 @@ Folder: `01-support-knowledge-copilot/`
 - [x] **(P1) Phase 5: Build the Evaluation Suite and Dashboard** — Build the dashboard: Show the question, answer, retrieved chunks, citation verdicts, and confidence breakdown. Add a toggle to compare dense-only vs. hybrid retrieval.
 - [x] **(P1) Phase 5: Build the Evaluation Suite and Dashboard** — Add an eval command: Create python eval.py --strategy hybrid and generate a Markdown or HTML report with metrics. This report is the artifact reviewers will open first.
 - [x] **(P1) Phase 6: Polish for Portfolio** — Record a short walkthrough: Show ingestion, a good answer with verified citations, a failed citation being caught, and a no-answer case handled correctly.
-- [ ] **(P1) Phase 6: Polish for Portfolio** — Write the case study: Start with a measurable result like: "Hybrid retrieval improved correct-source retrieval from 72% to 88% on a 60-question eval set." Then explain the architecture and tradeoffs.
+- [x] **(P1) Phase 6: Polish for Portfolio** — Write the case study: Start with a measurable result like: "Hybrid retrieval improved correct-source retrieval from 72% to 88% on a 60-question eval set." Then explain the architecture and tradeoffs.
 
 ## P2: Prompt Release Safety Gate
 
