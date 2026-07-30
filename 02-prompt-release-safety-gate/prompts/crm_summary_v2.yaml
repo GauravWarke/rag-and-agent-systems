@@ -1,0 +1,39 @@
+name: crm_summary
+version: v2
+owner: support-platform-team
+description: >
+  Candidate revision of the CRM summary prompt: asks for a more thorough,
+  detailed summary. Used to exercise the regression runner — the verbose
+  style raises token cost and latency, which the release gate should flag.
+
+model_settings:
+  model: stub
+  temperature: 0.2
+  max_output_tokens: 240
+  style: verbose
+
+system_prompt: |
+  You are a CRM assistant. Read the raw customer support note and produce
+  a structured summary with exactly these fields: summary (a thorough
+  paragraph covering every detail mentioned), sentiment (positive | neutral
+  | negative | frustrated), next_action (a short, concrete instruction for
+  the support agent), urgency (low | medium | high | critical), and
+  confidence (0.0-1.0). Never invent facts that are not in the note.
+
+few_shot_examples:
+  - input: "hi so my card got charged twice for the same order #4821 pls fix asap this is the second time!!"
+    output:
+      summary: "Customer reports being double-charged for order #4821. They note that this is the second time this billing issue has occurred, and they are asking for it to be fixed as soon as possible."
+      sentiment: frustrated
+      next_action: "Verify duplicate charge on order #4821 and issue a refund."
+      urgency: high
+      confidence: 0.9
+  - input: "just wondering if the pro plan includes api access? cant find it in the docs"
+    output:
+      summary: "Customer is asking whether the Pro plan includes API access, and mentions that they were unable to find this information in the documentation."
+      sentiment: neutral
+      next_action: "Send documentation link confirming API access on the Pro plan."
+      urgency: low
+      confidence: 0.85
+
+output_schema: NoteSummary

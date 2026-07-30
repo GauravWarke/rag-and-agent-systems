@@ -66,6 +66,35 @@ A CI/CD safety gate for prompt changes. Whenever a prompt file changes in a pull
 
 > Say that the dataset is the real product here. The CI runner is useful, but the human-curated edge cases are what make the eval meaningful.
 
+## Running it
+
+```bash
+pip install -r requirements-dev.txt
+uvicorn app.main:app --reload   # POST /summarize {"note": "..."}
+pytest -q
+ruff check .
+```
+
+The feature under test is a CRM note summarizer: `POST /summarize` turns a
+messy customer note into a structured `NoteSummary` (summary, sentiment,
+next_action, urgency, confidence). Prompts are versioned YAML files in
+`/prompts` (`crm_summary_v1` is the production baseline, `crm_summary_v2` is
+a verbose candidate used to exercise the regression runner). Generation
+defaults to a deterministic, keyless rule-based stub
+(`app/generation/summarizer.py`) so the whole pipeline runs offline; set
+`GENERATION_MODEL` and implement `_generate_llm` to call a real provider.
+
+The golden test set (`data/golden_test_set.jsonl`, 75 hand-written cases,
+changelog in `data/CHANGELOG.md`) and the regression runner
+(`app/eval/runner.py`, `app/eval/comparison.py`, `app/eval/thresholds.py`)
+run both prompt versions over every case, score schema validity, field
+correctness, summary relevance, next-action usefulness, safety issues,
+latency, and cost, and turn a run-over-run comparison into a pass/warn/block
+gate decision.
+
 ## Status
 
-Planned. Scaffold pending — see root `ROADMAP.md`.
+In progress — Phases 1-3 done (feature + versioned prompts + response
+contract, golden test set, regression runner with scoring/comparison/gate
+thresholds). Phases 4-6 (release reports + PR comments, CI/CD wiring,
+portfolio polish) remain. See root `ROADMAP.md`.
