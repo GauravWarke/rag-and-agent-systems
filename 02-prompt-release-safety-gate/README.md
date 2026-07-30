@@ -92,9 +92,47 @@ correctness, summary relevance, next-action usefulness, safety issues,
 latency, and cost, and turn a run-over-run comparison into a pass/warn/block
 gate decision.
 
+### Running the release gate
+
+```bash
+python gate.py --baseline crm_summary_v1 --candidate crm_summary_v2 --out reports/
+```
+
+This runs the full regression suite for both prompts and writes two files
+to `reports/`:
+
+- `release_report.md` — the full reviewer artifact: scorecard, run-over-run
+  deltas, newly-failing/newly-passing cases, regressed/improved categories,
+  and a side-by-side diff (input, baseline output, candidate output,
+  expected output, and why it failed) for every case that fails on the
+  candidate prompt.
+- `pr_comment.md` — a short summary (pass/warn/block, metric deltas, top
+  regressions, and a link to the full report if `--report-url` is passed)
+  suitable for posting as a PR comment.
+
+The command exits `1` when the gate decision is `block` (so a CI job can
+fail the PR) and `0` for `pass` or `warn` (so warnings surface without
+blocking the merge). Thresholds come from `app/core/config.py` /
+`.env` (`SCHEMA_VALIDITY_DROP_BLOCK_PCT`, `COST_INCREASE_BLOCK_PCT`,
+`LATENCY_INCREASE_WARN_PCT`), or can be overridden per-run via
+`evaluate_gate(...)` kwargs.
+
+### CI/CD wiring
+
+`.github/workflows/prompt-release-gate.yml` runs the gate on every pull
+request that touches `prompts/`, `data/`, or `app/eval/` in this project:
+it runs `gate.py`, uploads `reports/` as a build artifact, and posts (or
+updates) a PR comment with the short summary. If the gate decision is
+`block`, the job fails and the PR cannot merge; a `warn` decision still
+passes the job but the comment surfaces the warning. The same `gate.py`
+entry point runs unchanged locally, in CI, or via
+`docker compose --profile gate run gate-runner` (the `Dockerfile` bundles
+`gate.py` alongside the API); model choice, prompt names, and thresholds
+are all environment variables, never hardcoded.
+
 ## Status
 
-In progress — Phases 1-3 done (feature + versioned prompts + response
+In progress — Phases 1-5 done (feature + versioned prompts + response
 contract, golden test set, regression runner with scoring/comparison/gate
-thresholds). Phases 4-6 (release reports + PR comments, CI/CD wiring,
-portfolio polish) remain. See root `ROADMAP.md`.
+thresholds, release reports + PR comments, CI/CD wiring). Phase 6
+(portfolio polish) remains. See root `ROADMAP.md`.
