@@ -60,13 +60,30 @@ def summarize_run(prompt_name: str, prompt_version: str, scores: list[CaseScore]
     )
 
 
-def _run_one(cases: list[GoldenCase], prompt_name: str) -> list[CaseScore]:
+class DetailedCaseResult(BaseModel):
+    """A single case's raw (unvalidated) generation output alongside its
+    score — kept separate from `CaseScore` so the common regression path
+    doesn't have to carry raw output around, but the report builder (Phase
+    4) can still show the actual generated text side by side.
+    """
+
+    case_id: str
+    raw_output: dict
+    score: CaseScore
+
+
+def _run_one_detailed(cases: list[GoldenCase], prompt_name: str) -> list[DetailedCaseResult]:
     prompt = load_prompt(prompt_name)
     results = []
     for case in cases:
         raw, meta = run_prompt(case.note, prompt)
-        results.append(score_case(case, raw, meta))
+        score = score_case(case, raw, meta)
+        results.append(DetailedCaseResult(case_id=case.id, raw_output=raw, score=score))
     return results
+
+
+def _run_one(cases: list[GoldenCase], prompt_name: str) -> list[CaseScore]:
+    return [result.score for result in _run_one_detailed(cases, prompt_name)]
 
 
 def run_regression(
@@ -81,3 +98,17 @@ def run_regression(
     baseline_scores = _run_one(cases, baseline_prompt)
     candidate_scores = _run_one(cases, candidate_prompt)
     return baseline_scores, candidate_scores
+
+
+def run_regression_detailed(
+    baseline_prompt: str,
+    candidate_prompt: str,
+    cases: list[GoldenCase] | None = None,
+) -> tuple[list[GoldenCase], list[DetailedCaseResult], list[DetailedCaseResult]]:
+    """Same regression run as `run_regression`, but also keeps each case's
+    raw generation output so a report can render side-by-side diffs.
+    """
+    cases = load_golden_set() if cases is None else cases
+    baseline = _run_one_detailed(cases, baseline_prompt)
+    candidate = _run_one_detailed(cases, candidate_prompt)
+    return cases, baseline, candidate

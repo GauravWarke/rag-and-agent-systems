@@ -52,12 +52,12 @@ Folder: `02-prompt-release-safety-gate/`
 - [x] **(P2) Phase 3: Build the Regression Runner** — Score multiple dimensions: Measure schema validity, field-level correctness, summary relevance, next-action usefulness, safety issues, latency, and cost. Do not collapse everything into one vague score too early.
 - [x] **(P2) Phase 3: Build the Regression Runner** — Compare run-over-run: Identify cases that passed before but fail now, cases that improved, categories that regressed, and cost/latency changes. This diff is the core value of the project.
 - [x] **(P2) Phase 3: Build the Regression Runner** — Add thresholds: Create warning and blocking thresholds. Example: block if schema validity drops by more than 2%, safety failures increase, or average cost rises by more than 20%.
-- [ ] **(P2) Phase 4: Build Reports and PR Comments** — Generate a release report: Include a scorecard, regression table, examples of changed outputs, cost delta, latency delta, and recommended release decision.
-- [ ] **(P2) Phase 4: Build Reports and PR Comments** — Add side-by-side output diffs: For every failed case, show input, baseline output, candidate output, expected output, and the scoring explanation.
-- [ ] **(P2) Phase 4: Build Reports and PR Comments** — Post a PR comment: The GitHub Action should post a short summary: pass/warn/fail, top regressions, metric deltas, and a link to the full report artifact.
-- [ ] **(P2) Phase 5: Wire into CI/CD** — Trigger only when prompts change: Configure GitHub Actions to run when files under /prompts or /evals change. Keep the workflow efficient.
-- [ ] **(P2) Phase 5: Wire into CI/CD** — Block risky merges: If the result is critical, exit non-zero so the PR cannot merge. If it is warning-only, allow merge but leave a visible warning.
-- [ ] **(P2) Phase 5: Wire into CI/CD** — Package the runner: Add a Dockerfile so the same runner works locally and in CI. Expose environment variables for API keys, thresholds, and model choice.
+- [x] **(P2) Phase 4: Build Reports and PR Comments** — Generate a release report: Include a scorecard, regression table, examples of changed outputs, cost delta, latency delta, and recommended release decision.
+- [x] **(P2) Phase 4: Build Reports and PR Comments** — Add side-by-side output diffs: For every failed case, show input, baseline output, candidate output, expected output, and the scoring explanation.
+- [x] **(P2) Phase 4: Build Reports and PR Comments** — Post a PR comment: The GitHub Action should post a short summary: pass/warn/fail, top regressions, metric deltas, and a link to the full report artifact.
+- [x] **(P2) Phase 5: Wire into CI/CD** — Trigger only when prompts change: Configure GitHub Actions to run when files under /prompts or /evals change. Keep the workflow efficient.
+- [x] **(P2) Phase 5: Wire into CI/CD** — Block risky merges: If the result is critical, exit non-zero so the PR cannot merge. If it is warning-only, allow merge but leave a visible warning.
+- [x] **(P2) Phase 5: Wire into CI/CD** — Package the runner: Add a Dockerfile so the same runner works locally and in CI. Expose environment variables for API keys, thresholds, and model choice.
 - [ ] **(P2) Phase 6: Polish for Portfolio** — Create a demo PR: Intentionally change a prompt so it gets more verbose, more expensive, or less accurate. Show the safety gate catching it.
 - [ ] **(P2) Phase 6: Polish for Portfolio** — Write your README like team documentation: Include setup, how to add test cases, how to adjust thresholds, and what decisions you made around LLM-as-judge scoring.
 

@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
 COPY prompts ./prompts
 COPY data ./data
+COPY gate.py .
 
 EXPOSE 8000
 # Non-root user (secure baseline hardening)

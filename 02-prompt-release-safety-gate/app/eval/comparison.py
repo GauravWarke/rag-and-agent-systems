@@ -13,7 +13,10 @@ from app.eval.runner import RunSummary, summarize_run
 from app.eval.scoring import CaseScore
 
 
-def _case_passes(score: CaseScore) -> bool:
+def case_passes(score: CaseScore) -> bool:
+    """Whether a single case's score counts as passing (used both to build
+    this comparison and by the report builder to select failed cases).
+    """
     return (
         score.schema_valid
         and score.sentiment_correct
@@ -52,8 +55,8 @@ def compare_runs(baseline_scores: list[CaseScore], candidate_scores: list[CaseSc
         candidate_score = candidate_by_id.get(case_id)
         if candidate_score is None:
             continue
-        was_passing = _case_passes(baseline_score)
-        now_passing = _case_passes(candidate_score)
+        was_passing = case_passes(baseline_score)
+        now_passing = case_passes(candidate_score)
         if was_passing and not now_passing:
             newly_failing.append(case_id)
         elif not was_passing and now_passing:
@@ -72,8 +75,8 @@ def compare_runs(baseline_scores: list[CaseScore], candidate_scores: list[CaseSc
         candidate_group = candidate_by_category.get(category, [])
         if not candidate_group:
             continue
-        baseline_pass_rate = sum(_case_passes(s) for s in baseline_group) / len(baseline_group)
-        candidate_pass_rate = sum(_case_passes(s) for s in candidate_group) / len(candidate_group)
+        baseline_pass_rate = sum(case_passes(s) for s in baseline_group) / len(baseline_group)
+        candidate_pass_rate = sum(case_passes(s) for s in candidate_group) / len(candidate_group)
         if candidate_pass_rate < baseline_pass_rate:
             regressed_categories.append(category)
         elif candidate_pass_rate > baseline_pass_rate:

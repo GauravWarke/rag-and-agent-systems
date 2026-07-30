@@ -6,3 +6,12 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+
+  gate-runner:
+    build: .
+    profiles: ["gate"]
+    env_file:
+      - .env
+    entrypoint: ["python", "gate.py"]
+    volumes:
+      - ./reports:/app/reports
