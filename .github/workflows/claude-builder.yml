@@ -2,7 +2,7 @@ name: Claude ROADMAP Builder
 
 on:
   schedule:
-    - cron: "30 4 * * *"   # every day, 10:00 AM IST
+    - cron: "0 0 * * *"   # every day, 10:00 AM AEST (Australia/Sydney, UTC+10)
   workflow_dispatch:
 
 permissions:
