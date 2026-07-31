@@ -117,6 +117,34 @@ blocking the merge). Thresholds come from `app/core/config.py` /
 `LATENCY_INCREASE_WARN_PCT`), or can be overridden per-run via
 `evaluate_gate(...)` kwargs.
 
+### Demo: the gate catching a bad prompt change
+
+`prompts/crm_summary_v2.yaml` is a deliberately-regressed candidate: it
+asks the model for a longer, more thorough summary, which raises token
+count (and therefore cost) without improving accuracy. Running the gate
+against it reproduces exactly the "bad PR" scenario the safety gate
+exists to catch:
+
+```bash
+python gate.py --baseline crm_summary_v1 --candidate crm_summary_v2 --out reports/
+```
+
+```
+Wrote reports/release_report.md and reports/pr_comment.md
+Gate decision: block
+  - average cost rose 21.40%, exceeding the 20.00% block threshold
+```
+
+The command exits `1`, so a CI job running this on a pull request that
+changed `prompts/crm_summary_v2.yaml` would fail the check and block the
+merge. `reports/pr_comment.md` holds the short summary a bot would post
+on the PR; `reports/release_report.md` holds the full scorecard, deltas,
+and a side-by-side diff for every case that fails on the candidate. This
+exact scenario is asserted in
+`tests/test_gate_cli.py::test_gate_cli_blocks_on_regressed_candidate` so
+the demo can't silently regress. `reports/` is git-ignored (it's a build
+artifact, not source) — regenerate it locally with the command above.
+
 ### CI/CD wiring
 
 `.github/workflows/prompt-release-gate.yml` runs the gate on every pull
@@ -130,9 +158,78 @@ entry point runs unchanged locally, in CI, or via
 `gate.py` alongside the API); model choice, prompt names, and thresholds
 are all environment variables, never hardcoded.
 
+## Team documentation
+
+### How to add a test case
+
+1. Append a line to `data/golden_test_set.jsonl` with a stable, unused
+   `id` (next free `cNNN`), the raw `note` text, a `category`, a
+   `difficulty` (`easy`/`medium`/`hard`), a `risk_area`
+   (`billing`/`product`/`product_bug`/`churn`/`safety`/`compliance`/`none`),
+   `why_this_case_exists`, and an `expected` block (`sentiment`, `urgency`,
+   `next_action_keywords`, `summary_keywords`) — see
+   `app/eval/dataset.py::GoldenCase` for the schema.
+2. Add an entry to `data/CHANGELOG.md` describing what was added or
+   changed and why, under a new version heading. The dataset is a managed
+   artifact, not a one-off fixture — every edit gets a changelog line.
+3. Never reuse or renumber an existing `id`; if a case is fully replaced
+   rather than tweaked, retire the old id in the changelog and add a new
+   one instead. Existing tests and past reports may reference IDs.
+4. Run `python gate.py --baseline crm_summary_v1 --candidate crm_summary_v1
+   --out /tmp/gate-check` to sanity-check the new case parses and scores
+   before relying on it for a real prompt comparison.
+
+### How to adjust thresholds
+
+Thresholds live in `app/core/config.py` (`Settings`) and are read from
+environment variables / `.env`, never hardcoded in the gate logic itself
+(`app/eval/thresholds.py::evaluate_gate`):
+
+| Env var | Default | Effect |
+|---|---|---|
+| `SCHEMA_VALIDITY_DROP_BLOCK_PCT` | `2.0` | Block if schema-valid-output rate drops more than this many points. |
+| `COST_INCREASE_BLOCK_PCT` | `20.0` | Block if average per-case cost rises more than this percent. |
+| `LATENCY_INCREASE_WARN_PCT` | `20.0` | Warn (does not block) if average latency rises more than this percent. |
+
+A safety-failure increase of any size always blocks — that threshold is
+intentionally not configurable. `evaluate_gate(...)` also accepts these as
+keyword overrides for one-off local experiments without touching env
+config. Prefer widening a threshold only with a written reason (e.g. in
+the PR description), since these numbers are the actual release policy.
+
+### Decisions around LLM-as-judge scoring
+
+V1 deliberately does **not** use an LLM judge. `app/eval/scoring.py` scores
+every dimension with rule-based checks instead: exact-match on
+`sentiment`/`urgency`, keyword containment for summary relevance and
+next-action usefulness, and regex detection for unredacted PII
+(SSN/credit-card-shaped strings) as the safety check. Reasons:
+
+- **Determinism.** The regression runner's whole value proposition is a
+  stable pass/fail signal in CI. An LLM judge adds run-to-run variance
+  that would produce flaky gate decisions — exactly the failure mode a
+  release gate must not have.
+- **No extra keyless-offline dependency.** The project runs fully offline
+  by default (`app/generation/summarizer.py` is a deterministic stub); a
+  judge model would require an API key or a second local model just to
+  run tests and CI.
+- **Cost and latency.** Judging 75+ cases per prompt version, on every
+  prompt-touching PR, roughly doubles LLM spend and CI wall time for
+  marginal signal on a narrow, well-specified schema where exact/keyword
+  matching is already a good proxy.
+
+This is a V1 tradeoff, not a permanent one: `summary_relevance` and
+`next_action_useful` are the two dimensions where keyword containment is
+the weakest proxy (a correct summary can miss the exact keyword; a
+verbose one can include it without being useful — see the v2 demo above).
+The natural extension is an optional LLM-judge pass behind a
+`JUDGE_MODEL` env var, used for those two dimensions only, sampled rather
+than run on every case, with the rule-based score kept as the offline
+fallback so CI never depends on a live model call.
+
 ## Status
 
-In progress — Phases 1-5 done (feature + versioned prompts + response
+Done — all 6 phases complete (feature + versioned prompts + response
 contract, golden test set, regression runner with scoring/comparison/gate
-thresholds, release reports + PR comments, CI/CD wiring). Phase 6
-(portfolio polish) remains. See root `ROADMAP.md`.
+thresholds, release reports + PR comments, CI/CD wiring, portfolio
+polish). See root `ROADMAP.md`.
