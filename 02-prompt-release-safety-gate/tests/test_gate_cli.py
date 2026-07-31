@@ -14,6 +14,10 @@ def test_gate_cli_writes_reports_and_returns_pass_exit_code(tmp_path):
 
 
 def test_gate_cli_blocks_on_regressed_candidate(tmp_path):
+    """Demo scenario: v2 is an intentionally verbose, more expensive
+    candidate (see prompts/crm_summary_v2.yaml). The gate must catch the
+    cost regression and block the release.
+    """
     exit_code = main([
         "--baseline", "crm_summary_v1",
         "--candidate", "crm_summary_v2",
@@ -22,4 +26,6 @@ def test_gate_cli_blocks_on_regressed_candidate(tmp_path):
     ])
     comment = (tmp_path / "pr_comment.md").read_text()
     assert "Prompt Release Gate" in comment
-    assert exit_code in (0, 1)
+    assert "BLOCK" in comment
+    assert "cost rose" in comment
+    assert exit_code == 1

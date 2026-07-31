@@ -58,8 +58,8 @@ Folder: `02-prompt-release-safety-gate/`
 - [x] **(P2) Phase 5: Wire into CI/CD** — Trigger only when prompts change: Configure GitHub Actions to run when files under /prompts or /evals change. Keep the workflow efficient.
 - [x] **(P2) Phase 5: Wire into CI/CD** — Block risky merges: If the result is critical, exit non-zero so the PR cannot merge. If it is warning-only, allow merge but leave a visible warning.
 - [x] **(P2) Phase 5: Wire into CI/CD** — Package the runner: Add a Dockerfile so the same runner works locally and in CI. Expose environment variables for API keys, thresholds, and model choice.
-- [ ] **(P2) Phase 6: Polish for Portfolio** — Create a demo PR: Intentionally change a prompt so it gets more verbose, more expensive, or less accurate. Show the safety gate catching it.
-- [ ] **(P2) Phase 6: Polish for Portfolio** — Write your README like team documentation: Include setup, how to add test cases, how to adjust thresholds, and what decisions you made around LLM-as-judge scoring.
+- [x] **(P2) Phase 6: Polish for Portfolio** — Create a demo PR: Intentionally change a prompt so it gets more verbose, more expensive, or less accurate. Show the safety gate catching it.
+- [x] **(P2) Phase 6: Polish for Portfolio** — Write your README like team documentation: Include setup, how to add test cases, how to adjust thresholds, and what decisions you made around LLM-as-judge scoring.
 
 ## P3: LLM Spend Control Center
 
