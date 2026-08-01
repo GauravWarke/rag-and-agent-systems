@@ -66,17 +66,17 @@ Folder: `02-prompt-release-safety-gate/`
 *Topic: LLMOps, Cost Optimization, Model Routing, Budget Monitoring*  
 Folder: `03-llm-spend-control-center/`
 
-- [ ] **(P3) Scaffold** — create `03-llm-spend-control-center/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
-- [ ] **(P3) Phase 1: Build the Unified Request Gateway** — Define a standard request format: Accept chat-style input, team ID, feature name, priority, and optional model preference. Normalize all provider responses into one response schema.
-- [ ] **(P3) Phase 1: Build the Unified Request Gateway** — Create a model registry: Store model name, provider, quality tier, input cost, output cost, latency estimate, max context length, and supported features like vision or tool calling.
-- [ ] **(P3) Phase 1: Build the Unified Request Gateway** — Build provider adapters: Implement one adapter per provider. Each adapter should return output text, token counts, latency, cost, and provider metadata.
-- [ ] **(P3) Phase 2: Build Cost Tracking and Budgets** — Log every request: Store timestamp, team ID, feature, model used, input/output tokens, latency, status, and cost. Make this audit trail queryable.
-- [ ] **(P3) Phase 2: Build Cost Tracking and Budgets** — Add budget policies: Each team or feature gets daily and monthly limits. Track spend against those limits in real time.
-- [ ] **(P3) Phase 2: Build Cost Tracking and Budgets** — Create warning and block behavior: At 80% budget, send warning alerts. At 100%, block low-priority requests or require override. Return clear errors instead of silently failing.
-- [ ] **(P3) Phase 3: Build Request Complexity Routing** — Define routing tiers: Tier 1 is extraction and formatting. Tier 2 is summarization and classification. Tier 3 is reasoning-heavy or high-risk work.
-- [ ] **(P3) Phase 3: Build Request Complexity Routing** — Build a lightweight classifier: Use features like prompt length, instruction verbs, required output format, context size, and risk tags. A simple model is fine; the architecture matters more than perfect ML.
-- [ ] **(P3) Phase 3: Build Request Complexity Routing** — Map tiers to models: Route simple work to cheaper models, moderate work to mid-tier models, and risky work to high-quality models. Store this mapping in YAML or database config.
-- [ ] **(P3) Phase 3: Build Request Complexity Routing** — Add override rules: Some features should always use a stronger model because correctness matters more than cost. Make those rules explicit.
+- [x] **(P3) Scaffold** — create `03-llm-spend-control-center/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
+- [x] **(P3) Phase 1: Build the Unified Request Gateway** — Define a standard request format: Accept chat-style input, team ID, feature name, priority, and optional model preference. Normalize all provider responses into one response schema.
+- [x] **(P3) Phase 1: Build the Unified Request Gateway** — Create a model registry: Store model name, provider, quality tier, input cost, output cost, latency estimate, max context length, and supported features like vision or tool calling.
+- [x] **(P3) Phase 1: Build the Unified Request Gateway** — Build provider adapters: Implement one adapter per provider. Each adapter should return output text, token counts, latency, cost, and provider metadata.
+- [x] **(P3) Phase 2: Build Cost Tracking and Budgets** — Log every request: Store timestamp, team ID, feature, model used, input/output tokens, latency, status, and cost. Make this audit trail queryable.
+- [x] **(P3) Phase 2: Build Cost Tracking and Budgets** — Add budget policies: Each team or feature gets daily and monthly limits. Track spend against those limits in real time.
+- [x] **(P3) Phase 2: Build Cost Tracking and Budgets** — Create warning and block behavior: At 80% budget, send warning alerts. At 100%, block low-priority requests or require override. Return clear errors instead of silently failing.
+- [x] **(P3) Phase 3: Build Request Complexity Routing** — Define routing tiers: Tier 1 is extraction and formatting. Tier 2 is summarization and classification. Tier 3 is reasoning-heavy or high-risk work.
+- [x] **(P3) Phase 3: Build Request Complexity Routing** — Build a lightweight classifier: Use features like prompt length, instruction verbs, required output format, context size, and risk tags. A simple model is fine; the architecture matters more than perfect ML.
+- [x] **(P3) Phase 3: Build Request Complexity Routing** — Map tiers to models: Route simple work to cheaper models, moderate work to mid-tier models, and risky work to high-quality models. Store this mapping in YAML or database config.
+- [x] **(P3) Phase 3: Build Request Complexity Routing** — Add override rules: Some features should always use a stronger model because correctness matters more than cost. Make those rules explicit.
 - [ ] **(P3) Phase 4: Add Quality Checks and Escalation** — Sample responses for verification: For a percentage of requests routed to cheaper models, asynchronously compare output quality against a stronger model.
 - [ ] **(P3) Phase 4: Add Quality Checks and Escalation** — Detect bad routing decisions: If the cheap model fails a quality check, mark the request as a routing miss. Store the prompt, chosen model, better model, and reason.
 - [ ] **(P3) Phase 4: Add Quality Checks and Escalation** — Add auto-escalation for high-risk requests: If confidence is low or the request is tagged high-priority, rerun with a stronger model before returning the final answer.
