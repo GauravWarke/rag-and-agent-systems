@@ -68,4 +68,29 @@ A routing and budgeting layer that sits in front of LLM calls, tracks usage by t
 
 ## Status
 
-Planned. Scaffold pending — see root `ROADMAP.md`.
+In progress — Phases 1-3 complete:
+
+- **Phase 1 — Unified Request Gateway:** `POST /v1/chat` accepts a
+  standard chat-style request (messages, team ID, feature, priority,
+  optional model) and returns one normalized response shape regardless
+  of provider. Model registry (`data/model_registry.yaml`) holds
+  pricing/tier/capability metadata per model. Adapters implemented for
+  `stub` (offline, deterministic, default), `openai`, `anthropic`, and
+  `ollama` — the real-provider adapters need an API key/local server and
+  aren't exercised by the offline test suite.
+- **Phase 2 — Cost Tracking and Budgets:** every request is logged
+  (`app/usage/store.py`) with team/feature/model/tokens/latency/cost and
+  is queryable via `GET /v1/usage/summary`. Per-team and per-feature
+  daily/monthly budget policies (`data/budget_policies.yaml`) are
+  enforced before the provider call — 80%+ usage returns a warning,
+  100%+ blocks unless the request is `priority: high` or sets
+  `override_budget_block`.
+- **Phase 3 — Request Complexity Routing:** a rule-based classifier
+  (`app/routing/classifier.py`) scores prompt length, instruction verbs,
+  and risk tags into tiers 1-3, mapped to the cheapest *available*
+  model per tier in the registry. Feature-level overrides
+  (`data/routing_overrides.yaml`) force a tier regardless of the
+  classifier's read — e.g. `legal-review` always gets a tier-3 model.
+
+Phases 4-6 (quality-check escalation, cost dashboard, portfolio polish)
+are not yet built — see root `ROADMAP.md`.
