@@ -68,7 +68,7 @@ A routing and budgeting layer that sits in front of LLM calls, tracks usage by t
 
 ## Status
 
-In progress — Phases 1-3 complete:
+In progress — Phases 1-4 complete, Phase 5 partially complete:
 
 - **Phase 1 — Unified Request Gateway:** `POST /v1/chat` accepts a
   standard chat-style request (messages, team ID, feature, priority,
@@ -91,6 +91,30 @@ In progress — Phases 1-3 complete:
   model per tier in the registry. Feature-level overrides
   (`data/routing_overrides.yaml`) force a tier regardless of the
   classifier's read — e.g. `legal-review` always gets a tier-3 model.
+- **Phase 4 — Quality Checks and Escalation:** a configurable share of
+  requests answered by a sub-tier-3 model (`settings.quality_sample_rate`,
+  default 20%) are replayed against the strongest available model in a
+  FastAPI background task (`app/quality/verifier.py`) so verification
+  never adds latency to the user-facing response. Outputs are compared
+  with a deterministic, offline token-overlap judge
+  (`app/quality/judge.py`) — a stand-in for an LLM-as-judge call that
+  keeps this testable without any provider key. Low-similarity results
+  are logged as routing misses (`app/quality/store.py`) with the prompt,
+  chosen model, reference model, and reason, queryable via
+  `GET /v1/quality/summary`. A feature whose recent miss rate crosses
+  `escalation_miss_rate_threshold` (default 30%, once at least
+  `escalation_min_samples` checks exist) gets auto-escalated to the
+  strongest tier before the call is made — the system's own notion of
+  "confidence" in a cheap route is its recent verification pass rate.
+  Requests marked `priority: high` escalate immediately regardless of
+  history. Escalation is surfaced on the response as `escalated` /
+  `escalation_reason`.
+- **Phase 5 — Cost Dashboard (partial):** `GET /v1/dashboard/spend`
+  reports daily cost, a naive monthly run-rate projection, the top
+  expensive individual requests, and spend broken down by team,
+  feature, and model. Savings-vs-strongest-model estimates and routing
+  quality metrics (escalation rate, verifier pass rate, latency/error
+  rate by model) are not yet built.
 
-Phases 4-6 (quality-check escalation, cost dashboard, portfolio polish)
-are not yet built — see root `ROADMAP.md`.
+Phase 5's remaining items and Phase 6 (portfolio polish) are not yet
+built — see root `ROADMAP.md`.

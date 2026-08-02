@@ -46,3 +46,5 @@ class GatewayResponse(BaseModel):
     latency_ms: float
     budget_status: BudgetStatus = "ok"
     warnings: list[str] = Field(default_factory=list)
+    escalated: bool = False
+    escalation_reason: str | None = None
