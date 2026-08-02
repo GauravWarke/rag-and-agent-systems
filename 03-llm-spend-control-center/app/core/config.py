@@ -26,5 +26,11 @@ class Settings(BaseSettings):
 
     rate_limit_per_minute: int = 60
 
+    # Quality verification and escalation.
+    quality_sample_rate: float = 0.2
+    quality_similarity_threshold: float = 0.5
+    escalation_min_samples: int = 5
+    escalation_miss_rate_threshold: float = 0.3
+
 
 settings = Settings()

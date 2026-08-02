@@ -77,10 +77,10 @@ Folder: `03-llm-spend-control-center/`
 - [x] **(P3) Phase 3: Build Request Complexity Routing** — Build a lightweight classifier: Use features like prompt length, instruction verbs, required output format, context size, and risk tags. A simple model is fine; the architecture matters more than perfect ML.
 - [x] **(P3) Phase 3: Build Request Complexity Routing** — Map tiers to models: Route simple work to cheaper models, moderate work to mid-tier models, and risky work to high-quality models. Store this mapping in YAML or database config.
 - [x] **(P3) Phase 3: Build Request Complexity Routing** — Add override rules: Some features should always use a stronger model because correctness matters more than cost. Make those rules explicit.
-- [ ] **(P3) Phase 4: Add Quality Checks and Escalation** — Sample responses for verification: For a percentage of requests routed to cheaper models, asynchronously compare output quality against a stronger model.
-- [ ] **(P3) Phase 4: Add Quality Checks and Escalation** — Detect bad routing decisions: If the cheap model fails a quality check, mark the request as a routing miss. Store the prompt, chosen model, better model, and reason.
-- [ ] **(P3) Phase 4: Add Quality Checks and Escalation** — Add auto-escalation for high-risk requests: If confidence is low or the request is tagged high-priority, rerun with a stronger model before returning the final answer.
-- [ ] **(P3) Phase 5: Build the Cost Dashboard** — Show spend by team and feature: Include daily cost, monthly projection, top expensive prompts, and cost by model.
+- [x] **(P3) Phase 4: Add Quality Checks and Escalation** — Sample responses for verification: For a percentage of requests routed to cheaper models, asynchronously compare output quality against a stronger model.
+- [x] **(P3) Phase 4: Add Quality Checks and Escalation** — Detect bad routing decisions: If the cheap model fails a quality check, mark the request as a routing miss. Store the prompt, chosen model, better model, and reason.
+- [x] **(P3) Phase 4: Add Quality Checks and Escalation** — Add auto-escalation for high-risk requests: If confidence is low or the request is tagged high-priority, rerun with a stronger model before returning the final answer.
+- [x] **(P3) Phase 5: Build the Cost Dashboard** — Show spend by team and feature: Include daily cost, monthly projection, top expensive prompts, and cost by model.
 - [ ] **(P3) Phase 5: Build the Cost Dashboard** — Show savings estimates: Compare actual routed spend with "everything sent to the strongest model." This gives you the main metric for the case study.
 - [ ] **(P3) Phase 5: Build the Cost Dashboard** — Add routing quality metrics: Show escalation rate, verifier pass rate, latency by model, and error rate by provider.
 - [ ] **(P3) Phase 6: Polish for Portfolio** — Run a simulated workload: Send 1,000 mixed prompts through the gateway and produce a cost savings report.

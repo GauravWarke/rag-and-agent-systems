@@ -7,6 +7,7 @@ process, but the query surface (`spend_today`, `spend_month`,
 """
 from __future__ import annotations
 
+import calendar
 from datetime import datetime, timezone
 from typing import Literal
 
@@ -70,3 +71,35 @@ class UsageStore:
         for e in self._entries:
             totals[e.model] = totals.get(e.model, 0.0) + e.cost_usd
         return totals
+
+    def spend_today_total(self, now: datetime | None = None) -> float:
+        now = now or datetime.now(timezone.utc)
+        return sum(e.cost_usd for e in self._entries if e.timestamp.date() == now.date())
+
+    def spend_month_total(self, now: datetime | None = None) -> float:
+        now = now or datetime.now(timezone.utc)
+        return sum(
+            e.cost_usd for e in self._entries if (e.timestamp.year, e.timestamp.month) == (now.year, now.month)
+        )
+
+    def monthly_projection(self, now: datetime | None = None) -> float:
+        """Naive run-rate projection: month-to-date spend scaled by how much
+        of the month is left, assuming the daily rate holds steady."""
+        now = now or datetime.now(timezone.utc)
+        days_in_month = calendar.monthrange(now.year, now.month)[1]
+        month_to_date = self.spend_month_total(now)
+        return round(month_to_date / now.day * days_in_month, 8)
+
+    def top_expensive(self, limit: int = 10) -> list[dict]:
+        ranked = sorted(self._entries, key=lambda e: e.cost_usd, reverse=True)[:limit]
+        return [
+            {
+                "request_id": e.request_id,
+                "team_id": e.team_id,
+                "feature": e.feature,
+                "model": e.model,
+                "cost_usd": e.cost_usd,
+                "timestamp": e.timestamp.isoformat(),
+            }
+            for e in ranked
+        ]

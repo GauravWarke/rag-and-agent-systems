@@ -10,13 +10,15 @@ Endpoints:
   POST /v1/chat             send a chat-style request through the gateway
   GET  /v1/budgets/{team}   current budget status for a team
   GET  /v1/usage/summary    spend broken down by team, feature, and model
+  GET  /v1/quality/summary  routing verification pass rate and misses
 """
 from __future__ import annotations
 
+import random
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 
 from app.budgets.policy import BudgetPolicyStore
 from app.budgets.tracker import BudgetTracker
@@ -24,6 +26,8 @@ from app.core.config import settings
 from app.core.models import GatewayRequest, GatewayResponse
 from app.core.rate_limit import RateLimiter
 from app.providers.registry import get_adapter
+from app.quality.store import QualityStore
+from app.quality.verifier import QualityVerifier
 from app.registry.models import ModelRegistry, estimate_cost
 from app.routing.overrides import RoutingOverrides
 from app.routing.router import select_tier
@@ -37,6 +41,7 @@ _usage_store = UsageStore()
 _policy_store = BudgetPolicyStore.load(settings.budget_policies_path)
 _budget_tracker = BudgetTracker(_usage_store, _policy_store, settings.budget_warning_threshold_pct)
 _routing_overrides = RoutingOverrides.load(settings.routing_overrides_path)
+_quality_store = QualityStore()
 
 
 def _available_providers() -> set[str]:
@@ -56,13 +61,22 @@ def _available_providers() -> set[str]:
     return providers
 
 
+_quality_verifier = QualityVerifier(
+    _model_registry,
+    _quality_store,
+    get_adapter,
+    _available_providers,
+    settings.quality_similarity_threshold,
+)
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
 @app.post("/v1/chat", response_model=GatewayResponse)
-def chat(req: GatewayRequest, request: Request) -> GatewayResponse:
+def chat(req: GatewayRequest, request: Request, background_tasks: BackgroundTasks) -> GatewayResponse:
     client_key = request.client.host if request.client else "unknown"
     if not _limiter.allow(client_key):
         raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
@@ -83,11 +97,19 @@ def chat(req: GatewayRequest, request: Request) -> GatewayResponse:
         )
 
     routing_tier: int | None = None
+    escalated = False
+    escalation_reason: str | None = None
     try:
         if req.model:
             model_spec = _model_registry.get(req.model)
         else:
             routing_tier = select_tier(req, _routing_overrides)
+            if routing_tier < 3 and req.priority == "high":
+                escalated, escalation_reason, routing_tier = True, "high_priority", 3
+            elif routing_tier < 3 and _quality_store.should_escalate(
+                req.feature, settings.escalation_min_samples, settings.escalation_miss_rate_threshold
+            ):
+                escalated, escalation_reason, routing_tier = True, "low_confidence", 3
             model_spec = _model_registry.default_for_tier(routing_tier, _available_providers())
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -132,6 +154,19 @@ def chat(req: GatewayRequest, request: Request) -> GatewayResponse:
         )
     )
 
+    if not escalated and model_spec.quality_tier < 3 and random.random() < settings.quality_sample_rate:
+        background_tasks.add_task(
+            _quality_verifier.verify,
+            request_id=request_id,
+            team_id=req.team_id,
+            feature=req.feature,
+            messages=req.messages,
+            cheap_model_name=model_spec.name,
+            cheap_output=result.output,
+            max_tokens=req.max_tokens,
+            temperature=req.temperature,
+        )
+
     return GatewayResponse(
         request_id=request_id,
         output=result.output,
@@ -144,6 +179,8 @@ def chat(req: GatewayRequest, request: Request) -> GatewayResponse:
         latency_ms=result.latency_ms,
         budget_status=budget_result.status,
         warnings=warnings,
+        escalated=escalated,
+        escalation_reason=escalation_reason,
     )
 
 
@@ -165,4 +202,40 @@ def usage_summary() -> dict:
         "by_team": _usage_store.spend_by_team(),
         "by_feature": _usage_store.spend_by_feature(),
         "by_model": _usage_store.spend_by_model(),
+    }
+
+
+@app.get("/v1/dashboard/spend")
+def dashboard_spend() -> dict:
+    return {
+        "daily_cost_usd": _usage_store.spend_today_total(),
+        "monthly_cost_usd": _usage_store.spend_month_total(),
+        "monthly_projection_usd": _usage_store.monthly_projection(),
+        "top_expensive_requests": _usage_store.top_expensive(),
+        "by_team": _usage_store.spend_by_team(),
+        "by_feature": _usage_store.spend_by_feature(),
+        "by_model": _usage_store.spend_by_model(),
+    }
+
+
+@app.get("/v1/quality/summary")
+def quality_summary() -> dict:
+    misses = _quality_store.misses()
+    return {
+        "total_checks": len(_quality_store.all()),
+        "routing_miss_count": len(misses),
+        "pass_rate": _quality_store.pass_rate(),
+        "misses": [
+            {
+                "request_id": e.request_id,
+                "team_id": e.team_id,
+                "feature": e.feature,
+                "cheap_model": e.cheap_model,
+                "reference_model": e.reference_model,
+                "similarity_score": e.similarity_score,
+                "prompt_preview": e.prompt_preview,
+                "reason": e.reason,
+            }
+            for e in misses
+        ],
     }
