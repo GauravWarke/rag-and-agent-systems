@@ -11,6 +11,8 @@ Endpoints:
   GET  /v1/budgets/{team}   current budget status for a team
   GET  /v1/usage/summary    spend broken down by team, feature, and model
   GET  /v1/quality/summary  routing verification pass rate and misses
+  GET  /v1/dashboard/savings          actual spend vs. an all-strongest-model baseline
+  GET  /v1/dashboard/routing-quality  escalation rate, verifier pass rate, latency/error by model/provider
 """
 from __future__ import annotations
 
@@ -133,6 +135,7 @@ def chat(req: GatewayRequest, request: Request, background_tasks: BackgroundTask
                 latency_ms=0.0,
                 status="error",
                 cost_usd=0.0,
+                escalated=escalated,
             )
         )
         raise HTTPException(status_code=502, detail=str(exc)) from exc
@@ -151,6 +154,7 @@ def chat(req: GatewayRequest, request: Request, background_tasks: BackgroundTask
             latency_ms=result.latency_ms,
             status="ok",
             cost_usd=cost_usd,
+            escalated=escalated,
         )
     )
 
@@ -215,6 +219,22 @@ def dashboard_spend() -> dict:
         "by_team": _usage_store.spend_by_team(),
         "by_feature": _usage_store.spend_by_feature(),
         "by_model": _usage_store.spend_by_model(),
+    }
+
+
+@app.get("/v1/dashboard/savings")
+def dashboard_savings() -> dict:
+    strongest = _model_registry.default_for_tier(3, _available_providers())
+    return _usage_store.savings_estimate(strongest)
+
+
+@app.get("/v1/dashboard/routing-quality")
+def dashboard_routing_quality() -> dict:
+    return {
+        "escalation_rate": _usage_store.escalation_rate(),
+        "verifier_pass_rate": _quality_store.pass_rate(),
+        "latency_ms_by_model": _usage_store.latency_by_model(),
+        "error_rate_by_provider": _usage_store.error_rate_by_provider(),
     }
 
 

@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from app.registry.models import ModelSpec
 from app.usage.store import UsageLogEntry, UsageStore
 
 
@@ -94,3 +95,69 @@ def test_top_expensive_orders_by_cost_desc_and_respects_limit():
     store.log(_entry(request_id="mid", cost_usd=1.0))
     top = store.top_expensive(limit=2)
     assert [e["request_id"] for e in top] == ["pricey", "mid"]
+
+
+_STRONGEST = ModelSpec(
+    name="stub-strong",
+    provider="stub",
+    quality_tier=3,
+    input_cost_per_million=2.0,
+    output_cost_per_million=8.0,
+    latency_estimate_ms=800,
+    max_context_tokens=128000,
+)
+
+
+def test_savings_estimate_compares_actual_to_strongest_model_baseline():
+    store = UsageStore()
+    store.log(_entry(request_id="r1", input_tokens=1_000_000, output_tokens=0, cost_usd=0.05))
+    result = store.savings_estimate(_STRONGEST)
+    assert result["request_count"] == 1
+    assert result["actual_cost_usd"] == 0.05
+    assert result["hypothetical_strongest_model_cost_usd"] == 2.0
+    assert result["savings_usd"] == 1.95
+    assert result["savings_pct"] == 0.975
+
+
+def test_savings_estimate_ignores_errored_requests():
+    store = UsageStore()
+    store.log(_entry(request_id="r1", status="error", cost_usd=0.0, input_tokens=0, output_tokens=0))
+    result = store.savings_estimate(_STRONGEST)
+    assert result["request_count"] == 0
+    assert result["savings_usd"] == 0.0
+
+
+def test_savings_estimate_handles_no_requests():
+    store = UsageStore()
+    result = store.savings_estimate(_STRONGEST)
+    assert result["savings_pct"] == 0.0
+
+
+def test_escalation_rate():
+    store = UsageStore()
+    store.log(_entry(request_id="r1", escalated=True))
+    store.log(_entry(request_id="r2", escalated=False))
+    store.log(_entry(request_id="r3", escalated=False))
+    assert store.escalation_rate() == 1 / 3
+
+
+def test_escalation_rate_empty_store():
+    assert UsageStore().escalation_rate() == 0.0
+
+
+def test_latency_by_model_averages_ok_requests_only():
+    store = UsageStore()
+    store.log(_entry(request_id="r1", model="m1", latency_ms=100.0))
+    store.log(_entry(request_id="r2", model="m1", latency_ms=200.0))
+    store.log(_entry(request_id="r3", model="m1", status="error", latency_ms=0.0))
+    assert store.latency_by_model() == {"m1": 150.0}
+
+
+def test_error_rate_by_provider():
+    store = UsageStore()
+    store.log(_entry(request_id="r1", provider="openai", status="ok"))
+    store.log(_entry(request_id="r2", provider="openai", status="error"))
+    store.log(_entry(request_id="r3", provider="anthropic", status="ok"))
+    rates = store.error_rate_by_provider()
+    assert rates["openai"] == 0.5
+    assert rates["anthropic"] == 0.0
