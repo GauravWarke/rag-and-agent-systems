@@ -68,7 +68,7 @@ A routing and budgeting layer that sits in front of LLM calls, tracks usage by t
 
 ## Status
 
-In progress — Phases 1-4 complete, Phase 5 partially complete:
+In progress — Phases 1-5 complete, Phase 6 (portfolio polish) remaining:
 
 - **Phase 1 — Unified Request Gateway:** `POST /v1/chat` accepts a
   standard chat-style request (messages, team ID, feature, priority,
@@ -109,12 +109,14 @@ In progress — Phases 1-4 complete, Phase 5 partially complete:
   Requests marked `priority: high` escalate immediately regardless of
   history. Escalation is surfaced on the response as `escalated` /
   `escalation_reason`.
-- **Phase 5 — Cost Dashboard (partial):** `GET /v1/dashboard/spend`
-  reports daily cost, a naive monthly run-rate projection, the top
-  expensive individual requests, and spend broken down by team,
-  feature, and model. Savings-vs-strongest-model estimates and routing
-  quality metrics (escalation rate, verifier pass rate, latency/error
-  rate by model) are not yet built.
+- **Phase 5 — Cost Dashboard:** `GET /v1/dashboard/spend` reports daily
+  cost, a naive monthly run-rate projection, the top expensive
+  individual requests, and spend broken down by team, feature, and
+  model. `GET /v1/dashboard/savings` compares actual routed spend
+  against the hypothetical cost of sending every request to the
+  strongest available model — the headline savings number for the case
+  study. `GET /v1/dashboard/routing-quality` reports escalation rate,
+  verifier pass rate, average latency by model, and error rate by
+  provider.
 
-Phase 5's remaining items and Phase 6 (portfolio polish) are not yet
-built — see root `ROADMAP.md`.
+Phase 6 (portfolio polish) is not yet built — see root `ROADMAP.md`.

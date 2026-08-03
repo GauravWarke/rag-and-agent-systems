@@ -81,8 +81,8 @@ Folder: `03-llm-spend-control-center/`
 - [x] **(P3) Phase 4: Add Quality Checks and Escalation** — Detect bad routing decisions: If the cheap model fails a quality check, mark the request as a routing miss. Store the prompt, chosen model, better model, and reason.
 - [x] **(P3) Phase 4: Add Quality Checks and Escalation** — Add auto-escalation for high-risk requests: If confidence is low or the request is tagged high-priority, rerun with a stronger model before returning the final answer.
 - [x] **(P3) Phase 5: Build the Cost Dashboard** — Show spend by team and feature: Include daily cost, monthly projection, top expensive prompts, and cost by model.
-- [ ] **(P3) Phase 5: Build the Cost Dashboard** — Show savings estimates: Compare actual routed spend with "everything sent to the strongest model." This gives you the main metric for the case study.
-- [ ] **(P3) Phase 5: Build the Cost Dashboard** — Add routing quality metrics: Show escalation rate, verifier pass rate, latency by model, and error rate by provider.
+- [x] **(P3) Phase 5: Build the Cost Dashboard** — Show savings estimates: Compare actual routed spend with "everything sent to the strongest model." This gives you the main metric for the case study.
+- [x] **(P3) Phase 5: Build the Cost Dashboard** — Add routing quality metrics: Show escalation rate, verifier pass rate, latency by model, and error rate by provider.
 - [ ] **(P3) Phase 6: Polish for Portfolio** — Run a simulated workload: Send 1,000 mixed prompts through the gateway and produce a cost savings report.
 - [ ] **(P3) Phase 6: Polish for Portfolio** — Write the case study: Start with: "Reduced simulated LLM spend by X% while maintaining Y% verification pass rate." Then show the routing design and budget enforcement flow.
 
