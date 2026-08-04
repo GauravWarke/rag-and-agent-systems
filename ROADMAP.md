@@ -83,8 +83,8 @@ Folder: `03-llm-spend-control-center/`
 - [x] **(P3) Phase 5: Build the Cost Dashboard** — Show spend by team and feature: Include daily cost, monthly projection, top expensive prompts, and cost by model.
 - [x] **(P3) Phase 5: Build the Cost Dashboard** — Show savings estimates: Compare actual routed spend with "everything sent to the strongest model." This gives you the main metric for the case study.
 - [x] **(P3) Phase 5: Build the Cost Dashboard** — Add routing quality metrics: Show escalation rate, verifier pass rate, latency by model, and error rate by provider.
-- [ ] **(P3) Phase 6: Polish for Portfolio** — Run a simulated workload: Send 1,000 mixed prompts through the gateway and produce a cost savings report.
-- [ ] **(P3) Phase 6: Polish for Portfolio** — Write the case study: Start with: "Reduced simulated LLM spend by X% while maintaining Y% verification pass rate." Then show the routing design and budget enforcement flow.
+- [x] **(P3) Phase 6: Polish for Portfolio** — Run a simulated workload: Send 1,000 mixed prompts through the gateway and produce a cost savings report.
+- [x] **(P3) Phase 6: Polish for Portfolio** — Write the case study: Start with: "Reduced simulated LLM spend by X% while maintaining Y% verification pass rate." Then show the routing design and budget enforcement flow.
 
 ## P4: AI Output Policy Guardrail Service
 

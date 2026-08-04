@@ -68,7 +68,7 @@ A routing and budgeting layer that sits in front of LLM calls, tracks usage by t
 
 ## Status
 
-In progress — Phases 1-5 complete, Phase 6 (portfolio polish) remaining:
+Complete — all phases implemented:
 
 - **Phase 1 — Unified Request Gateway:** `POST /v1/chat` accepts a
   standard chat-style request (messages, team ID, feature, priority,
@@ -118,5 +118,9 @@ In progress — Phases 1-5 complete, Phase 6 (portfolio polish) remaining:
   study. `GET /v1/dashboard/routing-quality` reports escalation rate,
   verifier pass rate, average latency by model, and error rate by
   provider.
-
-Phase 6 (portfolio polish) is not yet built — see root `ROADMAP.md`.
+- **Phase 6 — Polish for Portfolio:** `python simulate_workload.py
+  --requests 1000 --seed 42` sends 1,000 mixed synthetic requests through
+  the gateway (offline `stub` provider, no API keys) and writes a Markdown
+  cost-savings report to `reports/workload_simulation.md`. See
+  [`docs/case_study.md`](docs/case_study.md) for the headline numbers,
+  architecture diagram, and design tradeoffs.
