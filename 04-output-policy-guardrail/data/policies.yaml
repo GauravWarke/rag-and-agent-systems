@@ -1,0 +1,120 @@
+# Policy catalog for the output guardrail. Each policy is auditable:
+# rule name, severity, examples, detection strategy, and the default
+# action a violation should trigger.
+#
+# detection_strategy:
+#   deterministic — cheap regex/rule checks only (app/validators/)
+#   llm_judge     — needs judgment calls only an LLM can make (app/judge/)
+#   both          — deterministic runs first; the LLM judge only runs if
+#                   the deterministic check found nothing, to save cost
+policies:
+  - id: pii_leakage
+    name: PII Leakage
+    category: pii
+    severity: high
+    description: >
+      Output contains personally identifiable information (emails, phone
+      numbers, physical addresses, API keys, credit card numbers, or
+      names) that the feature is not explicitly allowed to expose.
+    examples:
+      - "Sure, you can reach John at john.smith@example.com or 555-123-4567."
+      - "Your API key is sk-live-abc123..., store it safely."
+    detection_strategy: deterministic
+    recommended_action: rewrite
+
+  - id: unsupported_factual_claims
+    name: Unsupported Factual Claims
+    category: factual_accuracy
+    severity: medium
+    description: >
+      Output states a specific fact with high confidence but no
+      supporting evidence was provided in the prompt or context.
+    examples:
+      - "This product was released in 2019 and has sold 10 million units."
+    detection_strategy: llm_judge
+    recommended_action: approve_with_warning
+
+  - id: toxic_language
+    name: Toxic Language
+    category: toxicity
+    severity: high
+    description: >
+      Output contains insults, harassment, or otherwise hostile language
+      directed at a person or group.
+    examples:
+      - "You're an idiot for asking that."
+    detection_strategy: both
+    recommended_action: block
+
+  - id: unsafe_instructions
+    name: Unsafe Instructions
+    category: safety
+    severity: critical
+    description: >
+      Output provides actionable instructions for causing physical harm,
+      building weapons, or bypassing safety/security controls.
+    examples:
+      - "Here is a step-by-step guide to bypass the safety interlock."
+    detection_strategy: both
+    recommended_action: block
+
+  - id: medical_overconfidence
+    name: Medical Overconfidence
+    category: overconfidence
+    severity: medium
+    description: >
+      Output gives medical advice or a diagnosis with certainty a
+      non-clinician assistant should not claim.
+    examples:
+      - "You definitely have a migraine, just take ibuprofen."
+    detection_strategy: llm_judge
+    recommended_action: rewrite
+
+  - id: legal_overconfidence
+    name: Legal Overconfidence
+    category: overconfidence
+    severity: medium
+    description: >
+      Output gives legal advice with certainty, instead of recommending
+      consultation with a qualified professional.
+    examples:
+      - "You will definitely win this lawsuit, no need for a lawyer."
+    detection_strategy: llm_judge
+    recommended_action: rewrite
+
+  - id: financial_overconfidence
+    name: Financial Overconfidence
+    category: overconfidence
+    severity: medium
+    description: >
+      Output gives financial or investment advice with unwarranted
+      certainty about outcomes.
+    examples:
+      - "This stock is guaranteed to double in value next quarter."
+    detection_strategy: llm_judge
+    recommended_action: rewrite
+
+  - id: schema_mismatch
+    name: Schema Mismatch
+    category: structural
+    severity: high
+    description: >
+      Output does not parse as JSON, or is missing required fields, or
+      has fields of the wrong type, relative to the feature's expected
+      schema.
+    examples:
+      - '{"answer": "yes", "confidence": "high"}  # confidence should be a float'
+    detection_strategy: deterministic
+    recommended_action: rewrite
+
+  - id: brand_voice_violation
+    name: Brand Voice Violation
+    category: brand
+    severity: low
+    description: >
+      Output uses a tone (overly casual slang, sarcasm, etc.) that does
+      not match the product's expected brand voice.
+    examples:
+      - "lol whatever, just Google it yourself."
+    detection_strategy: llm_judge
+    recommended_action: approve_with_warning
