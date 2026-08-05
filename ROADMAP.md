@@ -91,16 +91,16 @@ Folder: `03-llm-spend-control-center/`
 *Topic: Guardrails, Safety, Compliance, Structured Validation*  
 Folder: `04-output-policy-guardrail/`
 
-- [ ] **(P4) Scaffold** — create `04-output-policy-guardrail/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
-- [ ] **(P4) Phase 1: Define Policies and Decision Types** — Create policy categories: Start with PII leakage, unsupported factual claims, toxic language, unsafe instructions, medical/legal/financial overconfidence, schema mismatch, and brand voice violations.
-- [ ] **(P4) Phase 1: Define Policies and Decision Types** — Define decision outcomes: The guardrail can approve, approve with warning, rewrite, block, or send to human review. Keep these outcomes simple and explainable.
-- [ ] **(P4) Phase 1: Define Policies and Decision Types** — Build policy files: Store policies in YAML with rule name, severity, examples, detection strategy, and recommended action. This keeps the service auditable.
-- [ ] **(P4) Phase 2: Build Deterministic Validators** — Add schema validation: If an AI feature expects JSON, validate it before anything else. Bad format is the easiest failure to catch and the most common to ignore.
-- [ ] **(P4) Phase 2: Build Deterministic Validators** — Add PII detection: Detect emails, phone numbers, addresses, API keys, credit card-like strings, and named entities. Allow per-feature configuration because not all PII is always forbidden.
-- [ ] **(P4) Phase 2: Build Deterministic Validators** — Add forbidden content checks: Use regex and keyword rules for obvious policy violations. Deterministic checks should catch cheap, clear failures before using an LLM judge.
-- [ ] **(P4) Phase 3: Build LLM-Based Policy Review** — Create judge prompts per policy: The judge receives the original prompt, candidate output, policy text, and examples. It returns structured findings with severity and evidence.
-- [ ] **(P4) Phase 3: Build LLM-Based Policy Review** — Require evidence for every finding: The judge should cite the exact output span that triggered the issue. This keeps the decision reviewable.
-- [ ] **(P4) Phase 3: Build LLM-Based Policy Review** — Add confidence and disagreement: Run two judge passes for high-risk outputs. If judges disagree, route to human review instead of pretending certainty.
+- [x] **(P4) Scaffold** — create `04-output-policy-guardrail/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
+- [x] **(P4) Phase 1: Define Policies and Decision Types** — Create policy categories: Start with PII leakage, unsupported factual claims, toxic language, unsafe instructions, medical/legal/financial overconfidence, schema mismatch, and brand voice violations.
+- [x] **(P4) Phase 1: Define Policies and Decision Types** — Define decision outcomes: The guardrail can approve, approve with warning, rewrite, block, or send to human review. Keep these outcomes simple and explainable.
+- [x] **(P4) Phase 1: Define Policies and Decision Types** — Build policy files: Store policies in YAML with rule name, severity, examples, detection strategy, and recommended action. This keeps the service auditable.
+- [x] **(P4) Phase 2: Build Deterministic Validators** — Add schema validation: If an AI feature expects JSON, validate it before anything else. Bad format is the easiest failure to catch and the most common to ignore.
+- [x] **(P4) Phase 2: Build Deterministic Validators** — Add PII detection: Detect emails, phone numbers, addresses, API keys, credit card-like strings, and named entities. Allow per-feature configuration because not all PII is always forbidden.
+- [x] **(P4) Phase 2: Build Deterministic Validators** — Add forbidden content checks: Use regex and keyword rules for obvious policy violations. Deterministic checks should catch cheap, clear failures before using an LLM judge.
+- [x] **(P4) Phase 3: Build LLM-Based Policy Review** — Create judge prompts per policy: The judge receives the original prompt, candidate output, policy text, and examples. It returns structured findings with severity and evidence.
+- [x] **(P4) Phase 3: Build LLM-Based Policy Review** — Require evidence for every finding: The judge should cite the exact output span that triggered the issue. This keeps the decision reviewable.
+- [x] **(P4) Phase 3: Build LLM-Based Policy Review** — Add confidence and disagreement: Run two judge passes for high-risk outputs. If judges disagree, route to human review instead of pretending certainty.
 - [ ] **(P4) Phase 4: Build Rewrite and Block Flows** — Implement safe rewrites: For fixable issues, rewrite only the problematic parts while preserving the useful answer. Examples: remove PII, soften overconfident claims, add uncertainty, or repair JSON.
 - [ ] **(P4) Phase 4: Build Rewrite and Block Flows** — Block non-fixable outputs: For serious safety issues, return a structured block response with reason codes. Do not expose internal policy text unnecessarily.
 - [ ] **(P4) Phase 4: Build Rewrite and Block Flows** — Log every decision: Store input hash, output hash, policy version, findings, action taken, latency, and final output. Auditability is the point.

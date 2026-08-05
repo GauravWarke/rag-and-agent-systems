@@ -67,4 +67,37 @@ A standalone guardrail service that reviews LLM outputs before users see them. I
 
 ## Status
 
-Planned. Scaffold pending — see root `ROADMAP.md`.
+In progress — Phases 1-3 implemented (Phases 4-6 remain, see root `ROADMAP.md`):
+
+- **Phase 1 — Policies and Decision Types:** Policies are defined declaratively in
+  `data/policies.yaml` (rule name, category, severity, examples, detection
+  strategy, recommended action) covering PII leakage, unsupported factual
+  claims, toxic language, unsafe instructions, medical/legal/financial
+  overconfidence, schema mismatch, and brand voice. Decisions are one of
+  `approve`, `approve_with_warning`, `rewrite`, `block`, or `human_review`
+  (`app/core/models.py`).
+- **Phase 2 — Deterministic Validators:** `app/validators/schema.py` checks
+  candidate JSON output against an expected `{field: type}` shape.
+  `app/validators/pii.py` detects emails, phone numbers, addresses, API
+  keys, Luhn-validated credit-card numbers, and a naive name heuristic,
+  with per-request `allowed_pii_types` overrides. `app/validators/forbidden.py`
+  runs keyword/regex rules from `data/forbidden_terms.yaml`. These run
+  first and can make the LLM judge unnecessary for a given category.
+- **Phase 3 — LLM-Based Policy Review:** `app/judge/` builds one prompt per
+  policy (`prompts.py`), requires every finding to cite an exact
+  substring of the output as evidence (verified, not just trusted, for
+  real LLM responses), and runs a second independent judge pass for
+  high/critical-severity policies — a disagreement between passes routes
+  the finding to `human_review` instead of a confident block. Defaults to
+  a deterministic, keyless `StubJudgeClient`; set `OPENAI_API_KEY` to use
+  a real judge model.
+- All of this is wired into `POST /v1/review`
+  (`prompt`, `output`, `feature`, optional `expected_schema` /
+  `allowed_pii_types`), which runs validators, then the judge for any
+  policy category a validator didn't already resolve, and returns one
+  aggregated `decision` plus the `findings` that produced it.
+- Not yet built: safe rewrite/block response flows and decision logging
+  (Phase 4), the human review dashboard (Phase 5), and portfolio polish
+  (Phase 6).
+
+Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`
