@@ -67,7 +67,8 @@ A standalone guardrail service that reviews LLM outputs before users see them. I
 
 ## Status
 
-In progress — Phases 1-3 implemented (Phases 4-6 remain, see root `ROADMAP.md`):
+In progress — Phases 1-4 implemented, plus the audit queue from Phase 5
+(the rest of Phase 5 and Phase 6 remain, see root `ROADMAP.md`):
 
 - **Phase 1 — Policies and Decision Types:** Policies are defined declaratively in
   `data/policies.yaml` (rule name, category, severity, examples, detection
@@ -91,13 +92,30 @@ In progress — Phases 1-3 implemented (Phases 4-6 remain, see root `ROADMAP.md`
   the finding to `human_review` instead of a confident block. Defaults to
   a deterministic, keyless `StubJudgeClient`; set `OPENAI_API_KEY` to use
   a real judge model.
+- **Phase 4 — Rewrite and Block Flows:** `app/rewrite/rewrite.py` turns a
+  `rewrite` decision into a safe `final_output`: PII spans are redacted,
+  malformed/incomplete JSON is repaired against `expected_schema` (missing
+  or wrong-typed fields get a type-appropriate default), and overconfident
+  phrasing is softened — anything outside those three fixable categories
+  is left unresolved rather than guessed at. `app/rewrite/block.py` turns a
+  `block` decision into a generic message plus stable policy-id reason
+  codes, never the policy's internal description. `app/review/resolve.py`
+  picks which of those applies per decision, and every decision — approve,
+  rewrite, or block — is logged to `app/core/audit.py`'s in-memory
+  `AuditLog` with hashed prompt/output, the policy set's content-derived
+  `version`, findings, latency, and the final output actually shown.
+- **Phase 5 (partial) — Audit Queue:** `GET /v1/audit/queue` lists blocked
+  or `human_review` decisions awaiting a human; `POST
+  /v1/audit/{request_id}/review` records a reviewer's `approve` /
+  `reject` / `approve_rewrite` decision plus an optional note and removes
+  the entry from the queue. Policy performance metrics and policy-version
+  comparison (the rest of Phase 5), plus Phase 6 polish, remain.
 - All of this is wired into `POST /v1/review`
   (`prompt`, `output`, `feature`, optional `expected_schema` /
   `allowed_pii_types`), which runs validators, then the judge for any
   policy category a validator didn't already resolve, and returns one
-  aggregated `decision` plus the `findings` that produced it.
-- Not yet built: safe rewrite/block response flows and decision logging
-  (Phase 4), the human review dashboard (Phase 5), and portfolio polish
-  (Phase 6).
+  aggregated `decision`, the `findings` that produced it, and a
+  `final_output` safe to show the caller (or `None` for `block` /
+  `human_review`).
 
 Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`
