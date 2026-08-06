@@ -8,6 +8,8 @@ only) go through `app/judge/`.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
 
 import yaml
@@ -48,3 +50,19 @@ class PolicyStore:
     def by_strategy(self, strategy: str) -> list[Policy]:
         """Policies whose detection_strategy is `strategy` or "both"."""
         return [p for p in self._by_id.values() if p.detection_strategy in (strategy, "both")]
+
+    @property
+    def version(self) -> str:
+        """Content-derived fingerprint of the loaded policy set.
+
+        Changes whenever a policy is added, removed, or edited, so audit
+        log entries and policy-version comparisons (Phase 5) can tell
+        which ruleset produced a given decision without maintaining a
+        hand-edited version number in the YAML.
+        """
+        payload = json.dumps(
+            [p.model_dump() for p in sorted(self.all(), key=lambda p: p.id)],
+            sort_keys=True,
+            default=str,
+        )
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]

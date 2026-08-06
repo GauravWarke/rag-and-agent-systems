@@ -9,7 +9,9 @@ import json
 from app.core.models import Finding
 from app.policies.store import Policy
 
-_TYPE_MAP: dict[str, type | tuple[type, ...]] = {
+# Public because app/rewrite/rewrite.py reuses it to coerce fields back
+# to a valid type when repairing a schema-mismatched JSON output.
+TYPE_MAP: dict[str, type | tuple[type, ...]] = {
     "str": str,
     "int": int,
     "float": (int, float),
@@ -43,7 +45,7 @@ def validate_schema(output: str, expected_schema: dict[str, str] | None, policy:
     wrong_type = [
         field
         for field, type_name in expected_schema.items()
-        if (py_type := _TYPE_MAP.get(type_name)) is not None and not isinstance(data[field], py_type)
+        if (py_type := TYPE_MAP.get(type_name)) is not None and not isinstance(data[field], py_type)
     ]
     if wrong_type:
         return _finding(policy, f"Fields with wrong type: {', '.join(sorted(wrong_type))}", "")

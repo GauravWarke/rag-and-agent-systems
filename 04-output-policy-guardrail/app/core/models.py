@@ -47,4 +47,11 @@ class ReviewResponse(BaseModel):
     decision: DecisionOutcome
     findings: list[Finding] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    # The output to actually show the caller: the original output for
+    # approve/approve_with_warning, the repaired/redacted text for
+    # rewrite, or None for block/human_review (nothing safe to show yet).
+    final_output: str | None = None
+    # Policy ids behind a rewrite/block/human_review outcome. Stable
+    # identifiers only — never the policy's internal description text.
+    reason_codes: list[str] = Field(default_factory=list)
     latency_ms: float

@@ -19,6 +19,7 @@ def test_clean_output_is_approved():
     resp = _engine().review(req)
     assert resp.decision == "approve"
     assert resp.findings == []
+    assert resp.final_output == "It's sunny today."
 
 
 def test_pii_leak_triggers_rewrite():
@@ -30,6 +31,25 @@ def test_pii_leak_triggers_rewrite():
     resp = _engine().review(req)
     assert resp.decision == "rewrite"
     assert any(f.policy_id == "pii_leakage" for f in resp.findings)
+    assert resp.final_output is not None
+    assert "jane.doe@example.com" not in resp.final_output
+    assert resp.reason_codes == ["pii_leakage"]
+
+
+def test_forbidden_content_block_withholds_output_and_logs_to_audit():
+    engine = _engine()
+    req = ReviewRequest(prompt="Insult me", output="Well, shut up and listen.", feature="chat-bot")
+    resp = engine.review(req)
+    assert resp.decision == "block"
+    assert resp.final_output is None
+    assert resp.reason_codes == ["toxic_language"]
+
+    logged = engine._audit.get(resp.request_id)
+    assert logged is not None
+    assert logged.decision == "block"
+    assert logged.final_output is None
+    assert logged.feature == "chat-bot"
+    assert logged in engine._audit.pending_review()
 
 
 def test_forbidden_content_triggers_block_without_calling_judge():
