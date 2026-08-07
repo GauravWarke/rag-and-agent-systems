@@ -7,18 +7,25 @@ Endpoints:
   POST /v1/review                   review a candidate LLM output against all policies
   GET  /v1/audit/queue              blocked/uncertain decisions awaiting human review
   POST /v1/audit/{request_id}/review   record a reviewer's decision on an audit entry
+  GET  /v1/audit/metrics            aggregate policy performance across all logged decisions
+  POST /v1/policies/compare         replay examples against a candidate policy version
 """
 from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.core.audit import AuditLog, AuditLogEntry, ReviewAction
+from app.core.audit import AuditLog, AuditLogEntry, PolicyMetrics, ReviewAction
 from app.core.config import settings
 from app.core.models import ReviewRequest, ReviewResponse
 from app.core.rate_limit import RateLimiter
 from app.judge.client import OpenAIJudgeClient, StubJudgeClient
 from app.judge.review import PolicyJudge
+from app.policies.compare import (
+    PolicyComparisonRequest,
+    PolicyComparisonResult,
+    compare_policy_versions,
+)
 from app.policies.store import PolicyStore
 from app.review.engine import ReviewEngine
 from app.validators.forbidden import ForbiddenTermsStore
@@ -72,3 +79,21 @@ def submit_review(request_id: str, body: ReviewDecisionRequest, request: Request
     if entry is None:
         raise HTTPException(status_code=404, detail="Audit entry not found.")
     return entry
+
+
+@app.get("/v1/audit/metrics", response_model=PolicyMetrics)
+def audit_metrics(request: Request) -> PolicyMetrics:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    return _audit_log.metrics()
+
+
+@app.post("/v1/policies/compare", response_model=PolicyComparisonResult)
+def compare_policies(body: PolicyComparisonRequest, request: Request) -> PolicyComparisonResult:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    try:
+        candidate_store = PolicyStore.from_text(body.policies_yaml)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid policy YAML: {exc}") from exc
+    return compare_policy_versions(body.examples, _policy_store, candidate_store, _forbidden_store, _judge_client)

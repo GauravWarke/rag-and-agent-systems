@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 import app.main as main_module
@@ -74,6 +76,61 @@ def test_review_validates_request_body():
     with TestClient(app) as client:
         r = client.post("/v1/review", json={"prompt": "", "output": "x", "feature": "f"})
         assert r.status_code == 422
+
+
+def test_audit_metrics_reflects_logged_reviews():
+    with TestClient(app) as client:
+        client.post(
+            "/v1/review",
+            json={"prompt": "What's the weather?", "output": "It's sunny today.", "feature": "weather-bot"},
+        )
+        r = client.get("/v1/audit/metrics")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["total_reviewed"] >= 1
+        assert 0.0 <= body["block_rate"] <= 1.0
+        assert 0.0 <= body["rewrite_rate"] <= 1.0
+        assert body["avg_latency_ms"] >= 0.0
+
+
+def test_compare_policies_endpoint_flips_decision_for_stricter_candidate():
+    with TestClient(app) as client:
+        policies_yaml = Path("data/policies.yaml").read_text().replace(
+            "    detection_strategy: deterministic\n    recommended_action: rewrite",
+            "    detection_strategy: deterministic\n    recommended_action: block",
+        )
+        r = client.post(
+            "/v1/policies/compare",
+            json={
+                "policies_yaml": policies_yaml,
+                "examples": [
+                    {
+                        "label": "pii-email",
+                        "prompt": "Who do I contact?",
+                        "output": "Reach out to jane.doe@example.com for help.",
+                        "feature": "support-bot",
+                    }
+                ],
+            },
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["total_examples"] == 1
+        assert body["changed_count"] == 1
+        assert body["diffs"][0]["baseline_decision"] == "rewrite"
+        assert body["diffs"][0]["candidate_decision"] == "block"
+
+
+def test_compare_policies_rejects_invalid_yaml():
+    with TestClient(app) as client:
+        r = client.post(
+            "/v1/policies/compare",
+            json={
+                "policies_yaml": "policies: [{id: bad}]",
+                "examples": [{"label": "x", "prompt": "p", "output": "o", "feature": "f"}],
+            },
+        )
+        assert r.status_code == 400
 
 
 def test_rate_limit_returns_429(monkeypatch):

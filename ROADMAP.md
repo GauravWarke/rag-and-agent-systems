@@ -105,8 +105,8 @@ Folder: `04-output-policy-guardrail/`
 - [x] **(P4) Phase 4: Build Rewrite and Block Flows** — Block non-fixable outputs: For serious safety issues, return a structured block response with reason codes. Do not expose internal policy text unnecessarily.
 - [x] **(P4) Phase 4: Build Rewrite and Block Flows** — Log every decision: Store input hash, output hash, policy version, findings, action taken, latency, and final output. Auditability is the point.
 - [x] **(P4) Phase 5: Build the Review Dashboard** — Create an audit queue: Human reviewers can inspect blocked or uncertain decisions, approve rewrites, override false positives, and leave notes.
-- [ ] **(P4) Phase 5: Build the Review Dashboard** — Track policy performance: Show block rate, rewrite rate, false-positive rate, average latency, and most common violation types.
-- [ ] **(P4) Phase 5: Build the Review Dashboard** — Add policy version comparison: When a policy changes, show how decisions would differ on historical examples. This prevents policy updates from causing chaos.
+- [x] **(P4) Phase 5: Build the Review Dashboard** — Track policy performance: Show block rate, rewrite rate, false-positive rate, average latency, and most common violation types.
+- [x] **(P4) Phase 5: Build the Review Dashboard** — Add policy version comparison: When a policy changes, show how decisions would differ on historical examples. This prevents policy updates from causing chaos.
 - [ ] **(P4) Phase 6: Polish for Portfolio** — Demo multiple outcomes: Show an approved output, a rewritten output, a blocked output, and a human-review case.
 - [ ] **(P4) Phase 6: Polish for Portfolio** — Write the narrative: Position it as "a policy enforcement layer for LLM outputs," not a moderation toy. Put audit logs and decision transparency near the top.
 
