@@ -37,7 +37,14 @@ class PolicyStore:
 
     @classmethod
     def load(cls, path: str | Path) -> PolicyStore:
-        data = yaml.safe_load(Path(path).read_text()) or {}
+        return cls.from_text(Path(path).read_text())
+
+    @classmethod
+    def from_text(cls, yaml_text: str) -> PolicyStore:
+        """Build a store from raw YAML text, e.g. a candidate policy
+        version submitted for comparison (`app/policies/compare.py`)
+        rather than loaded from disk."""
+        data = yaml.safe_load(yaml_text) or {}
         policies = [Policy.model_validate(p) for p in data.get("policies", [])]
         return cls(policies)
 

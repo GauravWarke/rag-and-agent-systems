@@ -16,6 +16,7 @@ entirely for block/human_review.
 from __future__ import annotations
 
 import hashlib
+from collections import Counter
 from datetime import datetime
 from typing import Literal
 
@@ -49,6 +50,25 @@ class AuditLogEntry(BaseModel):
     review_note: str | None = None
 
 
+class ViolationCount(BaseModel):
+    policy_id: str
+    category: str
+    count: int
+
+
+class PolicyMetrics(BaseModel):
+    total_reviewed: int
+    block_rate: float
+    rewrite_rate: float
+    approve_rate: float
+    human_review_rate: float
+    avg_latency_ms: float
+    # None until at least one flagged (block/human_review) decision has
+    # been reviewed by a human — there's nothing to compute a rate from yet.
+    false_positive_rate: float | None
+    top_violations: list[ViolationCount]
+
+
 class AuditLog:
     def __init__(self) -> None:
         self._entries: list[AuditLogEntry] = []
@@ -78,3 +98,58 @@ class AuditLog:
         entry.review_action = action
         entry.review_note = note
         return entry
+
+    def metrics(self, top_n: int = 5) -> PolicyMetrics:
+        """Aggregate policy performance across every logged decision.
+
+        `false_positive_rate` is scoped to flagged (block/human_review)
+        decisions a human has since reviewed: an `approve` review action
+        on one of those means the guardrail flagged good output, i.e. a
+        false positive. Unreviewed flagged decisions don't count either
+        way yet.
+        """
+        total = len(self._entries)
+        if total == 0:
+            return PolicyMetrics(
+                total_reviewed=0,
+                block_rate=0.0,
+                rewrite_rate=0.0,
+                approve_rate=0.0,
+                human_review_rate=0.0,
+                avg_latency_ms=0.0,
+                false_positive_rate=None,
+                top_violations=[],
+            )
+
+        decision_counts = Counter(e.decision for e in self._entries)
+        avg_latency_ms = sum(e.latency_ms for e in self._entries) / total
+
+        reviewed_flagged = [
+            e for e in self._entries if e.reviewed and e.decision in ("block", "human_review")
+        ]
+        false_positive_rate = (
+            sum(1 for e in reviewed_flagged if e.review_action == "approve") / len(reviewed_flagged)
+            if reviewed_flagged
+            else None
+        )
+
+        violation_counts: Counter[tuple[str, str]] = Counter()
+        for entry in self._entries:
+            for finding in entry.findings:
+                violation_counts[(finding.policy_id, finding.category)] += 1
+        top_violations = [
+            ViolationCount(policy_id=policy_id, category=category, count=count)
+            for (policy_id, category), count in violation_counts.most_common(top_n)
+        ]
+
+        return PolicyMetrics(
+            total_reviewed=total,
+            block_rate=decision_counts.get("block", 0) / total,
+            rewrite_rate=decision_counts.get("rewrite", 0) / total,
+            approve_rate=(decision_counts.get("approve", 0) + decision_counts.get("approve_with_warning", 0))
+            / total,
+            human_review_rate=decision_counts.get("human_review", 0) / total,
+            avg_latency_ms=round(avg_latency_ms, 4),
+            false_positive_rate=false_positive_rate,
+            top_violations=top_violations,
+        )

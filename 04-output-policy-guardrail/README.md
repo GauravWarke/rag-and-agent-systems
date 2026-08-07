@@ -67,8 +67,8 @@ A standalone guardrail service that reviews LLM outputs before users see them. I
 
 ## Status
 
-In progress — Phases 1-4 implemented, plus the audit queue from Phase 5
-(the rest of Phase 5 and Phase 6 remain, see root `ROADMAP.md`):
+In progress — Phases 1-5 implemented (Phase 6 polish remains, see root
+`ROADMAP.md`):
 
 - **Phase 1 — Policies and Decision Types:** Policies are defined declaratively in
   `data/policies.yaml` (rule name, category, severity, examples, detection
@@ -104,12 +104,25 @@ In progress — Phases 1-4 implemented, plus the audit queue from Phase 5
   rewrite, or block — is logged to `app/core/audit.py`'s in-memory
   `AuditLog` with hashed prompt/output, the policy set's content-derived
   `version`, findings, latency, and the final output actually shown.
-- **Phase 5 (partial) — Audit Queue:** `GET /v1/audit/queue` lists blocked
+- **Phase 5 — Review Dashboard:** `GET /v1/audit/queue` lists blocked
   or `human_review` decisions awaiting a human; `POST
   /v1/audit/{request_id}/review` records a reviewer's `approve` /
   `reject` / `approve_rewrite` decision plus an optional note and removes
-  the entry from the queue. Policy performance metrics and policy-version
-  comparison (the rest of Phase 5), plus Phase 6 polish, remain.
+  the entry from the queue. An `approve` action on a previously blocked
+  or human-review entry means the guardrail flagged good output — a
+  false positive. `GET /v1/audit/metrics` (`app/core/audit.py`)
+  aggregates block/rewrite/approve/human-review rate, the false-positive
+  rate among reviewed flagged entries, average latency, and the
+  most-triggered policies across every logged decision. `POST
+  /v1/policies/compare` (`app/policies/compare.py`) takes a candidate
+  policy YAML plus a caller-supplied set of labeled prompt/output
+  examples, replays each example through the live policy set and the
+  candidate side by side (via a throwaway `ReviewEngine`/`AuditLog` pair
+  so nothing touches the real audit trail), and reports which examples'
+  decisions would change and which policy ids were added or removed from
+  the findings. Examples are supplied by the caller rather than sourced
+  from the audit log, since the log only stores prompt/output hashes.
+  Phase 6 polish remains.
 - All of this is wired into `POST /v1/review`
   (`prompt`, `output`, `feature`, optional `expected_schema` /
   `allowed_pii_types`), which runs validators, then the judge for any
