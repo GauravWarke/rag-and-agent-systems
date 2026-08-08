@@ -67,8 +67,7 @@ A standalone guardrail service that reviews LLM outputs before users see them. I
 
 ## Status
 
-In progress — Phases 1-5 implemented (Phase 6 polish remains, see root
-`ROADMAP.md`):
+Complete — all six phases implemented:
 
 - **Phase 1 — Policies and Decision Types:** Policies are defined declaratively in
   `data/policies.yaml` (rule name, category, severity, examples, detection
@@ -122,7 +121,6 @@ In progress — Phases 1-5 implemented (Phase 6 polish remains, see root
   decisions would change and which policy ids were added or removed from
   the findings. Examples are supplied by the caller rather than sourced
   from the audit log, since the log only stores prompt/output hashes.
-  Phase 6 polish remains.
 - All of this is wired into `POST /v1/review`
   (`prompt`, `output`, `feature`, optional `expected_schema` /
   `allowed_pii_types`), which runs validators, then the judge for any
@@ -130,5 +128,14 @@ In progress — Phases 1-5 implemented (Phase 6 polish remains, see root
   aggregated `decision`, the `findings` that produced it, and a
   `final_output` safe to show the caller (or `None` for `block` /
   `human_review`).
+- **Phase 6 — Polish for Portfolio:** [`docs/walkthrough.md`](docs/walkthrough.md)
+  is a transcript walkthrough (real request/response pairs against the
+  live app) covering an approved output, a rewritten output (PII
+  redaction), a blocked output routed through the human-review queue,
+  and a genuine judge-disagreement `human_review` case.
+  [`docs/case_study.md`](docs/case_study.md) is the narrative writeup,
+  headlined by a measurable result — deterministic validators skip 23.9%
+  of LLM judge calls on a 20-request mixed batch — reproducible via
+  `python docs/case_study_batch.py`.
 
 Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`

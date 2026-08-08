@@ -107,8 +107,8 @@ Folder: `04-output-policy-guardrail/`
 - [x] **(P4) Phase 5: Build the Review Dashboard** — Create an audit queue: Human reviewers can inspect blocked or uncertain decisions, approve rewrites, override false positives, and leave notes.
 - [x] **(P4) Phase 5: Build the Review Dashboard** — Track policy performance: Show block rate, rewrite rate, false-positive rate, average latency, and most common violation types.
 - [x] **(P4) Phase 5: Build the Review Dashboard** — Add policy version comparison: When a policy changes, show how decisions would differ on historical examples. This prevents policy updates from causing chaos.
-- [ ] **(P4) Phase 6: Polish for Portfolio** — Demo multiple outcomes: Show an approved output, a rewritten output, a blocked output, and a human-review case.
-- [ ] **(P4) Phase 6: Polish for Portfolio** — Write the narrative: Position it as "a policy enforcement layer for LLM outputs," not a moderation toy. Put audit logs and decision transparency near the top.
+- [x] **(P4) Phase 6: Polish for Portfolio** — Demo multiple outcomes: Show an approved output, a rewritten output, a blocked output, and a human-review case.
+- [x] **(P4) Phase 6: Polish for Portfolio** — Write the narrative: Position it as "a policy enforcement layer for LLM outputs," not a moderation toy. Put audit logs and decision transparency near the top.
 
 ## P5: Production Log-to-Eval Dataset Builder
 
