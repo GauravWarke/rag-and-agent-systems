@@ -65,6 +65,27 @@ A pipeline that mines production-like LLM logs, finds useful examples, converts 
 
 > Explain that a good eval set should not mirror traffic perfectly. It should over-represent risk, failures, and edge cases because those are where regressions hurt.
 
+## Running locally
+
+```bash
+pip install -r requirements-dev.txt
+cp .env.example .env  # optional: only needed to enable OPENAI_API_KEY label generation
+uvicorn app.main:app --reload
+```
+
+Then seed some synthetic logs and explore:
+
+```bash
+curl -s -X POST localhost:8000/v1/logs/seed -H 'content-type: application/json' -d '{"n": 1000, "seed": 42}'
+curl -s localhost:8000/v1/clusters
+curl -s localhost:8000/v1/candidates
+```
+
+Everything runs offline by default (deterministic hashed-embedding stub, heuristic label
+client). Set `OPENAI_API_KEY` in `.env` to switch label generation to a real model.
+
 ## Status
 
-Planned. Scaffold pending — see root `ROADMAP.md`.
+Phases 1-3 implemented (log schema + redaction + synthetic seeding, sampling + clustering +
+candidate scoring, auto-label generation + dedup). Phases 4-6 (human review queue, eval
+runner integration, portfolio polish) are still pending — see root `ROADMAP.md`.

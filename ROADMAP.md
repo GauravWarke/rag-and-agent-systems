@@ -115,16 +115,16 @@ Folder: `04-output-policy-guardrail/`
 *Topic: Evals, Data Flywheel, LLMOps, Human Review*  
 Folder: `05-log-to-eval-dataset-builder/`
 
-- [ ] **(P5) Scaffold** — create `05-log-to-eval-dataset-builder/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
-- [ ] **(P5) Phase 1: Design the Log Schema** — Define the unified log format: Capture prompt, system prompt, response, model, feature name, latency, token counts, user feedback, retry count, error status, and timestamp.
-- [ ] **(P5) Phase 1: Design the Log Schema** — Add privacy controls: Build redaction rules for emails, phone numbers, secrets, and names. Store both redaction status and redaction method.
-- [ ] **(P5) Phase 1: Design the Log Schema** — Seed synthetic logs: Create 1,000 simulated logs across a few features. Include good responses, bad responses, user retries, malformed outputs, and safety edge cases.
-- [ ] **(P5) Phase 2: Sample and Classify Interactions** — Build sampling modes: Implement random sampling, failure-biased sampling, and diversity sampling. Failure-biased sampling should over-select logs with negative feedback, retries, or errors.
-- [ ] **(P5) Phase 2: Sample and Classify Interactions** — Cluster prompts: Embed prompts and cluster them to discover common categories. Give each cluster a human-readable label using representative examples.
-- [ ] **(P5) Phase 2: Sample and Classify Interactions** — Identify high-value candidates: Prioritize unusual prompts, low-quality outputs, high-impact features, edge cases, and clusters with poor eval coverage.
-- [ ] **(P5) Phase 3: Auto-Generate Eval Labels** — Decide eval type per example: Some examples need a golden answer. Others need a rubric. Some need expected refusal. Pick the label type based on the interaction.
-- [ ] **(P5) Phase 3: Auto-Generate Eval Labels** — Generate labels with confidence: Use a strong model to propose expected behavior, key assertions, forbidden assertions, and scoring rubric. Run multiple passes for important examples.
-- [ ] **(P5) Phase 3: Auto-Generate Eval Labels** — Deduplicate aggressively: Compare against existing eval cases and skip near-duplicates. Track why each candidate was accepted or rejected.
+- [x] **(P5) Scaffold** — create `05-log-to-eval-dataset-builder/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
+- [x] **(P5) Phase 1: Design the Log Schema** — Define the unified log format: Capture prompt, system prompt, response, model, feature name, latency, token counts, user feedback, retry count, error status, and timestamp.
+- [x] **(P5) Phase 1: Design the Log Schema** — Add privacy controls: Build redaction rules for emails, phone numbers, secrets, and names. Store both redaction status and redaction method.
+- [x] **(P5) Phase 1: Design the Log Schema** — Seed synthetic logs: Create 1,000 simulated logs across a few features. Include good responses, bad responses, user retries, malformed outputs, and safety edge cases.
+- [x] **(P5) Phase 2: Sample and Classify Interactions** — Build sampling modes: Implement random sampling, failure-biased sampling, and diversity sampling. Failure-biased sampling should over-select logs with negative feedback, retries, or errors.
+- [x] **(P5) Phase 2: Sample and Classify Interactions** — Cluster prompts: Embed prompts and cluster them to discover common categories. Give each cluster a human-readable label using representative examples.
+- [x] **(P5) Phase 2: Sample and Classify Interactions** — Identify high-value candidates: Prioritize unusual prompts, low-quality outputs, high-impact features, edge cases, and clusters with poor eval coverage.
+- [x] **(P5) Phase 3: Auto-Generate Eval Labels** — Decide eval type per example: Some examples need a golden answer. Others need a rubric. Some need expected refusal. Pick the label type based on the interaction.
+- [x] **(P5) Phase 3: Auto-Generate Eval Labels** — Generate labels with confidence: Use a strong model to propose expected behavior, key assertions, forbidden assertions, and scoring rubric. Run multiple passes for important examples.
+- [x] **(P5) Phase 3: Auto-Generate Eval Labels** — Deduplicate aggressively: Compare against existing eval cases and skip near-duplicates. Track why each candidate was accepted or rejected.
 - [ ] **(P5) Phase 4: Build Human Review** — Create a review queue: Low-confidence labels go to reviewers. Show the original interaction, proposed labels, similar existing cases, and quick approve/edit/reject actions.
 - [ ] **(P5) Phase 4: Build Human Review** — Track reviewer edits: Store what changed and why. Use this to improve labeling prompts and measure auto-label quality.
 - [ ] **(P5) Phase 4: Build Human Review** — Add dataset status: Every eval case should be draft, approved, rejected, or deprecated. This prevents messy datasets.
