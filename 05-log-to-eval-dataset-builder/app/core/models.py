@@ -96,6 +96,12 @@ class HighValueCandidate(BaseModel):
 EvalType = Literal["golden_answer", "rubric", "expected_refusal"]
 CandidateStatus = Literal["accepted", "rejected_duplicate"]
 
+# Lifecycle status of an eval case in the growing dataset, separate from the
+# dedup outcome (`CandidateStatus`) recorded at generation time. "draft"
+# means it's sitting in the human review queue; "approved"/"rejected" are
+# terminal review outcomes; "deprecated" is for cases later superseded.
+ReviewStatus = Literal["draft", "approved", "rejected", "deprecated"]
+
 
 class ProposedLabel(BaseModel):
     eval_type: EvalType
@@ -120,6 +126,7 @@ class EvalCandidate(BaseModel):
     status: CandidateStatus
     reason: str
     duplicate_of: str | None = None
+    review_status: ReviewStatus = "draft"
 
 
 class GenerateLabelsRequest(BaseModel):
@@ -130,3 +137,61 @@ class GenerateLabelsResponse(BaseModel):
     generated: list[EvalCandidate]
     accepted: int
     rejected_duplicates: int
+
+
+class ReviewQueueItem(BaseModel):
+    """One pending review: the candidate, its source interaction, and the
+    already-approved cases it most resembles, so a reviewer can spot
+    near-duplicates or inconsistent labeling before deciding."""
+
+    candidate: EvalCandidate
+    log: LogEntry
+    similar_cases: list[EvalCandidate] = Field(default_factory=list)
+
+
+ReviewAction = Literal["approve", "edit", "reject", "deprecate"]
+
+
+class ReviewEditFields(BaseModel):
+    """Editable label fields. Only used when action == 'edit'; unset fields are left unchanged."""
+
+    eval_type: EvalType | None = None
+    expected_behavior: str | None = Field(default=None, max_length=4000)
+    key_assertions: list[str] | None = None
+    forbidden_assertions: list[str] | None = None
+    rubric: str | None = Field(default=None, max_length=4000)
+
+
+class ReviewDecisionRequest(BaseModel):
+    candidate_id: str
+    action: ReviewAction
+    reviewer: str = Field(min_length=1, max_length=128)
+    reason: str = Field(min_length=1, max_length=1000)
+    edits: ReviewEditFields | None = None
+
+
+class FieldChange(BaseModel):
+    field: str
+    old_value: str | None
+    new_value: str | None
+
+
+class ReviewEditLogEntry(BaseModel):
+    id: str
+    candidate_id: str
+    reviewer: str
+    action: ReviewAction
+    reason: str
+    changed_fields: list[FieldChange] = Field(default_factory=list)
+    timestamp: datetime
+
+
+class ReviewDecisionResponse(BaseModel):
+    candidate: EvalCandidate
+    edit_log: ReviewEditLogEntry
+
+
+class DeprecateRequest(BaseModel):
+    candidate_id: str
+    reviewer: str = Field(min_length=1, max_length=128)
+    reason: str = Field(min_length=1, max_length=1000)

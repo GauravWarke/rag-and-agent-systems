@@ -13,20 +13,31 @@ Endpoints:
   GET  /v1/candidates         rank logs by how valuable they'd be as eval cases
   POST /v1/labels/generate    propose eval labels for a set of logs, deduped
   GET  /v1/labels             list every generated label candidate (accepted + rejected)
+  GET  /v1/review/queue       list candidates awaiting human review
+  POST /v1/review/decide      approve, edit, or reject a reviewed candidate
+  GET  /v1/review/edits       list the reviewer edit/decision history
+  POST /v1/review/deprecate   mark an approved case deprecated
 """
 from __future__ import annotations
+
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Query, Request
 
 from app.core.config import settings
 from app.core.models import (
     ClusterInfo,
+    DeprecateRequest,
     EvalCandidate,
     GenerateLabelsRequest,
     GenerateLabelsResponse,
     HighValueCandidate,
     LogEntry,
     LogIngestRequest,
+    ReviewDecisionRequest,
+    ReviewDecisionResponse,
+    ReviewEditLogEntry,
+    ReviewQueueItem,
     SampleRequest,
     SeedLogsRequest,
     SeedLogsResponse,
@@ -37,6 +48,8 @@ from app.labels.dedupe import EvalCandidateStore, dedupe_and_add
 from app.labels.generator import generate_label
 from app.logs.store import LogStore
 from app.logs.synthetic import generate_synthetic_logs
+from app.review.decisions import ReviewEditLogStore, apply_decision, deprecate_candidate
+from app.review.queue import build_queue
 from app.sampling.candidates import identify_candidates
 from app.sampling.cluster import cluster_assignments, cluster_logs
 from app.sampling.sampler import diversity_sample, failure_biased_sample, random_sample
@@ -46,6 +59,7 @@ app = FastAPI(title="Production Log-to-Eval Dataset Builder", version="0.1.0")
 _limiter = RateLimiter(settings.rate_limit_per_minute)
 _log_store = LogStore()
 _candidate_store = EvalCandidateStore()
+_edit_log_store = ReviewEditLogStore()
 _label_client: LabelClient = (
     OpenAILabelClient(api_key=settings.openai_api_key) if settings.openai_api_key else StubLabelClient()
 )
@@ -162,3 +176,43 @@ def list_labels(request: Request) -> list[EvalCandidate]:
     if _rate_limited(request):
         raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
     return _candidate_store.all()
+
+
+@app.get("/v1/review/queue", response_model=list[ReviewQueueItem])
+def review_queue(request: Request) -> list[ReviewQueueItem]:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    return build_queue(_candidate_store, _log_store)
+
+
+@app.post("/v1/review/decide", response_model=ReviewDecisionResponse)
+def review_decide(req: ReviewDecisionRequest, request: Request) -> ReviewDecisionResponse:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    try:
+        return apply_decision(req, _candidate_store, _edit_log_store, now=datetime.now(timezone.utc))
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/v1/review/edits", response_model=list[ReviewEditLogEntry])
+def review_edits(request: Request, candidate_id: str | None = None) -> list[ReviewEditLogEntry]:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    if candidate_id:
+        return _edit_log_store.for_candidate(candidate_id)
+    return _edit_log_store.all()
+
+
+@app.post("/v1/review/deprecate", response_model=ReviewDecisionResponse)
+def review_deprecate(req: DeprecateRequest, request: Request) -> ReviewDecisionResponse:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    try:
+        return deprecate_candidate(req, _candidate_store, _edit_log_store, now=datetime.now(timezone.utc))
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

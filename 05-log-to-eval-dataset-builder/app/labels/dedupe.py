@@ -28,6 +28,19 @@ class EvalCandidateStore:
     def all(self) -> list[EvalCandidate]:
         return list(self._candidates)
 
+    def get(self, candidate_id: str) -> EvalCandidate | None:
+        return next((c for c in self._candidates if c.id == candidate_id), None)
+
+    def update(self, candidate: EvalCandidate) -> None:
+        """Replace a stored candidate in place, keyed by id. The vector map
+        is untouched since edits only ever change label fields, not the
+        source prompt the vector was computed from."""
+        for i, existing in enumerate(self._candidates):
+            if existing.id == candidate.id:
+                self._candidates[i] = candidate
+                return
+        raise KeyError(f"No candidate with id '{candidate.id}'")
+
     def record(self, candidate: EvalCandidate, vector: np.ndarray | None) -> None:
         self._candidates.append(candidate)
         if vector is not None:
@@ -77,10 +90,14 @@ def dedupe_and_add(
             status="rejected_duplicate",
             reason=f"near-duplicate of case {best_match.id} (similarity {best_similarity:.3f} >= {threshold})",
             duplicate_of=best_match.id,
+            review_status="rejected",
         )
         store.record(candidate, None)
         return candidate
 
+    review_status = (
+        "approved" if proposed.confidence >= settings.review_confidence_threshold else "draft"
+    )
     candidate = EvalCandidate(
         id=candidate_id,
         log_id=log.id,
@@ -95,6 +112,7 @@ def dedupe_and_add(
         status="accepted",
         reason="accepted: no existing case above the similarity threshold",
         duplicate_of=None,
+        review_status=review_status,
     )
     store.record(candidate, vector)
     return candidate

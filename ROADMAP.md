@@ -125,9 +125,9 @@ Folder: `05-log-to-eval-dataset-builder/`
 - [x] **(P5) Phase 3: Auto-Generate Eval Labels** — Decide eval type per example: Some examples need a golden answer. Others need a rubric. Some need expected refusal. Pick the label type based on the interaction.
 - [x] **(P5) Phase 3: Auto-Generate Eval Labels** — Generate labels with confidence: Use a strong model to propose expected behavior, key assertions, forbidden assertions, and scoring rubric. Run multiple passes for important examples.
 - [x] **(P5) Phase 3: Auto-Generate Eval Labels** — Deduplicate aggressively: Compare against existing eval cases and skip near-duplicates. Track why each candidate was accepted or rejected.
-- [ ] **(P5) Phase 4: Build Human Review** — Create a review queue: Low-confidence labels go to reviewers. Show the original interaction, proposed labels, similar existing cases, and quick approve/edit/reject actions.
-- [ ] **(P5) Phase 4: Build Human Review** — Track reviewer edits: Store what changed and why. Use this to improve labeling prompts and measure auto-label quality.
-- [ ] **(P5) Phase 4: Build Human Review** — Add dataset status: Every eval case should be draft, approved, rejected, or deprecated. This prevents messy datasets.
+- [x] **(P5) Phase 4: Build Human Review** — Create a review queue: Low-confidence labels go to reviewers. Show the original interaction, proposed labels, similar existing cases, and quick approve/edit/reject actions.
+- [x] **(P5) Phase 4: Build Human Review** — Track reviewer edits: Store what changed and why. Use this to improve labeling prompts and measure auto-label quality.
+- [x] **(P5) Phase 4: Build Human Review** — Add dataset status: Every eval case should be draft, approved, rejected, or deprecated. This prevents messy datasets.
 - [ ] **(P5) Phase 5: Connect to an Eval Runner** — Export approved cases to JSONL: Keep the output format simple: input, expected behavior, rubric, tags, difficulty, source cluster, and date added.
 - [ ] **(P5) Phase 5: Connect to an Eval Runner** — Run nightly evals: Execute the growing dataset against a model endpoint and compare performance to the previous run.
 - [ ] **(P5) Phase 5: Connect to an Eval Runner** — Track dataset health: Show total cases, cases by category, cases by difficulty, freshness, auto-labeled percentage, and human-reviewed percentage.

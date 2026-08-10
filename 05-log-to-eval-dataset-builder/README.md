@@ -81,11 +81,36 @@ curl -s localhost:8000/v1/clusters
 curl -s localhost:8000/v1/candidates
 ```
 
+Generate labels, then work the human review queue:
+
+```bash
+curl -s -X POST localhost:8000/v1/labels/generate -H 'content-type: application/json' \
+  -d '{"log_ids": ["<log-id-1>", "<log-id-2>"]}'
+curl -s localhost:8000/v1/review/queue
+curl -s -X POST localhost:8000/v1/review/decide -H 'content-type: application/json' \
+  -d '{"candidate_id": "<id>", "action": "approve", "reviewer": "alex", "reason": "Looks right."}'
+curl -s localhost:8000/v1/review/edits
+```
+
 Everything runs offline by default (deterministic hashed-embedding stub, heuristic label
 client). Set `OPENAI_API_KEY` in `.env` to switch label generation to a real model.
 
+## Human review
+
+Every accepted (non-duplicate) label candidate gets a `review_status`: candidates at or
+above `review_confidence_threshold` (default `0.75`, see `app/core/config.py`) are
+auto-approved; everything below is queued as `draft` for a human. `GET /v1/review/queue`
+returns each draft candidate alongside its source log and the most similar already-approved
+cases (by cosine similarity of the prompt embedding), so a reviewer can spot inconsistent or
+duplicate labeling before deciding. `POST /v1/review/decide` applies an `approve`, `edit`, or
+`reject` decision — edits are diffed field-by-field and the diff plus the reviewer's reason
+are appended to an audit log (`GET /v1/review/edits`). `POST /v1/review/deprecate` retires an
+approved case once it's superseded. Every eval case's `review_status` is one of `draft`,
+`approved`, `rejected`, or `deprecated`.
+
 ## Status
 
-Phases 1-3 implemented (log schema + redaction + synthetic seeding, sampling + clustering +
-candidate scoring, auto-label generation + dedup). Phases 4-6 (human review queue, eval
-runner integration, portfolio polish) are still pending — see root `ROADMAP.md`.
+Phases 1-4 implemented (log schema + redaction + synthetic seeding, sampling + clustering +
+candidate scoring, auto-label generation + dedup, human review queue + reviewer edit
+tracking + dataset status). Phases 5-6 (eval runner integration, portfolio polish) are still
+pending — see root `ROADMAP.md`.
