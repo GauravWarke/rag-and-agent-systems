@@ -19,5 +19,10 @@ class Settings(BaseSettings):
     # near-duplicate of one already accepted into the dataset.
     dedupe_similarity_threshold: float = 0.92
 
+    # Auto-label confidence at or above which an accepted candidate skips
+    # human review and is marked "approved" directly; below it, the
+    # candidate is queued as "draft" for a reviewer to check.
+    review_confidence_threshold: float = 0.75
+
 
 settings = Settings()
