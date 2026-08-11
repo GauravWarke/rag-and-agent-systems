@@ -128,9 +128,9 @@ Folder: `05-log-to-eval-dataset-builder/`
 - [x] **(P5) Phase 4: Build Human Review** — Create a review queue: Low-confidence labels go to reviewers. Show the original interaction, proposed labels, similar existing cases, and quick approve/edit/reject actions.
 - [x] **(P5) Phase 4: Build Human Review** — Track reviewer edits: Store what changed and why. Use this to improve labeling prompts and measure auto-label quality.
 - [x] **(P5) Phase 4: Build Human Review** — Add dataset status: Every eval case should be draft, approved, rejected, or deprecated. This prevents messy datasets.
-- [ ] **(P5) Phase 5: Connect to an Eval Runner** — Export approved cases to JSONL: Keep the output format simple: input, expected behavior, rubric, tags, difficulty, source cluster, and date added.
-- [ ] **(P5) Phase 5: Connect to an Eval Runner** — Run nightly evals: Execute the growing dataset against a model endpoint and compare performance to the previous run.
-- [ ] **(P5) Phase 5: Connect to an Eval Runner** — Track dataset health: Show total cases, cases by category, cases by difficulty, freshness, auto-labeled percentage, and human-reviewed percentage.
+- [x] **(P5) Phase 5: Connect to an Eval Runner** — Export approved cases to JSONL: Keep the output format simple: input, expected behavior, rubric, tags, difficulty, source cluster, and date added.
+- [x] **(P5) Phase 5: Connect to an Eval Runner** — Run nightly evals: Execute the growing dataset against a model endpoint and compare performance to the previous run.
+- [x] **(P5) Phase 5: Connect to an Eval Runner** — Track dataset health: Show total cases, cases by category, cases by difficulty, freshness, auto-labeled percentage, and human-reviewed percentage.
 - [ ] **(P5) Phase 6: Polish for Portfolio** — Show the flywheel: Demo logs entering the system, candidates being selected, labels being generated, humans approving, and the eval dataset growing.
 - [ ] **(P5) Phase 6: Polish for Portfolio** — Use dataset numbers: Example: "Generated 300 approved eval cases across 12 categories from 5,000 simulated production logs, with 82% auto-label acceptance after review."
 

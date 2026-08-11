@@ -1,12 +1,23 @@
+import json
+
 from fastapi.testclient import TestClient
 
-from app.main import _candidate_store, _edit_log_store, _log_store, app
+from app.main import (
+    _candidate_store,
+    _edit_log_store,
+    _eval_run_store,
+    _limiter,
+    _log_store,
+    app,
+)
 
 
 def _client() -> TestClient:
     _log_store.clear()
     _candidate_store.clear()
     _edit_log_store.clear()
+    _eval_run_store.clear()
+    _limiter.clear()
     return TestClient(app)
 
 
@@ -202,3 +213,79 @@ def test_review_deprecate_requires_approved_first():
     )
     assert deprecated.status_code == 200
     assert deprecated.json()["candidate"]["review_status"] == "deprecated"
+
+
+def _approve_all_drafts(client: TestClient) -> None:
+    for item in client.get("/v1/review/queue").json():
+        client.post(
+            "/v1/review/decide",
+            json={
+                "candidate_id": item["candidate"]["id"],
+                "action": "approve",
+                "reviewer": "alex",
+                "reason": "looks fine",
+            },
+        )
+
+
+def test_export_jsonl_returns_only_approved_cases():
+    client = _client()
+    client.post("/v1/logs/seed", json={"n": 40, "seed": 3})
+    log_ids = [log["id"] for log in client.get("/v1/logs", params={"limit": 40}).json()]
+    client.post("/v1/labels/generate", json={"log_ids": log_ids})
+    _approve_all_drafts(client)
+
+    approved_count = sum(1 for c in client.get("/v1/labels").json() if c["review_status"] == "approved")
+
+    export = client.get("/v1/export/jsonl")
+    assert export.status_code == 200
+    lines = [line for line in export.text.splitlines() if line]
+    assert len(lines) == approved_count
+
+    record = json.loads(lines[0])
+    expected_keys = {
+        "id", "input", "expected_behavior", "eval_type", "rubric",
+        "tags", "difficulty", "source_cluster", "date_added",
+    }
+    assert expected_keys.issubset(record)
+
+
+def test_eval_run_lifecycle_and_dataset_health():
+    client = _client()
+    client.post("/v1/logs/seed", json={"n": 40, "seed": 3})
+    log_ids = [log["id"] for log in client.get("/v1/logs", params={"limit": 40}).json()]
+    client.post("/v1/labels/generate", json={"log_ids": log_ids})
+    _approve_all_drafts(client)
+
+    first = client.post("/v1/eval-runs/run")
+    assert first.status_code == 200
+    first_body = first.json()
+    assert first_body["pass_rate_delta"] is None
+    assert first_body["total_cases"] > 0
+
+    second = client.post("/v1/eval-runs/run")
+    assert second.status_code == 200
+    second_body = second.json()
+    assert second_body["pass_rate_delta"] == 0.0  # deterministic stub client, same dataset
+
+    runs = client.get("/v1/eval-runs")
+    assert runs.status_code == 200
+    assert len(runs.json()) == 2
+
+    fetched = client.get(f"/v1/eval-runs/{first_body['run_id']}")
+    assert fetched.status_code == 200
+    assert fetched.json()["run_id"] == first_body["run_id"]
+
+    assert client.get("/v1/eval-runs/does-not-exist").status_code == 404
+
+    health = client.get("/v1/dataset/health")
+    assert health.status_code == 200
+    health_body = health.json()
+    assert health_body["total_cases"] == first_body["total_cases"]
+    assert health_body["human_reviewed_pct"] > 0
+
+
+def test_run_eval_without_approved_cases_returns_400():
+    client = _client()
+    r = client.post("/v1/eval-runs/run")
+    assert r.status_code == 400

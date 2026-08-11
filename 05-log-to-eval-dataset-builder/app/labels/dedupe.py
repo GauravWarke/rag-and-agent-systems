@@ -9,12 +9,43 @@ auditable.
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
 import numpy as np
 
 from app.core.config import settings
-from app.core.models import EvalCandidate, LogEntry, ProposedLabel
+from app.core.models import Difficulty, EvalCandidate, LogEntry, ProposedLabel
 from app.sampling.embeddings import cosine, embed
+
+
+def derive_tags(log: LogEntry) -> list[str]:
+    """Cheap, deterministic tags from the source log's own signals — no
+    model call needed, so every candidate gets tags even offline."""
+    tags = [log.feature]
+    if log.safety_flag:
+        tags.append("safety")
+    if log.error:
+        tags.append("error")
+    if log.malformed_output:
+        tags.append("malformed_output")
+    if log.retry_count > 0:
+        tags.append("retried")
+    if log.user_feedback == "negative":
+        tags.append("negative_feedback")
+    return tags
+
+
+def derive_difficulty(log: LogEntry, confidence: float) -> Difficulty:
+    """Difficulty rises with both the source log's risk signals (safety
+    flags, errors, retries) and the label's own uncertainty — a case can be
+    hard either because the interaction was messy or because the auto-label
+    itself is shaky."""
+    risk_signals = sum([log.safety_flag, log.error, log.malformed_output, log.retry_count > 0])
+    if risk_signals >= 2 or confidence < 0.6:
+        return "hard"
+    if risk_signals == 1 or confidence < 0.8:
+        return "medium"
+    return "easy"
 
 
 class EvalCandidateStore:
@@ -59,8 +90,13 @@ def dedupe_and_add(
     proposed: ProposedLabel,
     store: EvalCandidateStore,
     threshold: float | None = None,
+    cluster_id: int | None = None,
+    now: datetime | None = None,
 ) -> EvalCandidate:
     threshold = settings.dedupe_similarity_threshold if threshold is None else threshold
+    now = now or datetime.now(timezone.utc)
+    tags = derive_tags(log)
+    difficulty = derive_difficulty(log, proposed.confidence)
     vector = embed(log.prompt)
 
     best_match: EvalCandidate | None = None
@@ -91,6 +127,10 @@ def dedupe_and_add(
             reason=f"near-duplicate of case {best_match.id} (similarity {best_similarity:.3f} >= {threshold})",
             duplicate_of=best_match.id,
             review_status="rejected",
+            tags=tags,
+            difficulty=difficulty,
+            cluster_id=cluster_id,
+            created_at=now,
         )
         store.record(candidate, None)
         return candidate
@@ -113,6 +153,10 @@ def dedupe_and_add(
         reason="accepted: no existing case above the similarity threshold",
         duplicate_of=None,
         review_status=review_status,
+        tags=tags,
+        difficulty=difficulty,
+        cluster_id=cluster_id,
+        created_at=now,
     )
     store.record(candidate, vector)
     return candidate

@@ -108,9 +108,25 @@ are appended to an audit log (`GET /v1/review/edits`). `POST /v1/review/deprecat
 approved case once it's superseded. Every eval case's `review_status` is one of `draft`,
 `approved`, `rejected`, or `deprecated`.
 
+## Connecting to an eval runner
+
+Every accepted candidate also gets `tags`, a `difficulty` tier, its source `cluster_id`, and
+a `created_at` timestamp, so the dataset can be sliced and exported without re-deriving them.
+
+`GET /v1/export/jsonl` exports every `approved` case as newline-delimited JSON (`input`,
+`expected_behavior`, `eval_type`, `rubric`, `tags`, `difficulty`, `source_cluster`,
+`date_added`). `POST /v1/eval-runs/run` replays the current approved dataset against a model
+endpoint (the offline `stub` target client by default, or a real one once `OPENAI_API_KEY` is
+set) and scores each case against its `eval_type` — token-overlap against the golden answer,
+refusal-marker matching for `expected_refusal`, or key-assertion presence for `rubric` — then
+diffs the result against the previous run so newly-passing/newly-failing cases surface
+explicitly. `GET /v1/eval-runs` lists past runs and `GET /v1/eval-runs/{run_id}` fetches one
+with full per-case results. `GET /v1/dataset/health` reports total cases, breakdowns by eval
+type/difficulty/review status, auto-labeled vs. human-reviewed percentage, and case age/freshness.
+
 ## Status
 
-Phases 1-4 implemented (log schema + redaction + synthetic seeding, sampling + clustering +
+Phases 1-5 implemented (log schema + redaction + synthetic seeding, sampling + clustering +
 candidate scoring, auto-label generation + dedup, human review queue + reviewer edit
-tracking + dataset status). Phases 5-6 (eval runner integration, portfolio polish) are still
-pending — see root `ROADMAP.md`.
+tracking + dataset status, JSONL export + eval-runner + dataset health). Phase 6 (portfolio
+polish) is still pending — see root `ROADMAP.md`.
