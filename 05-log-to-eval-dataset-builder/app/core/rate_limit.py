@@ -24,3 +24,6 @@ class RateLimiter:
         hits.append(now)
         self._hits[key] = hits
         return True
+
+    def clear(self) -> None:
+        self._hits.clear()

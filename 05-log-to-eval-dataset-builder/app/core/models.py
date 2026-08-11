@@ -96,6 +96,10 @@ class HighValueCandidate(BaseModel):
 EvalType = Literal["golden_answer", "rubric", "expected_refusal"]
 CandidateStatus = Literal["accepted", "rejected_duplicate"]
 
+# Rough difficulty tier derived from the source log's risk signals and the
+# label's own confidence — used to slice dataset health and eval-run reports.
+Difficulty = Literal["easy", "medium", "hard"]
+
 # Lifecycle status of an eval case in the growing dataset, separate from the
 # dedup outcome (`CandidateStatus`) recorded at generation time. "draft"
 # means it's sitting in the human review queue; "approved"/"rejected" are
@@ -127,6 +131,10 @@ class EvalCandidate(BaseModel):
     reason: str
     duplicate_of: str | None = None
     review_status: ReviewStatus = "draft"
+    tags: list[str] = Field(default_factory=list)
+    difficulty: Difficulty = "medium"
+    cluster_id: int | None = None
+    created_at: datetime
 
 
 class GenerateLabelsRequest(BaseModel):
@@ -195,3 +203,47 @@ class DeprecateRequest(BaseModel):
     candidate_id: str
     reviewer: str = Field(min_length=1, max_length=128)
     reason: str = Field(min_length=1, max_length=1000)
+
+
+class EvalCaseResult(BaseModel):
+    """Outcome of running one approved eval case against a model endpoint."""
+
+    candidate_id: str
+    eval_type: EvalType
+    passed: bool
+    actual_response: str
+    explanation: str
+
+
+class EvalRunSummary(BaseModel):
+    """One nightly-eval-runner execution over the current approved dataset,
+    compared against the immediately preceding run so regressions surface
+    without having to diff two full reports by hand."""
+
+    run_id: str
+    timestamp: datetime
+    model: str
+    total_cases: int
+    passed: int
+    failed: int
+    pass_rate: float
+    pass_rate_delta: float | None = None
+    newly_failing: list[str] = Field(default_factory=list)
+    newly_passing: list[str] = Field(default_factory=list)
+    results: list[EvalCaseResult] = Field(default_factory=list)
+
+
+class DatasetHealth(BaseModel):
+    """Snapshot of the growing eval dataset's size, composition, and
+    review coverage — the numbers a reviewer or CI gate would check before
+    trusting the dataset."""
+
+    total_cases: int
+    by_eval_type: dict[str, int]
+    by_difficulty: dict[str, int]
+    by_review_status: dict[str, int]
+    auto_labeled_pct: float
+    human_reviewed_pct: float
+    avg_case_age_days: float
+    oldest_case_at: datetime | None
+    newest_case_at: datetime | None

@@ -17,18 +17,25 @@ Endpoints:
   POST /v1/review/decide      approve, edit, or reject a reviewed candidate
   GET  /v1/review/edits       list the reviewer edit/decision history
   POST /v1/review/deprecate   mark an approved case deprecated
+  GET  /v1/export/jsonl       export approved eval cases as JSONL
+  POST /v1/eval-runs/run      run the approved dataset against a model endpoint
+  GET  /v1/eval-runs          list past eval runs
+  GET  /v1/eval-runs/{id}     fetch one eval run, including per-case results
+  GET  /v1/dataset/health     dataset size, composition, and review coverage
 """
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 
 from app.core.config import settings
 from app.core.models import (
     ClusterInfo,
+    DatasetHealth,
     DeprecateRequest,
     EvalCandidate,
+    EvalRunSummary,
     GenerateLabelsRequest,
     GenerateLabelsResponse,
     HighValueCandidate,
@@ -43,6 +50,15 @@ from app.core.models import (
     SeedLogsResponse,
 )
 from app.core.rate_limit import RateLimiter
+from app.eval_runner.export import export_jsonl
+from app.eval_runner.health import compute_dataset_health
+from app.eval_runner.runner import (
+    EvalRunStore,
+    EvalTargetClient,
+    OpenAIEvalTargetClient,
+    StubEvalTargetClient,
+    run_eval,
+)
 from app.labels.client import LabelClient, OpenAILabelClient, StubLabelClient
 from app.labels.dedupe import EvalCandidateStore, dedupe_and_add
 from app.labels.generator import generate_label
@@ -60,8 +76,12 @@ _limiter = RateLimiter(settings.rate_limit_per_minute)
 _log_store = LogStore()
 _candidate_store = EvalCandidateStore()
 _edit_log_store = ReviewEditLogStore()
+_eval_run_store = EvalRunStore()
 _label_client: LabelClient = (
     OpenAILabelClient(api_key=settings.openai_api_key) if settings.openai_api_key else StubLabelClient()
+)
+_eval_target_client: EvalTargetClient = (
+    OpenAIEvalTargetClient(api_key=settings.openai_api_key) if settings.openai_api_key else StubEvalTargetClient()
 )
 
 # Features considered high-impact for candidate scoring — informs which
@@ -154,7 +174,12 @@ def generate_labels(req: GenerateLabelsRequest, request: Request) -> GenerateLab
     if _rate_limited(request):
         raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
 
-    high_value_ids = {c.log_id for c in identify_candidates(_log_store.all(), top_n=len(_log_store) or 1)}
+    all_logs = _log_store.all()
+    high_value_ids = {c.log_id for c in identify_candidates(all_logs, top_n=len(all_logs) or 1)}
+    cluster_by_log_id: dict[str, int] = {}
+    if all_logs:
+        assignments, _vectors, _k = cluster_assignments(all_logs)
+        cluster_by_log_id = {log.id: int(assignments[i]) for i, log in enumerate(all_logs)}
 
     generated = []
     for log_id in req.log_ids:
@@ -162,7 +187,9 @@ def generate_labels(req: GenerateLabelsRequest, request: Request) -> GenerateLab
         if log is None:
             raise HTTPException(status_code=404, detail=f"Log '{log_id}' not found.")
         proposed = generate_label(log, _label_client, important=log_id in high_value_ids)
-        candidate = dedupe_and_add(log, proposed, _candidate_store)
+        candidate = dedupe_and_add(
+            log, proposed, _candidate_store, cluster_id=cluster_by_log_id.get(log_id)
+        )
         generated.append(candidate)
 
     accepted = sum(1 for c in generated if c.status == "accepted")
@@ -216,3 +243,52 @@ def review_deprecate(req: DeprecateRequest, request: Request) -> ReviewDecisionR
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/v1/export/jsonl")
+def export_eval_dataset(request: Request) -> Response:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    body = export_jsonl(_candidate_store.all())
+    return Response(content=body, media_type="application/x-ndjson")
+
+
+@app.post("/v1/eval-runs/run", response_model=EvalRunSummary)
+def run_eval_dataset(request: Request) -> EvalRunSummary:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    approved = [c for c in _candidate_store.all() if c.review_status == "approved"]
+    if not approved:
+        raise HTTPException(status_code=400, detail="No approved eval cases yet — nothing to run.")
+    run = run_eval(
+        approved,
+        _eval_target_client,
+        timestamp=datetime.now(timezone.utc),
+        previous=_eval_run_store.latest(),
+    )
+    _eval_run_store.add(run)
+    return run
+
+
+@app.get("/v1/eval-runs", response_model=list[EvalRunSummary])
+def list_eval_runs(request: Request) -> list[EvalRunSummary]:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    return _eval_run_store.all()
+
+
+@app.get("/v1/eval-runs/{run_id}", response_model=EvalRunSummary)
+def get_eval_run(run_id: str, request: Request) -> EvalRunSummary:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    run = _eval_run_store.get(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail=f"No eval run with id '{run_id}'.")
+    return run
+
+
+@app.get("/v1/dataset/health", response_model=DatasetHealth)
+def dataset_health(request: Request) -> DatasetHealth:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    return compute_dataset_health(_candidate_store.all(), _edit_log_store.all(), now=datetime.now(timezone.utc))
