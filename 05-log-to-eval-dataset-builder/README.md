@@ -126,7 +126,19 @@ type/difficulty/review status, auto-labeled vs. human-reviewed percentage, and c
 
 ## Status
 
-Phases 1-5 implemented (log schema + redaction + synthetic seeding, sampling + clustering +
-candidate scoring, auto-label generation + dedup, human review queue + reviewer edit
-tracking + dataset status, JSONL export + eval-runner + dataset health). Phase 6 (portfolio
-polish) is still pending — see root `ROADMAP.md`.
+Complete — all six phases implemented: log schema + redaction + synthetic seeding
+(Phase 1), sampling + clustering + candidate scoring (Phase 2), auto-label generation +
+dedup (Phase 3), human review queue + reviewer edit tracking + dataset status (Phase 4),
+JSONL export + eval-runner + dataset health (Phase 5).
+
+- **Phase 6 — Polish for Portfolio:** [`docs/walkthrough.md`](docs/walkthrough.md) is a
+  transcript walkthrough (real request/response pairs against the live app) showing the
+  flywheel end to end: logs entering the system, three interactions labeled with three
+  different eval types, a human editing a low-confidence rubric in the review queue, the
+  approved dataset exporting to JSONL, and an eval run scoring it.
+  [`docs/case_study.md`](docs/case_study.md) is the narrative writeup, headlined by a
+  measurable result from a 3,000-log run — 62 approved eval cases across 3 eval types and
+  8 clusters, 87.1% auto-labeled, after an 85.8% near-duplicate rejection rate — reproducible
+  via `python docs/case_study_batch.py`.
+
+Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`
