@@ -131,8 +131,8 @@ Folder: `05-log-to-eval-dataset-builder/`
 - [x] **(P5) Phase 5: Connect to an Eval Runner** — Export approved cases to JSONL: Keep the output format simple: input, expected behavior, rubric, tags, difficulty, source cluster, and date added.
 - [x] **(P5) Phase 5: Connect to an Eval Runner** — Run nightly evals: Execute the growing dataset against a model endpoint and compare performance to the previous run.
 - [x] **(P5) Phase 5: Connect to an Eval Runner** — Track dataset health: Show total cases, cases by category, cases by difficulty, freshness, auto-labeled percentage, and human-reviewed percentage.
-- [ ] **(P5) Phase 6: Polish for Portfolio** — Show the flywheel: Demo logs entering the system, candidates being selected, labels being generated, humans approving, and the eval dataset growing.
-- [ ] **(P5) Phase 6: Polish for Portfolio** — Use dataset numbers: Example: "Generated 300 approved eval cases across 12 categories from 5,000 simulated production logs, with 82% auto-label acceptance after review."
+- [x] **(P5) Phase 6: Polish for Portfolio** — Show the flywheel: Demo logs entering the system, candidates being selected, labels being generated, humans approving, and the eval dataset growing.
+- [x] **(P5) Phase 6: Polish for Portfolio** — Use dataset numbers: Example: "Generated 300 approved eval cases across 12 categories from 5,000 simulated production logs, with 82% auto-label acceptance after review."
 
 ## P6: Permissioned Tool-Using Agent Sandbox
 
