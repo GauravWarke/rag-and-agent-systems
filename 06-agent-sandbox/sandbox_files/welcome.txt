@@ -1,0 +1,5 @@
+Welcome to the workspace sandbox.
+
+This folder is the only part of the filesystem the file_reader tool is
+allowed to read from. Any path that resolves outside this directory
+(for example via "../") is rejected before the file is opened.

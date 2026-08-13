@@ -67,4 +67,33 @@ A controlled agent environment where an LLM can use tools like file search, calc
 
 ## Status
 
-Planned. Scaffold pending — see root `ROADMAP.md`.
+In progress — Phases 1-3 implemented (roughly half of the six-phase plan):
+
+- **Phase 1 — Agent and tool model:** a tool registry (`app/tools/registry.py`) where every
+  tool declares its name, description, JSON input/output schema, allowed roles, rate limit,
+  risk level, and whether it requires approval. Five starter tools: `calculator` (safe `ast`-based
+  arithmetic, no `eval`), `file_reader` (sandboxed to `sandbox_files/`, path traversal blocked),
+  `web_search` (offline stub over a small mock index), `csv_query` (medium-risk lookup over an
+  embedded customer dataset), and `ticket_create` (high-risk mock write API).
+- **Phase 2 — Permission checks:** four roles (`viewer`, `analyst`, `operator`, `admin`) resolved
+  server-side from `user_id` — a caller can never assert its own role. Low-risk tools execute
+  immediately once the role check passes; medium-risk tools return `needs_confirmation` until
+  resubmitted with `confirmed=true`; high-risk tools always return `needs_approval` until a human
+  approves out of band. Every tool call's arguments are validated against the tool's Pydantic
+  model before the handler ever runs (`app/tools/executor.py`).
+- **Phase 3 — Agent workflow graph:** a small explicit state machine (`app/agent/graph.py`) —
+  intake, plan, tool_selection, permission_check, tool_execution, result_reflection,
+  approval_wait, final_response — implemented in-process rather than pulling in LangGraph, Redis,
+  or Postgres, matching this repo's offline-runnable-by-default convention. An offline `StubPlanner`
+  routes natural-language requests to a tool with no API key required (`OpenAIPlanner` is available
+  behind `OPENAI_API_KEY`). Denied requests end immediately with a safe explanation; medium/high-risk
+  requests pause the task (`awaiting_confirmation` / `awaiting_approval`) with the pending tool call
+  persisted so `POST /v1/agent/tasks/{id}/resume` can approve, reject, or run it with edited
+  arguments later. If a tool fails and declares a `fallback_tool`, the workflow retries once with
+  that safer alternative before giving up.
+
+Remaining: Phase 4 (a dedicated human approval queue view with full audit/override tracking —
+today's `resume` endpoint covers the approve/reject/execute mechanics but not the queue UI or
+decision log), Phase 5 (trace viewer + safety analytics), and Phase 6 (portfolio polish).
+
+Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`

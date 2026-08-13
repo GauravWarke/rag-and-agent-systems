@@ -139,16 +139,16 @@ Folder: `05-log-to-eval-dataset-builder/`
 *Topic: Agents, Tool Use, Security, Human-in-the-Loop, Observability*  
 Folder: `06-agent-sandbox/`
 
-- [ ] **(P6) Scaffold** — create `06-agent-sandbox/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
-- [ ] **(P6) Phase 1: Design the Agent and Tool Model** — Define the agent role: Build a "workspace assistant" that can answer questions, inspect files, summarize data, call safe APIs, and prepare actions for approval.
-- [ ] **(P6) Phase 1: Design the Agent and Tool Model** — Create a tool registry: Every tool has name, description, input schema, output schema, allowed roles, rate limit, risk level, and whether approval is required.
-- [ ] **(P6) Phase 1: Design the Agent and Tool Model** — Build safe starter tools: Add calculator, file reader over a sandbox folder, web-search stub or mock search, CSV query tool, and ticket creation mock API.
-- [ ] **(P6) Phase 2: Build Permission Checks** — Add user and role permissions: Users have roles like viewer, analyst, operator, and admin. Tools check permissions before execution.
-- [ ] **(P6) Phase 2: Build Permission Checks** — Add risk levels: Low-risk tools execute immediately. Medium-risk tools require confirmation. High-risk tools require human approval before execution.
-- [ ] **(P6) Phase 2: Build Permission Checks** — Block invalid tool inputs: Validate every tool call with Pydantic. Never let raw model text become a command without validation.
-- [ ] **(P6) Phase 3: Build the LangGraph Workflow** — Create graph nodes: Intake, plan, tool selection, permission check, tool execution, result reflection, approval wait, final response.
-- [ ] **(P6) Phase 3: Build the LangGraph Workflow** — Add conditional routing: If permission fails, return a safe explanation. If approval is needed, pause the task. If a tool fails, let the agent retry with a safer alternative.
-- [ ] **(P6) Phase 3: Build the LangGraph Workflow** — Store task state: Persist every step so a paused task can resume after human approval.
+- [x] **(P6) Scaffold** — create `06-agent-sandbox/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
+- [x] **(P6) Phase 1: Design the Agent and Tool Model** — Define the agent role: Build a "workspace assistant" that can answer questions, inspect files, summarize data, call safe APIs, and prepare actions for approval.
+- [x] **(P6) Phase 1: Design the Agent and Tool Model** — Create a tool registry: Every tool has name, description, input schema, output schema, allowed roles, rate limit, risk level, and whether approval is required.
+- [x] **(P6) Phase 1: Design the Agent and Tool Model** — Build safe starter tools: Add calculator, file reader over a sandbox folder, web-search stub or mock search, CSV query tool, and ticket creation mock API.
+- [x] **(P6) Phase 2: Build Permission Checks** — Add user and role permissions: Users have roles like viewer, analyst, operator, and admin. Tools check permissions before execution.
+- [x] **(P6) Phase 2: Build Permission Checks** — Add risk levels: Low-risk tools execute immediately. Medium-risk tools require confirmation. High-risk tools require human approval before execution.
+- [x] **(P6) Phase 2: Build Permission Checks** — Block invalid tool inputs: Validate every tool call with Pydantic. Never let raw model text become a command without validation.
+- [x] **(P6) Phase 3: Build the LangGraph Workflow** — Create graph nodes: Intake, plan, tool selection, permission check, tool execution, result reflection, approval wait, final response.
+- [x] **(P6) Phase 3: Build the LangGraph Workflow** — Add conditional routing: If permission fails, return a safe explanation. If approval is needed, pause the task. If a tool fails, let the agent retry with a safer alternative.
+- [x] **(P6) Phase 3: Build the LangGraph Workflow** — Store task state: Persist every step so a paused task can resume after human approval.
 - [ ] **(P6) Phase 4: Build Human Approval** — Create an approval queue: Show proposed action, tool name, arguments, risk level, model reasoning summary, and expected effect.
 - [ ] **(P6) Phase 4: Build Human Approval** — Add approve / reject / modify: A human can approve as-is, edit the tool arguments, reject, or ask the agent to re-plan.
 - [ ] **(P6) Phase 4: Build Human Approval** — Log decisions: Store who approved, what changed, and why. This keeps the agent auditable.

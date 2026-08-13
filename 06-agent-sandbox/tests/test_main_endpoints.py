@@ -1,0 +1,80 @@
+from fastapi.testclient import TestClient
+
+from app.main import app
+
+
+def _client() -> TestClient:
+    return TestClient(app)
+
+
+def test_list_users():
+    with _client() as client:
+        r = client.get("/v1/users")
+        assert r.status_code == 200
+        roles = {u["role"] for u in r.json()}
+        assert roles == {"viewer", "analyst", "operator", "admin"}
+
+
+def test_list_tools():
+    with _client() as client:
+        r = client.get("/v1/tools")
+        assert r.status_code == 200
+        assert len(r.json()) == 5
+
+
+def test_call_tool_directly_low_risk():
+    with _client() as client:
+        r = client.post(
+            "/v1/tools/call",
+            json={"user_id": "u_viewer", "tool_name": "calculator", "arguments": {"expression": "6 * 7"}},
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["success"] is True
+        assert body["output"]["result"] == 42
+
+
+def test_agent_task_low_risk_completes():
+    with _client() as client:
+        r = client.post("/v1/agent/tasks", json={"user_id": "u_viewer", "request": "what is 3 + 4?"})
+        assert r.status_code == 200
+        task = r.json()
+        assert task["status"] == "completed"
+
+        fetched = client.get(f"/v1/agent/tasks/{task['id']}")
+        assert fetched.status_code == 200
+        assert fetched.json()["id"] == task["id"]
+
+
+def test_agent_task_high_risk_pauses_and_resumes():
+    with _client() as client:
+        create = client.post(
+            "/v1/agent/tasks",
+            json={"user_id": "u_operator", "request": "please create a ticket for a login bug"},
+        )
+        task = create.json()
+        assert task["status"] == "awaiting_approval"
+
+        resume = client.post(
+            f"/v1/agent/tasks/{task['id']}/resume",
+            json={"decision": "approve", "reviewer": "u_admin", "reason": "verified"},
+        )
+        assert resume.status_code == 200
+        resumed = resume.json()
+        assert resumed["status"] == "completed"
+        assert resumed["result"]["output"]["status"] == "created"
+
+
+def test_resume_unknown_task_404():
+    with _client() as client:
+        r = client.post(
+            "/v1/agent/tasks/does-not-exist/resume",
+            json={"decision": "approve", "reviewer": "x", "reason": "y"},
+        )
+        assert r.status_code == 404
+
+
+def test_get_unknown_task_404():
+    with _client() as client:
+        r = client.get("/v1/agent/tasks/does-not-exist")
+        assert r.status_code == 404
