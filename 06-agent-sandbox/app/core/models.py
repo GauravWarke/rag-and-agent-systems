@@ -6,7 +6,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 Role = Literal["viewer", "analyst", "operator", "admin"]
 RiskLevel = Literal["low", "medium", "high"]
@@ -110,11 +110,86 @@ class AgentTaskRequest(BaseModel):
     request: str = Field(min_length=1, max_length=2000)
 
 
-ResumeDecision = Literal["approve", "reject"]
+ResumeDecision = Literal["approve", "reject", "modify", "replan"]
 
 
 class ResumeTaskRequest(BaseModel):
     decision: ResumeDecision
     reviewer: str = Field(min_length=1, max_length=128)
     reason: str = Field(min_length=1, max_length=500)
+    # Required when decision="modify" (the edited arguments to run with);
+    # ignored for "reject"/"replan" and optional for "approve".
     modified_arguments: dict[str, Any] | None = None
+
+    @model_validator(mode="after")
+    def _modify_requires_arguments(self) -> ResumeTaskRequest:
+        if self.decision == "modify" and self.modified_arguments is None:
+            raise ValueError("decision='modify' requires modified_arguments.")
+        return self
+
+
+# --- Human approval queue and audit log (Phase 4) --------------------------
+
+
+class DecisionLog(BaseModel):
+    """A structured, queryable record of one human approval decision — who
+    decided what, on which task, and why. Kept separate from the free-text
+    step appended to `AgentTask.steps` so it can be listed/filtered on its
+    own for auditing.
+    """
+
+    id: str
+    task_id: str
+    tool_name: str
+    risk_level: RiskLevel
+    decision: ResumeDecision
+    reviewer: str
+    reason: str
+    original_arguments: dict[str, Any]
+    modified_arguments: dict[str, Any] | None = None
+    outcome_status: TaskStatus
+    timestamp: datetime
+
+
+class ApprovalQueueItem(BaseModel):
+    """Read-model for the human approval queue: one paused task with enough
+    context (proposed action, risk, model reasoning, expected effect) for a
+    reviewer to decide without opening the raw task record.
+    """
+
+    task_id: str
+    user_id: str
+    request: str
+    status: TaskStatus
+    tool_name: str
+    arguments: dict[str, Any]
+    risk_level: RiskLevel
+    reasoning_summary: str
+    expected_effect: str
+    created_at: datetime
+    updated_at: datetime
+
+
+# --- Observability / tracing (Phase 5) -------------------------------------
+
+
+class TraceSpan(BaseModel):
+    """One entry in a task's timeline, enriched with latency/cost where the
+    underlying step is a tool execution.
+    """
+
+    index: int
+    node: NodeName
+    detail: str
+    timestamp: datetime
+    latency_ms: float | None = None
+    cost_usd: float | None = None
+
+
+class TraceResponse(BaseModel):
+    task_id: str
+    status: TaskStatus
+    spans: list[TraceSpan]
+    decisions: list[DecisionLog]
+    total_latency_ms: float
+    total_cost_usd: float

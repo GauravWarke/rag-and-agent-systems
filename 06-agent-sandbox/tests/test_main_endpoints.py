@@ -78,3 +78,60 @@ def test_get_unknown_task_404():
     with _client() as client:
         r = client.get("/v1/agent/tasks/does-not-exist")
         assert r.status_code == 404
+
+
+def test_approval_queue_and_decision_log_via_http():
+    with _client() as client:
+        create = client.post(
+            "/v1/agent/tasks",
+            json={"user_id": "u_operator", "request": "please create a ticket for a login bug"},
+        )
+        task = create.json()
+        assert task["status"] == "awaiting_approval"
+
+        queue = client.get("/v1/agent/approvals")
+        assert queue.status_code == 200
+        queued_ids = [item["task_id"] for item in queue.json()]
+        assert task["id"] in queued_ids
+
+        resume = client.post(
+            f"/v1/agent/tasks/{task['id']}/resume",
+            json={
+                "decision": "modify",
+                "reviewer": "u_admin",
+                "reason": "tightened the title",
+                "modified_arguments": {"title": "Login outage", "description": "cannot log in"},
+            },
+        )
+        assert resume.status_code == 200
+        assert resume.json()["status"] == "completed"
+
+        # the resolved task should have left the approval queue
+        queue_after = client.get("/v1/agent/approvals")
+        assert task["id"] not in [item["task_id"] for item in queue_after.json()]
+
+        decisions = client.get("/v1/agent/decisions", params={"task_id": task["id"]})
+        assert decisions.status_code == 200
+        logged = decisions.json()
+        assert len(logged) == 1
+        assert logged[0]["decision"] == "modify"
+        assert logged[0]["modified_arguments"]["title"] == "Login outage"
+
+
+def test_task_trace_via_http():
+    with _client() as client:
+        create = client.post("/v1/agent/tasks", json={"user_id": "u_viewer", "request": "what is 5 + 5?"})
+        task = create.json()
+
+        trace = client.get(f"/v1/agent/tasks/{task['id']}/trace")
+        assert trace.status_code == 200
+        body = trace.json()
+        assert body["task_id"] == task["id"]
+        assert len(body["spans"]) == len(task["steps"])
+        assert body["total_cost_usd"] >= 0
+
+
+def test_task_trace_unknown_task_404():
+    with _client() as client:
+        r = client.get("/v1/agent/tasks/does-not-exist/trace")
+        assert r.status_code == 404

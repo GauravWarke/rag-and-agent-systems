@@ -67,7 +67,7 @@ A controlled agent environment where an LLM can use tools like file search, calc
 
 ## Status
 
-In progress — Phases 1-3 implemented (roughly half of the six-phase plan):
+In progress — Phases 1-4 implemented, plus most of Phase 5:
 
 - **Phase 1 — Agent and tool model:** a tool registry (`app/tools/registry.py`) where every
   tool declares its name, description, JSON input/output schema, allowed roles, rate limit,
@@ -92,8 +92,24 @@ In progress — Phases 1-3 implemented (roughly half of the six-phase plan):
   arguments later. If a tool fails and declares a `fallback_tool`, the workflow retries once with
   that safer alternative before giving up.
 
-Remaining: Phase 4 (a dedicated human approval queue view with full audit/override tracking —
-today's `resume` endpoint covers the approve/reject/execute mechanics but not the queue UI or
-decision log), Phase 5 (trace viewer + safety analytics), and Phase 6 (portfolio polish).
+- **Phase 4 — Human approval:** `GET /v1/agent/approvals` (`app/agent/approvals.py`) turns every
+  paused task into a compact review item — tool name, arguments, risk level, a one-line model
+  reasoning summary pulled from the `plan` step, and the tool's declared expected effect.
+  `POST /v1/agent/tasks/{id}/resume` now accepts four decisions: `approve` (run as proposed),
+  `modify` (run with reviewer-edited `modified_arguments`, required by the request schema),
+  `reject` (end the task), and `replan` (discard the pending action and ask the planner to
+  propose a new one, which is routed through selection/permission/execution again — it may
+  complete, fail, or pause once more). Every decision is written to a structured, queryable
+  audit log (`app/agent/decisions.py`, `GET /v1/agent/decisions?task_id=...`) recording who
+  decided, the original vs. modified arguments, the reason, and the outcome — separate from the
+  free-text step already appended to the task's trace.
+- **Phase 5 — Observability (partial):** `GET /v1/agent/tasks/{id}/trace`
+  (`app/observability/tracing.py`) renders a task's step log as an ordered timeline of spans,
+  each carrying latency and a flat per-risk-level stub cost estimate for tool-execution steps
+  (this repo has no live billing integration, so cost is directional, not exact provider
+  pricing) plus the task's linked decision-log entries and running totals.
+
+Remaining: Phase 5 (safety analytics — tool usage, blocked attempts, approval rate, rejected
+actions, and failure-reason breakdowns) and Phase 6 (portfolio polish).
 
 Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`
