@@ -149,11 +149,11 @@ Folder: `06-agent-sandbox/`
 - [x] **(P6) Phase 3: Build the LangGraph Workflow** — Create graph nodes: Intake, plan, tool selection, permission check, tool execution, result reflection, approval wait, final response.
 - [x] **(P6) Phase 3: Build the LangGraph Workflow** — Add conditional routing: If permission fails, return a safe explanation. If approval is needed, pause the task. If a tool fails, let the agent retry with a safer alternative.
 - [x] **(P6) Phase 3: Build the LangGraph Workflow** — Store task state: Persist every step so a paused task can resume after human approval.
-- [ ] **(P6) Phase 4: Build Human Approval** — Create an approval queue: Show proposed action, tool name, arguments, risk level, model reasoning summary, and expected effect.
-- [ ] **(P6) Phase 4: Build Human Approval** — Add approve / reject / modify: A human can approve as-is, edit the tool arguments, reject, or ask the agent to re-plan.
-- [ ] **(P6) Phase 4: Build Human Approval** — Log decisions: Store who approved, what changed, and why. This keeps the agent auditable.
-- [ ] **(P6) Phase 5: Build Observability** — Trace every decision: Capture prompts, chosen tools, permission decisions, tool outputs, retries, approval events, latency, and cost.
-- [ ] **(P6) Phase 5: Build Observability** — Build a trace viewer: Show the workflow as a timeline. Clicking a step reveals inputs, outputs, and decision reasons.
+- [x] **(P6) Phase 4: Build Human Approval** — Create an approval queue: Show proposed action, tool name, arguments, risk level, model reasoning summary, and expected effect.
+- [x] **(P6) Phase 4: Build Human Approval** — Add approve / reject / modify: A human can approve as-is, edit the tool arguments, reject, or ask the agent to re-plan.
+- [x] **(P6) Phase 4: Build Human Approval** — Log decisions: Store who approved, what changed, and why. This keeps the agent auditable.
+- [x] **(P6) Phase 5: Build Observability** — Trace every decision: Capture prompts, chosen tools, permission decisions, tool outputs, retries, approval events, latency, and cost.
+- [x] **(P6) Phase 5: Build Observability** — Build a trace viewer: Show the workflow as a timeline. Clicking a step reveals inputs, outputs, and decision reasons.
 - [ ] **(P6) Phase 5: Build Observability** — Add safety analytics: Track tool usage, blocked attempts, approval rate, rejected actions, and most common failure reasons.
 - [ ] **(P6) Phase 6: Polish for Portfolio** — Demo a safe and unsafe task: Show the agent completing a low-risk analysis, then attempting a sensitive action that gets routed to approval.
 - [ ] **(P6) Phase 6: Polish for Portfolio** — Write the architecture narrative: Focus on permission boundaries, audit logs, and human-in-the-loop design. Those details make the project feel production-minded.

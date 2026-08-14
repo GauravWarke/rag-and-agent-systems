@@ -25,6 +25,7 @@ from app.core.models import (
     NodeName,
     PendingAction,
     ResumeTaskRequest,
+    TaskStatus,
     ToolCallRequest,
     ToolCallResult,
     User,
@@ -100,6 +101,48 @@ def _execute_with_fallback(
     return fallback_result, steps
 
 
+def _route_plan(
+    user: User, request: str, plan: ToolPlan, steps: list[AgentStep], now: datetime
+) -> tuple[TaskStatus, dict[str, Any]]:
+    """Given a plan, select and permission-check its tool, then either
+    execute it or pause for approval. Shared by `run_task` and the
+    "replan" resume path, which both need to route a fresh `ToolPlan`
+    through the same selection/permission/execution rules.
+    """
+    if plan.tool_name is None:
+        steps.append(_step("final_response", "No tool matched this request.", now))
+        return "failed", {"final_response": "I could not find a safe tool for that request. Try rephrasing."}
+
+    tool = get_tool(plan.tool_name)
+    if tool is None:
+        steps.append(_step("final_response", f"Planned tool '{plan.tool_name}' is not registered.", now))
+        return "failed", {"final_response": f"Planned tool '{plan.tool_name}' does not exist."}
+    steps.append(_step("tool_selection", f"Selected tool '{plan.tool_name}'.", now))
+
+    status = check_permission(user, tool.spec, confirmed=False)
+    steps.append(_step("permission_check", f"Permission status: {status}.", now))
+
+    if status == "denied":
+        steps.append(_step("final_response", "Permission denied.", now))
+        return "denied", {"final_response": f"Your role '{user.role}' cannot use '{plan.tool_name}'."}
+
+    if status in ("needs_confirmation", "needs_approval"):
+        wait_status = "awaiting_confirmation" if status == "needs_confirmation" else "awaiting_approval"
+        steps.append(_step("approval_wait", f"Task paused: {wait_status}.", now))
+        return wait_status, {
+            "pending_action": PendingAction(
+                tool_name=plan.tool_name, arguments=plan.arguments, risk_level=tool.spec.risk_level
+            )
+        }
+
+    result, exec_steps = _execute_with_fallback(user, plan.tool_name, plan.arguments, request, now)
+    steps.extend(exec_steps)
+    final_response = _format_final(result)
+    steps.append(_step("result_reflection", final_response, now))
+    steps.append(_step("final_response", final_response, now))
+    return ("completed" if result.success else "failed"), {"result": result, "final_response": final_response}
+
+
 def run_task(
     req: AgentTaskRequest,
     now: datetime,
@@ -127,86 +170,33 @@ def run_task(
     plan: ToolPlan = planner.plan(req.request)
     steps.append(_step("plan", f"tool={plan.tool_name!r} confidence={plan.confidence} — {plan.reasoning}", now))
 
-    if plan.tool_name is None:
-        steps.append(_step("final_response", "No tool matched this request.", now))
-        return AgentTask(
-            id=task_id,
-            user_id=req.user_id,
-            request=req.request,
-            status="failed",
-            steps=steps,
-            final_response="I could not find a safe tool for that request. Try rephrasing.",
-            created_at=now,
-            updated_at=now,
-        )
-
-    tool = get_tool(plan.tool_name)
-    if tool is None:
-        steps.append(_step("final_response", f"Planned tool '{plan.tool_name}' is not registered.", now))
-        return AgentTask(
-            id=task_id,
-            user_id=req.user_id,
-            request=req.request,
-            status="failed",
-            steps=steps,
-            final_response=f"Planned tool '{plan.tool_name}' does not exist.",
-            created_at=now,
-            updated_at=now,
-        )
-    steps.append(_step("tool_selection", f"Selected tool '{plan.tool_name}'.", now))
-
-    status = check_permission(user, tool.spec, confirmed=False)
-    steps.append(_step("permission_check", f"Permission status: {status}.", now))
-
-    if status == "denied":
-        steps.append(_step("final_response", "Permission denied.", now))
-        return AgentTask(
-            id=task_id,
-            user_id=req.user_id,
-            request=req.request,
-            status="denied",
-            steps=steps,
-            final_response=f"Your role '{user.role}' cannot use '{plan.tool_name}'.",
-            created_at=now,
-            updated_at=now,
-        )
-
-    if status in ("needs_confirmation", "needs_approval"):
-        wait_status = "awaiting_confirmation" if status == "needs_confirmation" else "awaiting_approval"
-        steps.append(_step("approval_wait", f"Task paused: {wait_status}.", now))
-        return AgentTask(
-            id=task_id,
-            user_id=req.user_id,
-            request=req.request,
-            status=wait_status,
-            steps=steps,
-            pending_action=PendingAction(
-                tool_name=plan.tool_name, arguments=plan.arguments, risk_level=tool.spec.risk_level
-            ),
-            created_at=now,
-            updated_at=now,
-        )
-
-    result, exec_steps = _execute_with_fallback(user, plan.tool_name, plan.arguments, req.request, now)
-    steps.extend(exec_steps)
-    final_response = _format_final(result)
-    steps.append(_step("result_reflection", final_response, now))
-    steps.append(_step("final_response", final_response, now))
-
+    status, extra = _route_plan(user, req.request, plan, steps, now)
     return AgentTask(
         id=task_id,
         user_id=req.user_id,
         request=req.request,
-        status="completed" if result.success else "failed",
+        status=status,
         steps=steps,
-        result=result,
-        final_response=final_response,
         created_at=now,
         updated_at=now,
+        **extra,
     )
 
 
-def resume_task(task: AgentTask, req: ResumeTaskRequest, now: datetime) -> AgentTask:
+def resume_task(
+    task: AgentTask, req: ResumeTaskRequest, now: datetime, planner: Planner | None = None
+) -> AgentTask:
+    """Apply a reviewer's decision to a paused task.
+
+    - "reject" ends the task immediately with no side effects.
+    - "approve" runs the pending action as originally proposed.
+    - "modify" runs the pending action with `req.modified_arguments` in
+      place of what the model proposed (validated by `ResumeTaskRequest`).
+    - "replan" discards the pending action and asks the planner to propose
+      a new one for the same request, which is then routed through
+      selection/permission/execution again — it may complete, fail, or
+      pause once more for a fresh approval.
+    """
     if task.status not in ("awaiting_confirmation", "awaiting_approval"):
         raise ValueError(f"Task '{task.id}' is not waiting on a decision (status={task.status}).")
     if task.pending_action is None:
@@ -236,6 +226,17 @@ def resume_task(task: AgentTask, req: ResumeTaskRequest, now: datetime) -> Agent
     user = get_user(task.user_id)
     if user is None:
         raise ValueError(f"Unknown user '{task.user_id}'.")
+
+    if req.decision == "replan":
+        planner = planner or _default_planner
+        new_plan = planner.plan(task.request)
+        steps.append(
+            _step("plan", f"tool={new_plan.tool_name!r} confidence={new_plan.confidence} — {new_plan.reasoning}", now)
+        )
+        status, extra = _route_plan(user, task.request, new_plan, steps, now)
+        return task.model_copy(
+            update={"status": status, "steps": steps, "pending_action": None, "updated_at": now, **extra}
+        )
 
     arguments = req.modified_arguments if req.modified_arguments is not None else task.pending_action.arguments
     result, exec_steps = _execute_with_fallback(
