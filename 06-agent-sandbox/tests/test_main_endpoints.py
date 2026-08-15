@@ -135,3 +135,35 @@ def test_task_trace_unknown_task_404():
     with _client() as client:
         r = client.get("/v1/agent/tasks/does-not-exist/trace")
         assert r.status_code == 404
+
+
+def test_safety_analytics_via_http():
+    with _client() as client:
+        before = client.get("/v1/agent/safety").json()
+
+        client.post("/v1/agent/tasks", json={"user_id": "u_viewer", "request": "what is 6 + 6?"})
+        denied = client.post(
+            "/v1/agent/tasks",
+            json={"user_id": "u_viewer", "request": "please create a ticket for a login bug"},
+        )
+        assert denied.json()["status"] == "denied"
+
+        approve_flow = client.post(
+            "/v1/agent/tasks",
+            json={"user_id": "u_operator", "request": "please create a ticket for a login bug"},
+        )
+        client.post(
+            f"/v1/agent/tasks/{approve_flow.json()['id']}/resume",
+            json={"decision": "approve", "reviewer": "u_admin", "reason": "verified"},
+        )
+
+        r = client.get("/v1/agent/safety")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["total_tasks"] == before["total_tasks"] + 3
+        assert body["blocked_attempts"] == before["blocked_attempts"] + 1
+        assert body["approved_actions"] == before["approved_actions"] + 1
+        assert body["approval_rate"] == 1.0
+        tool_names = {entry["tool_name"] for entry in body["tool_usage"]}
+        assert "calculator" in tool_names
+        assert "ticket_create" in tool_names

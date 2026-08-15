@@ -14,6 +14,7 @@ Endpoints:
   GET  /v1/agent/tasks/{id}/trace     timeline view of one task's steps, with latency/cost
   GET  /v1/agent/approvals            queue of tasks awaiting a human decision
   GET  /v1/agent/decisions            audit log of every approval decision made
+  GET  /v1/agent/safety               fleet-wide safety analytics (tool usage, blocks, approval rate)
 """
 from __future__ import annotations
 
@@ -32,6 +33,7 @@ from app.core.models import (
     ApprovalQueueItem,
     DecisionLog,
     ResumeTaskRequest,
+    SafetyAnalytics,
     ToolCallRequest,
     ToolCallResult,
     ToolSpec,
@@ -39,6 +41,7 @@ from app.core.models import (
     User,
 )
 from app.core.rate_limit import RateLimiter
+from app.observability.safety import build_safety_analytics
 from app.observability.tracing import build_trace
 from app.permissions.users import list_users
 from app.tools.executor import execute_tool_call
@@ -144,3 +147,10 @@ def get_decisions(request: Request, task_id: str | None = None) -> list[Decision
     if _rate_limited(request):
         raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
     return _decision_store.for_task(task_id) if task_id else _decision_store.all()
+
+
+@app.get("/v1/agent/safety", response_model=SafetyAnalytics)
+def get_safety_analytics(request: Request) -> SafetyAnalytics:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    return build_safety_analytics(_task_store.all(), _decision_store.all())
