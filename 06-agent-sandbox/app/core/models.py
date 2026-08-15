@@ -193,3 +193,32 @@ class TraceResponse(BaseModel):
     decisions: list[DecisionLog]
     total_latency_ms: float
     total_cost_usd: float
+
+
+# --- Safety analytics (Phase 5) --------------------------------------------
+
+
+class ToolUsageCount(BaseModel):
+    tool_name: str
+    count: int
+
+
+class FailureReasonCount(BaseModel):
+    reason: str
+    count: int
+
+
+class SafetyAnalytics(BaseModel):
+    """Fleet-wide safety metrics derived from every task and decision seen
+    so far — tool usage, how often the permission layer blocked a request
+    outright, the human approval rate on paused tasks, and the most common
+    reasons tasks fail.
+    """
+
+    total_tasks: int
+    tool_usage: list[ToolUsageCount]
+    blocked_attempts: int
+    approved_actions: int
+    rejected_actions: int
+    approval_rate: float | None
+    top_failure_reasons: list[FailureReasonCount]

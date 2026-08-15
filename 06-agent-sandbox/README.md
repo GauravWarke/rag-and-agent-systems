@@ -67,7 +67,7 @@ A controlled agent environment where an LLM can use tools like file search, calc
 
 ## Status
 
-In progress — Phases 1-4 implemented, plus most of Phase 5:
+In progress — Phases 1-5 implemented, plus part of Phase 6:
 
 - **Phase 1 — Agent and tool model:** a tool registry (`app/tools/registry.py`) where every
   tool declares its name, description, JSON input/output schema, allowed roles, rate limit,
@@ -103,13 +103,22 @@ In progress — Phases 1-4 implemented, plus most of Phase 5:
   audit log (`app/agent/decisions.py`, `GET /v1/agent/decisions?task_id=...`) recording who
   decided, the original vs. modified arguments, the reason, and the outcome — separate from the
   free-text step already appended to the task's trace.
-- **Phase 5 — Observability (partial):** `GET /v1/agent/tasks/{id}/trace`
+- **Phase 5 — Observability:** `GET /v1/agent/tasks/{id}/trace`
   (`app/observability/tracing.py`) renders a task's step log as an ordered timeline of spans,
   each carrying latency and a flat per-risk-level stub cost estimate for tool-execution steps
   (this repo has no live billing integration, so cost is directional, not exact provider
-  pricing) plus the task's linked decision-log entries and running totals.
+  pricing) plus the task's linked decision-log entries and running totals. `GET /v1/agent/safety`
+  (`app/observability/safety.py`) rolls every task and decision seen so far up into fleet-wide
+  safety analytics: per-tool usage counts, how many attempts the permission layer blocked
+  outright (denied before a human ever saw them), the human approval rate and rejection count
+  on paused tasks, and the most common failure reasons.
+- **Phase 6 — Portfolio polish (partial):** `python demo.py` (`app/demo.py`) runs a scripted,
+  offline walkthrough of two tasks end to end — a low-risk analyst calculator query that
+  auto-completes, and a high-risk operator "create a ticket" request that the permission layer
+  routes to `awaiting_approval` instead of executing — and prints each one's full step timeline.
 
-Remaining: Phase 5 (safety analytics — tool usage, blocked attempts, approval rate, rejected
-actions, and failure-reason breakdowns) and Phase 6 (portfolio polish).
+Remaining: the Phase 6 architecture narrative (permission boundaries, audit logs, human-in-the-
+loop design as the portfolio write-up).
 
 Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`
+Run the demo: `python demo.py`
