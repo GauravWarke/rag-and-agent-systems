@@ -156,7 +156,7 @@ Folder: `06-agent-sandbox/`
 - [x] **(P6) Phase 5: Build Observability** — Build a trace viewer: Show the workflow as a timeline. Clicking a step reveals inputs, outputs, and decision reasons.
 - [x] **(P6) Phase 5: Build Observability** — Add safety analytics: Track tool usage, blocked attempts, approval rate, rejected actions, and most common failure reasons.
 - [x] **(P6) Phase 6: Polish for Portfolio** — Demo a safe and unsafe task: Show the agent completing a low-risk analysis, then attempting a sensitive action that gets routed to approval.
-- [ ] **(P6) Phase 6: Polish for Portfolio** — Write the architecture narrative: Focus on permission boundaries, audit logs, and human-in-the-loop design. Those details make the project feel production-minded.
+- [x] **(P6) Phase 6: Polish for Portfolio** — Write the architecture narrative: Focus on permission boundaries, audit logs, and human-in-the-loop design. Those details make the project feel production-minded.
 
 ## P7: RAG Freshness and Drift Monitor
 
