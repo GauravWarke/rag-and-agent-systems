@@ -112,13 +112,76 @@ In progress — Phases 1-5 implemented, plus part of Phase 6:
   safety analytics: per-tool usage counts, how many attempts the permission layer blocked
   outright (denied before a human ever saw them), the human approval rate and rejection count
   on paused tasks, and the most common failure reasons.
-- **Phase 6 — Portfolio polish (partial):** `python demo.py` (`app/demo.py`) runs a scripted,
+- **Phase 6 — Portfolio polish:** `python demo.py` (`app/demo.py`) runs a scripted,
   offline walkthrough of two tasks end to end — a low-risk analyst calculator query that
   auto-completes, and a high-risk operator "create a ticket" request that the permission layer
   routes to `awaiting_approval` instead of executing — and prints each one's full step timeline.
 
-Remaining: the Phase 6 architecture narrative (permission boundaries, audit logs, human-in-the-
-loop design as the portfolio write-up).
+All six phases are complete.
 
 Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`
 Run the demo: `python demo.py`
+
+## Architecture narrative
+
+**The model proposes, the system disposes.** The LLM (or the offline `StubPlanner` used when
+`OPENAI_API_KEY` is unset) never gets to run a tool directly — it only gets to *propose* one, as
+a `tool_name` + JSON `arguments` pair. Everything after that proposal is deterministic code with
+no model in the loop: schema validation, role checks, risk-tier gating, and execution. This
+separation is the reason the sandbox is trustworthy even though the planner is not — a
+hallucinated tool name is rejected by the registry, a malformed argument is rejected by
+Pydantic, and an over-reaching role is rejected by the permission service, all before any tool
+handler runs.
+
+**Permission boundaries are enforced twice, on purpose.** `check_permission`
+(`app/permissions/service.py`) is a small, pure function with no branching on anything the
+caller supplies about *itself* — the role comes from a server-side lookup keyed on `user_id`
+(`app/permissions/users.py`), never from a client-asserted field, so a caller cannot claim
+`admin` to unlock a tool. The function then applies two independent gates in order: (1) is this
+role in the tool's `allowed_roles` at all, and (2) does this tool's `risk_level` require anything
+beyond that. Low-risk tools clear both gates immediately. Medium-risk tools clear the role gate
+but stop at the risk gate until the caller resubmits with `confirmed=true` — a deliberate second
+step that prevents a single ambiguous agent turn from executing something irreversible.
+High-risk tools stop at the risk gate unconditionally; no client-supplied flag can satisfy it,
+only a human decision recorded through the approval endpoint. Because both gates live in one
+function that returns a closed set of outcomes (`allowed`, `needs_confirmation`,
+`needs_approval`, `denied`), there is no code path where a tool executes without passing
+through it — the graph's `permission_check` node is the only caller of `check_permission`, and
+`tool_execution` is only reachable from a state the permission check marked `allowed`.
+
+**Audit logs are structured, not just narrated.** Every task already keeps a free-text trace of
+what happened (`app/observability/tracing.py` renders it as a timeline of spans with latency and
+a directional cost estimate). Human decisions get a second, separate record: `app/agent/decisions.py`
+appends a structured entry — who decided, the decision type (`approve` / `modify` / `reject` /
+`replan`), the original arguments vs. the reviewer-edited ones, the stated reason, and the
+resulting task status — to a queryable log exposed at `GET /v1/agent/decisions?task_id=...`.
+Splitting this from the general trace matters for the same reason financial systems keep a
+ledger separate from an activity log: the trace answers "what did the system do," while the
+decision log answers "who is accountable for the actions that needed a human," which is the
+question an auditor or an incident review actually asks. `GET /v1/agent/safety`
+(`app/observability/safety.py`) aggregates both logs across every task the process has seen —
+per-tool usage, how many attempts the permission layer blocked before a human ever saw them,
+the approval and rejection rate on the tasks that did reach a human, and the most common failure
+reasons — turning individual audit entries into a fleet-level signal of whether the permission
+model is calibrated correctly (too many blocks might mean roles are too strict; too many
+rejections might mean the planner is proposing the wrong tools).
+
+**Human-in-the-loop is a pause, not a callback.** When `permission_check` returns
+`needs_confirmation` or `needs_approval`, the graph does not block a request thread waiting for
+a person — it persists the pending tool call on the task (`app/agent/store.py`) and returns
+immediately with the task in `awaiting_confirmation` or `awaiting_approval` status. The task can
+sit in that state indefinitely; nothing about the design assumes a human responds within a
+request lifetime. `POST /v1/agent/tasks/{id}/resume` is the only way out of a paused state, and
+it accepts exactly four decisions: `approve` (run the proposed call unchanged), `modify` (run it
+with reviewer-supplied `modified_arguments`, so a human can correct a slightly-wrong argument
+instead of rejecting a mostly-right proposal outright), `reject` (end the task with no
+execution), and `replan` (discard the pending action and let the planner propose a different
+one, which re-enters the graph at tool selection and can itself pause again). Routing `modify`
+back through the same execution path — rather than trusting the human's edited arguments blindly
+— means a reviewer's correction still gets re-validated against the tool's Pydantic schema
+before it runs.
+
+The net effect: the model's judgment only ever shapes *which* tool call gets proposed. Whether
+that call is safe to run automatically, needs a rubber stamp, or needs a person to actually look
+at it is decided by static, inspectable rules — and every one of those decisions leaves a record
+that says who made it and why.
