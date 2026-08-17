@@ -1,0 +1,6 @@
+{
+  "policies.md": {"doc_type": "policy", "last_modified": "2025-06-01"},
+  "product.md": {"doc_type": "product", "last_modified": "2025-07-15"},
+  "troubleshooting.md": {"doc_type": "troubleshooting", "last_modified": "2025-05-20"},
+  "changelog.md": {"doc_type": "changelog", "last_modified": "2025-08-01"}
+}

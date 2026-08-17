@@ -1,0 +1,22 @@
+[
+  {"probe_id": "p01", "question": "How many days do I have to request a refund before the product is activated?", "expected_chunk_id": "policies::refund-policy"},
+  {"probe_id": "p02", "question": "How long does it take to process an approved refund?", "expected_chunk_id": "policies::refund-policy"},
+  {"probe_id": "p03", "question": "How long is account data retained after I delete my account?", "expected_chunk_id": "policies::data-retention-policy"},
+  {"probe_id": "p04", "question": "How quickly must a suspected security breach be reported to the security team?", "expected_chunk_id": "policies::security-incident-policy"},
+  {"probe_id": "p05", "question": "Are customer passwords ever stored in plaintext?", "expected_chunk_id": "policies::security-incident-policy"},
+  {"probe_id": "p06", "question": "What happens to accounts that send spam and violate the acceptable use policy?", "expected_chunk_id": "policies::acceptable-use-policy"},
+  {"probe_id": "p07", "question": "How much does the Growth plan cost per month?", "expected_chunk_id": "product::pricing-tiers"},
+  {"probe_id": "p08", "question": "How much does the Starter plan cost?", "expected_chunk_id": "product::pricing-tiers"},
+  {"probe_id": "p09", "question": "Which integrations does the product support out of the box, like Salesforce or Zapier?", "expected_chunk_id": "product::supported-integrations"},
+  {"probe_id": "p10", "question": "What error code does the API return when a client exceeds the rate limit?", "expected_chunk_id": "product::api-rate-limits"},
+  {"probe_id": "p11", "question": "How many requests per minute is a single API key allowed to make?", "expected_chunk_id": "product::api-rate-limits"},
+  {"probe_id": "p12", "question": "Which plans can export account data as CSV or JSON from settings?", "expected_chunk_id": "product::data-export"},
+  {"probe_id": "p13", "question": "What should I do if two-factor authentication login keeps failing?", "expected_chunk_id": "troubleshooting::login-failures"},
+  {"probe_id": "p14", "question": "What usually causes sync errors with an expired OAuth token?", "expected_chunk_id": "troubleshooting::sync-errors"},
+  {"probe_id": "p15", "question": "Why does my dashboard load slowly when I have many widgets?", "expected_chunk_id": "troubleshooting::slow-dashboard-loading"},
+  {"probe_id": "p16", "question": "How many times are failed webhook deliveries retried before being marked failed?", "expected_chunk_id": "troubleshooting::failed-webhook-deliveries"},
+  {"probe_id": "p17", "question": "What bug fix and new contact import feature shipped in version 2.4?", "expected_chunk_id": "changelog::version-2-4-release-notes"},
+  {"probe_id": "p18", "question": "What was the new API rate limit introduced in version 2.3, up from the old limit?", "expected_chunk_id": "changelog::version-2-3-release-notes"},
+  {"probe_id": "p19", "question": "What integration and performance improvement came with version 2.2?", "expected_chunk_id": "changelog::version-2-2-release-notes"},
+  {"probe_id": "p20", "question": "When will the legacy v1 export endpoint be removed?", "expected_chunk_id": "changelog::deprecation-notice"}
+]
