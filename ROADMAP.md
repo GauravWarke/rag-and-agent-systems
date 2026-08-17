@@ -163,16 +163,16 @@ Folder: `06-agent-sandbox/`
 *Topic: RAG, Data Quality, Monitoring, Knowledge Drift*  
 Folder: `07-rag-freshness-monitor/`
 
-- [ ] **(P7) Scaffold** — create `07-rag-freshness-monitor/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
-- [ ] **(P7) Phase 1: Build a Baseline RAG Index** — Create a small knowledge base: Use internal-doc-style Markdown files: policies, product pages, troubleshooting docs, and changelogs.
-- [ ] **(P7) Phase 1: Build a Baseline RAG Index** — Index documents with metadata: Store document version, last modified date, source path, section heading, chunk hash, and embedding version.
-- [ ] **(P7) Phase 1: Build a Baseline RAG Index** — Save an index manifest: The manifest records what was indexed, when, with which embedding model, and with which chunking strategy.
-- [ ] **(P7) Phase 2: Detect Source-Level Freshness Issues** — Track content changes: Compare current document hashes to the manifest. Detect added, removed, and modified sections.
-- [ ] **(P7) Phase 2: Detect Source-Level Freshness Issues** — Score semantic change: A one-word typo should not trigger panic. Compute semantic similarity between old and new sections to estimate how meaningful the change is.
-- [ ] **(P7) Phase 2: Detect Source-Level Freshness Issues** — Prioritize re-indexing: Flag high-impact changes first: pricing, policy, API behavior, troubleshooting steps, and security instructions.
-- [ ] **(P7) Phase 3: Detect Retrieval Drift** — Build a probe question set: Create 50 recurring questions tied to known source sections.
-- [ ] **(P7) Phase 3: Detect Retrieval Drift** — Run probes against old and new indexes: Compare which chunks are retrieved and whether the top result changes after document updates.
-- [ ] **(P7) Phase 3: Detect Retrieval Drift** — Flag suspicious changes: If a known question no longer retrieves the expected section, mark it as retrieval drift.
+- [x] **(P7) Scaffold** — create `07-rag-freshness-monitor/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
+- [x] **(P7) Phase 1: Build a Baseline RAG Index** — Create a small knowledge base: Use internal-doc-style Markdown files: policies, product pages, troubleshooting docs, and changelogs.
+- [x] **(P7) Phase 1: Build a Baseline RAG Index** — Index documents with metadata: Store document version, last modified date, source path, section heading, chunk hash, and embedding version.
+- [x] **(P7) Phase 1: Build a Baseline RAG Index** — Save an index manifest: The manifest records what was indexed, when, with which embedding model, and with which chunking strategy.
+- [x] **(P7) Phase 2: Detect Source-Level Freshness Issues** — Track content changes: Compare current document hashes to the manifest. Detect added, removed, and modified sections.
+- [x] **(P7) Phase 2: Detect Source-Level Freshness Issues** — Score semantic change: A one-word typo should not trigger panic. Compute semantic similarity between old and new sections to estimate how meaningful the change is.
+- [x] **(P7) Phase 2: Detect Source-Level Freshness Issues** — Prioritize re-indexing: Flag high-impact changes first: pricing, policy, API behavior, troubleshooting steps, and security instructions.
+- [x] **(P7) Phase 3: Detect Retrieval Drift** — Build a probe question set: Create 50 recurring questions tied to known source sections.
+- [x] **(P7) Phase 3: Detect Retrieval Drift** — Run probes against old and new indexes: Compare which chunks are retrieved and whether the top result changes after document updates.
+- [x] **(P7) Phase 3: Detect Retrieval Drift** — Flag suspicious changes: If a known question no longer retrieves the expected section, mark it as retrieval drift.
 - [ ] **(P7) Phase 4: Detect Answer Drift** — Generate answers for probe questions: Run the same questions through the RAG pipeline over time.
 - [ ] **(P7) Phase 4: Detect Answer Drift** — Compare answers semantically: Use LLM-as-judge to identify whether the answer meaning changed, whether the change was expected, and whether citations still support the answer.
 - [ ] **(P7) Phase 4: Detect Answer Drift** — Track stale answer risk: If source docs changed but generated answers did not, the system may be serving stale knowledge. Flag this clearly.

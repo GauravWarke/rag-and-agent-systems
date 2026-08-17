@@ -65,6 +65,59 @@ A monitoring system that watches a RAG knowledge base for stale documents, chang
 
 > Explain that not all document changes are equal. A production system should prioritize re-indexing based on user impact instead of file modification time alone.
 
+## Quickstart
+
+```bash
+cd 07-rag-freshness-monitor
+pip install -r requirements-dev.txt
+uvicorn app.main:app --reload
+```
+
+```bash
+curl -X POST localhost:8000/v1/index/build      # build & save the manifest from data/docs
+curl localhost:8000/v1/index/manifest           # inspect what was indexed
+curl -X POST localhost:8000/v1/freshness/scan   # diff the corpus against the manifest, with priority
+curl -X POST localhost:8000/v1/probes/run       # run the probe set, saved as the drift baseline
+curl -X POST localhost:8000/v1/probes/drift     # re-run probes and compare to that baseline
+```
+
+Everything runs offline by default: embeddings use a deterministic hashed
+bag-of-words stub (`app/indexing/embeddings.py`, `EMBEDDING_MODEL=stub`) so
+the full pipeline — indexing, freshness diffing, and probe drift — works
+with no API keys.
+
 ## Status
 
-Planned. Scaffold pending — see root `ROADMAP.md`.
+In progress — Phases 1-3 of 6 implemented:
+
+- **Phase 1 — Baseline RAG Index:** A small Markdown corpus lives in
+  `data/docs/` (policies, product, troubleshooting, changelog — 16 sections
+  total), with per-file `doc_type` and `last_modified` metadata in
+  `data/docs_meta.json`. `app/indexing/chunker.py` splits each file into
+  heading-based sections with a stable `<doc-stem>::<heading-slug>` chunk
+  ID and a content hash. `app/indexing/manifest.py` builds an
+  `IndexManifest` (created-at timestamp, embedding model/version, chunking
+  strategy, and every chunk) and saves/loads it as JSON.
+- **Phase 2 — Source-Level Freshness Issues:** `app/freshness/diff.py`
+  compares a fresh scan of `data/docs/` to the saved manifest and reports
+  added, removed, and modified sections by chunk hash, plus a 0-1 semantic
+  change score (cosine distance over the stub embedder) so a one-word edit
+  doesn't read the same as a rewritten section. `app/freshness/priority.py`
+  ranks changes as `critical` / `high` / `medium` / `low` using impact
+  keywords (security, pricing, policy, API, troubleshooting, ...) and
+  demotes changes below the semantic-change threshold to `low` even if a
+  keyword matched.
+- **Phase 3 — Retrieval Drift:** `data/probes.json` holds 20 recurring
+  questions tied to known chunk IDs across all 16 sections.
+  `app/drift/retriever.py` is a minimal top-1 cosine retriever over the
+  stub embedder, and `app/drift/probes.py` runs the probe set
+  (`run_probes`) and compares two runs (`compare_runs`) to flag probes
+  whose top retrieved chunk changed, or that stopped matching their
+  expected section.
+- **API:** `POST /v1/index/build`, `GET /v1/index/manifest`,
+  `POST /v1/freshness/scan`, `POST /v1/probes/run`, and
+  `POST /v1/probes/drift`, all behind a per-client rate limiter
+  (`app/core/rate_limit.py`).
+
+Remaining: Phase 4 (answer drift via LLM-as-judge), Phase 5 (alerts and
+dashboard), Phase 6 (portfolio polish) — see root `ROADMAP.md`.
