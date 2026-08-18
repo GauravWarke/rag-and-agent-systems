@@ -118,3 +118,78 @@ class DriftReport(BaseModel):
     @property
     def drift_count(self) -> int:
         return len(self.drifted)
+
+
+class AnswerRecord(BaseModel):
+    """A generated answer for one probe question, grounded in whichever
+    chunk retrieval currently returns for it."""
+
+    probe_id: str
+    question: str
+    chunk_id: str | None
+    answer_text: str
+
+
+class AnswerRunSummary(BaseModel):
+    run_at: str
+    answers: list[AnswerRecord] = Field(default_factory=list)
+
+
+class AnswerDriftVerdict(BaseModel):
+    """LLM-as-judge comparison of the same probe's answer across two runs."""
+
+    probe_id: str
+    question: str
+    chunk_id: str | None
+    previous_answer: str
+    current_answer: str
+    meaning_changed: bool
+    citation_supports_answer: bool
+    rationale: str = ""
+
+
+class AnswerDriftReport(BaseModel):
+    previous_run_at: str
+    current_run_at: str
+    verdicts: list[AnswerDriftVerdict] = Field(default_factory=list)
+
+    @property
+    def changed_count(self) -> int:
+        return sum(1 for v in self.verdicts if v.meaning_changed)
+
+
+class StaleAnswerRisk(BaseModel):
+    """A probe whose source section changed but whose generated answer
+    did not — the system may be serving knowledge that's gone stale."""
+
+    probe_id: str
+    question: str
+    chunk_id: str | None
+    reason: str
+
+
+class StaleAnswerReport(BaseModel):
+    checked_at: str
+    risks: list[StaleAnswerRisk] = Field(default_factory=list)
+
+    @property
+    def at_risk_count(self) -> int:
+        return len(self.risks)
+
+
+class FreshnessScorecard(BaseModel):
+    """A single dashboard-style rollup of every freshness signal: docs
+    changed, chunks needing re-index, probe drift, answer drift, and
+    stale-answer risk. Built from whichever snapshots are available so it
+    degrades gracefully before the full pipeline has been run."""
+
+    generated_at: str
+    manifest_available: bool
+    docs_changed: int
+    chunks_needing_reindex: int
+    probes_total: int
+    probes_drifting: int
+    answer_drift_checked: int
+    answer_drift_changed: int
+    stale_answer_risks: int
+    recommendations: list[PrioritizedChange] = Field(default_factory=list)

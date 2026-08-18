@@ -10,6 +10,12 @@ Endpoints:
   POST /v1/freshness/scan     diff the corpus against the saved manifest, with priority
   POST /v1/probes/run         run the probe set against the current corpus,
                                and report drift against the previous run
+  POST /v1/answers/run        generate answers for the probe set against the current corpus
+  POST /v1/answers/drift      re-run answers now and compare to the last /v1/answers/run
+  POST /v1/answers/stale-risk find probes whose source chunk changed but whose
+                               answer did not, relative to the saved manifest
+  GET  /v1/scorecard          roll up freshness, probe drift, answer drift, and
+                               stale-answer risk into one dashboard summary
 """
 from __future__ import annotations
 
@@ -17,9 +23,31 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 
+from app.answers.drift import compare_answer_runs, detect_stale_answer_risk
+from app.answers.generator import (
+    AnswerGenerator,
+    OpenAIAnswerGenerator,
+    StubAnswerGenerator,
+    generate_answers,
+)
+from app.answers.judge import (
+    AnswerJudgeClient,
+    OpenAIAnswerJudgeClient,
+    StubAnswerJudgeClient,
+)
 from app.core.config import settings
-from app.core.models import DriftReport, FreshnessReport, IndexManifest, ProbeRunSummary
+from app.core.models import (
+    AnswerDriftReport,
+    AnswerRunSummary,
+    DriftReport,
+    FreshnessReport,
+    FreshnessScorecard,
+    IndexManifest,
+    ProbeRunSummary,
+    StaleAnswerReport,
+)
 from app.core.rate_limit import RateLimiter
+from app.dashboard.scorecard import build_scorecard
 from app.drift.probes import compare_runs, load_probes, run_probes
 from app.freshness.diff import diff_against_manifest
 from app.freshness.priority import prioritize_diff
@@ -38,6 +66,15 @@ app = FastAPI(title="RAG Freshness and Drift Monitor", version="0.1.0")
 
 _limiter = RateLimiter(settings.rate_limit_per_minute)
 _last_probe_run: ProbeRunSummary | None = None
+_last_answer_run: AnswerRunSummary | None = None
+
+
+def _answer_generator() -> AnswerGenerator:
+    return OpenAIAnswerGenerator(api_key=settings.openai_api_key, model=settings.answer_model) if settings.openai_api_key else StubAnswerGenerator()
+
+
+def _answer_judge() -> AnswerJudgeClient:
+    return OpenAIAnswerJudgeClient(api_key=settings.openai_api_key, model=settings.answer_model) if settings.openai_api_key else StubAnswerJudgeClient()
 
 
 def _rate_limited(request: Request) -> bool:
@@ -110,3 +147,87 @@ def probes_drift(request: Request) -> DriftReport:
     chunks = build_chunks(_resolve(settings.docs_dir), _resolve(settings.docs_meta_path), settings.embedding_version)
     current = run_probes(probes, chunks)
     return compare_runs(_last_probe_run, current)
+
+
+@app.post("/v1/answers/run", response_model=AnswerRunSummary)
+def answers_run(request: Request) -> AnswerRunSummary:
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    global _last_answer_run
+    probes = load_probes(_resolve(settings.probes_path))
+    chunks = build_chunks(_resolve(settings.docs_dir), _resolve(settings.docs_meta_path), settings.embedding_version)
+    current = generate_answers(probes, chunks, _answer_generator())
+    _last_answer_run = current
+    return current
+
+
+@app.post("/v1/answers/drift", response_model=AnswerDriftReport)
+def answers_drift(request: Request) -> AnswerDriftReport:
+    """Re-run probe answers now and compare them to the last
+    `/v1/answers/run` snapshot, to see whether answer meaning changed."""
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    if _last_answer_run is None:
+        raise HTTPException(status_code=404, detail="No answer runs recorded yet. Call POST /v1/answers/run first.")
+    probes = load_probes(_resolve(settings.probes_path))
+    chunks = build_chunks(_resolve(settings.docs_dir), _resolve(settings.docs_meta_path), settings.embedding_version)
+    current = generate_answers(probes, chunks, _answer_generator())
+    return compare_answer_runs(_last_answer_run, current, chunks, _answer_judge())
+
+
+@app.post("/v1/answers/stale-risk", response_model=StaleAnswerReport)
+def answers_stale_risk(request: Request) -> StaleAnswerReport:
+    """Cross-reference source-level freshness changes with answer drift:
+    flag probes whose grounding chunk changed but whose answer did not."""
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+    if _last_answer_run is None:
+        raise HTTPException(status_code=404, detail="No answer runs recorded yet. Call POST /v1/answers/run first.")
+    manifest = load_manifest(_resolve(settings.manifest_path))
+    if manifest is None:
+        raise HTTPException(status_code=404, detail="No manifest built yet. Call POST /v1/index/build first.")
+    diff = diff_against_manifest(manifest, _resolve(settings.docs_dir), _resolve(settings.docs_meta_path))
+    probes = load_probes(_resolve(settings.probes_path))
+    chunks = build_chunks(_resolve(settings.docs_dir), _resolve(settings.docs_meta_path), settings.embedding_version)
+    current = generate_answers(probes, chunks, _answer_generator())
+    drift = compare_answer_runs(_last_answer_run, current, chunks, _answer_judge())
+    return detect_stale_answer_risk(diff, drift)
+
+
+@app.get("/v1/scorecard", response_model=FreshnessScorecard)
+def scorecard(request: Request) -> FreshnessScorecard:
+    """Roll up freshness, probe drift, answer drift, and stale-answer risk
+    into one dashboard summary, using whichever snapshots are available.
+    Call POST /v1/index/build, /v1/probes/run, and /v1/answers/run first
+    to populate the full picture — this degrades gracefully otherwise."""
+    if _rate_limited(request):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded, try again shortly.")
+
+    docs_dir = _resolve(settings.docs_dir)
+    docs_meta_path = _resolve(settings.docs_meta_path)
+    manifest = load_manifest(_resolve(settings.manifest_path))
+
+    freshness: FreshnessReport | None = None
+    if manifest is not None:
+        diff = diff_against_manifest(manifest, docs_dir, docs_meta_path)
+        freshness = FreshnessReport(diff=diff, prioritized=prioritize_diff(diff))
+
+    current_probes: ProbeRunSummary | None = None
+    probe_drift: DriftReport | None = None
+    if _last_probe_run is not None:
+        probes = load_probes(_resolve(settings.probes_path))
+        chunks = build_chunks(docs_dir, docs_meta_path, settings.embedding_version)
+        current_probes = run_probes(probes, chunks)
+        probe_drift = compare_runs(_last_probe_run, current_probes)
+
+    answer_drift: AnswerDriftReport | None = None
+    stale_answer: StaleAnswerReport | None = None
+    if _last_answer_run is not None:
+        probes = load_probes(_resolve(settings.probes_path))
+        chunks = build_chunks(docs_dir, docs_meta_path, settings.embedding_version)
+        current_answers = generate_answers(probes, chunks, _answer_generator())
+        answer_drift = compare_answer_runs(_last_answer_run, current_answers, chunks, _answer_judge())
+        if freshness is not None:
+            stale_answer = detect_stale_answer_risk(freshness.diff, answer_drift)
+
+    return build_scorecard(freshness, current_probes, probe_drift, answer_drift, stale_answer)

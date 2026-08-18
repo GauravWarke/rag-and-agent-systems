@@ -173,10 +173,10 @@ Folder: `07-rag-freshness-monitor/`
 - [x] **(P7) Phase 3: Detect Retrieval Drift** — Build a probe question set: Create 50 recurring questions tied to known source sections.
 - [x] **(P7) Phase 3: Detect Retrieval Drift** — Run probes against old and new indexes: Compare which chunks are retrieved and whether the top result changes after document updates.
 - [x] **(P7) Phase 3: Detect Retrieval Drift** — Flag suspicious changes: If a known question no longer retrieves the expected section, mark it as retrieval drift.
-- [ ] **(P7) Phase 4: Detect Answer Drift** — Generate answers for probe questions: Run the same questions through the RAG pipeline over time.
-- [ ] **(P7) Phase 4: Detect Answer Drift** — Compare answers semantically: Use LLM-as-judge to identify whether the answer meaning changed, whether the change was expected, and whether citations still support the answer.
-- [ ] **(P7) Phase 4: Detect Answer Drift** — Track stale answer risk: If source docs changed but generated answers did not, the system may be serving stale knowledge. Flag this clearly.
-- [ ] **(P7) Phase 5: Build Alerts and Dashboard** — Build freshness scorecards: Show docs changed, chunks stale, probes drifting, answer drift, and re-index recommendations.
+- [x] **(P7) Phase 4: Detect Answer Drift** — Generate answers for probe questions: Run the same questions through the RAG pipeline over time.
+- [x] **(P7) Phase 4: Detect Answer Drift** — Compare answers semantically: Use LLM-as-judge to identify whether the answer meaning changed, whether the change was expected, and whether citations still support the answer.
+- [x] **(P7) Phase 4: Detect Answer Drift** — Track stale answer risk: If source docs changed but generated answers did not, the system may be serving stale knowledge. Flag this clearly.
+- [x] **(P7) Phase 5: Build Alerts and Dashboard** — Build freshness scorecards: Show docs changed, chunks stale, probes drifting, answer drift, and re-index recommendations.
 - [ ] **(P7) Phase 5: Build Alerts and Dashboard** — Add alerts: Send Slack notifications when high-risk docs changed without re-indexing, or when probe questions fail.
 - [ ] **(P7) Phase 5: Build Alerts and Dashboard** — Add one-click rebuild command: From the dashboard, trigger re-indexing for affected docs and rerun probe tests.
 - [ ] **(P7) Phase 6: Polish for Portfolio** — Demo a stale doc scenario: Change a policy document, show the system detecting risk, rebuild the index, and show probes returning to healthy.

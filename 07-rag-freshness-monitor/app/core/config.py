@@ -21,6 +21,11 @@ class Settings(BaseSettings):
 
     semantic_change_epsilon: float = 0.02
 
+    # Answer generation and drift judging — leave blank to use the offline
+    # "stub" generator/judge only (no API key required).
+    openai_api_key: str = ""
+    answer_model: str = "gpt-4o-mini"
+
     rate_limit_per_minute: int = 60
 
 
