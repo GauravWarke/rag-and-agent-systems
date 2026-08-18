@@ -79,16 +79,22 @@ curl localhost:8000/v1/index/manifest           # inspect what was indexed
 curl -X POST localhost:8000/v1/freshness/scan   # diff the corpus against the manifest, with priority
 curl -X POST localhost:8000/v1/probes/run       # run the probe set, saved as the drift baseline
 curl -X POST localhost:8000/v1/probes/drift     # re-run probes and compare to that baseline
+curl -X POST localhost:8000/v1/answers/run      # generate answers for the probe set, saved as the answer baseline
+curl -X POST localhost:8000/v1/answers/drift    # re-run answers and compare meaning to that baseline
+curl -X POST localhost:8000/v1/answers/stale-risk  # flag probes whose source changed but answer didn't
+curl localhost:8000/v1/scorecard                # roll everything up into one dashboard summary
 ```
 
 Everything runs offline by default: embeddings use a deterministic hashed
 bag-of-words stub (`app/indexing/embeddings.py`, `EMBEDDING_MODEL=stub`) so
-the full pipeline — indexing, freshness diffing, and probe drift — works
-with no API keys.
+the full pipeline — indexing, freshness diffing, probe drift, answer
+generation, and answer drift — works with no API keys. Set
+`OPENAI_API_KEY` to swap in the real answer generator and judge.
 
 ## Status
 
-In progress — Phases 1-3 of 6 implemented:
+In progress — Phases 1-4 of 6 implemented, plus the freshness scorecard
+from Phase 5:
 
 - **Phase 1 — Baseline RAG Index:** A small Markdown corpus lives in
   `data/docs/` (policies, product, troubleshooting, changelog — 16 sections
@@ -114,10 +120,30 @@ In progress — Phases 1-3 of 6 implemented:
   (`run_probes`) and compares two runs (`compare_runs`) to flag probes
   whose top retrieved chunk changed, or that stopped matching their
   expected section.
+- **Phase 4 — Answer Drift:** `app/answers/generator.py` generates a
+  grounded, citation-tagged answer per probe (`StubAnswerGenerator` is a
+  deterministic offline extractive generator; `OpenAIAnswerGenerator` is
+  the real-model path behind `OPENAI_API_KEY`). `app/answers/judge.py` is
+  an LLM-as-judge that compares two answers for the same probe and
+  decides whether the meaning changed and whether the citation still
+  supports the answer (`StubAnswerJudgeClient` uses cosine similarity
+  over the stub embedder offline; `OpenAIAnswerJudgeClient` is the real
+  path). `app/answers/drift.py` compares two answer runs
+  (`compare_answer_runs`) and cross-references a freshness diff against
+  answer drift to flag stale-answer risk (`detect_stale_answer_risk`):
+  probes whose grounding chunk changed but whose answer did not.
+- **Phase 5 (partial) — Freshness Scorecard:** `app/dashboard/scorecard.py`
+  rolls up docs changed, chunks needing re-index, probes drifting, answer
+  drift, and stale-answer risk into one `FreshnessScorecard`, built from
+  whichever snapshots are available so it degrades gracefully before the
+  full pipeline has been run. Alerting (Slack) and one-click rebuild are
+  still open.
 - **API:** `POST /v1/index/build`, `GET /v1/index/manifest`,
-  `POST /v1/freshness/scan`, `POST /v1/probes/run`, and
-  `POST /v1/probes/drift`, all behind a per-client rate limiter
+  `POST /v1/freshness/scan`, `POST /v1/probes/run`,
+  `POST /v1/probes/drift`, `POST /v1/answers/run`,
+  `POST /v1/answers/drift`, `POST /v1/answers/stale-risk`, and
+  `GET /v1/scorecard`, all behind a per-client rate limiter
   (`app/core/rate_limit.py`).
 
-Remaining: Phase 4 (answer drift via LLM-as-judge), Phase 5 (alerts and
-dashboard), Phase 6 (portfolio polish) — see root `ROADMAP.md`.
+Remaining: rest of Phase 5 (Slack alerts, one-click rebuild), Phase 6
+(portfolio polish) — see root `ROADMAP.md`.
