@@ -33,6 +33,45 @@ def test_ask_validates_empty_question():
         assert r.status_code == 422  # server-side validation (secure §2A)
 
 
+def test_ask_response_has_security_headers():
+    with TestClient(app) as client:
+        r = client.post("/ask", json={"question": "What does error 429 mean?"})
+        assert r.headers["x-content-type-options"] == "nosniff"
+        assert r.headers["x-frame-options"] == "DENY"
+
+
+def test_ask_is_rate_limited(monkeypatch):
+    import app.main as main_module
+
+    monkeypatch.setattr(main_module, "_limiter", main_module.RateLimiter(1))
+    with TestClient(app) as client:
+        first = client.post("/ask", json={"question": "What does error 429 mean?"})
+        second = client.post("/ask", json={"question": "What does error 429 mean?"})
+        assert first.status_code == 200
+        assert second.status_code == 429
+
+
+def test_ask_default_access_level_cannot_see_restricted_policy():
+    with TestClient(app) as client:
+        r = client.post("/ask", json={"question": "What is the refund policy threshold?"})
+        assert r.status_code == 200
+        body = r.json()
+        sources = {c["chunk"]["metadata"]["source_name"] for c in body["retrieved"]}
+        assert "policy" not in sources
+
+
+def test_ask_restricted_access_level_can_see_policy():
+    with TestClient(app) as client:
+        r = client.post("/ask", json={
+            "question": "What is the refund policy threshold?",
+            "access_level": "restricted",
+        })
+        assert r.status_code == 200
+        body = r.json()
+        sources = {c["chunk"]["metadata"]["source_name"] for c in body["retrieved"]}
+        assert "policy" in sources
+
+
 def _chunk(cid, text):
     return Chunk(chunk_id=cid, text=text,
                  metadata=ChunkMetadata(source_name="t", doc_type=DocType.faq))

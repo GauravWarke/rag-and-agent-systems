@@ -10,7 +10,7 @@ pipeline — nothing is hand-edited.
 
 ```bash
 $ python ingest.py --source data/sample_docs --rebuild
-Indexed 7 chunks from data/sample_docs (heading strategy) -> storage/index/manifest.json
+Indexed 9 chunks from data/sample_docs (heading strategy) -> storage/index/manifest.json
 ```
 
 `storage/index/manifest.json`:
@@ -19,14 +19,16 @@ Indexed 7 chunks from data/sample_docs (heading strategy) -> storage/index/manif
 {
   "source_dir": "data/sample_docs",
   "chunking_strategy": "heading",
-  "chunk_count": 7,
-  "documents": { "api": 2, "faq": 3, "troubleshooting": 2 }
+  "chunk_count": 9,
+  "documents": { "api": 2, "faq": 3, "policy": 2, "troubleshooting": 2 }
 }
 ```
 
 Each chunk carries `source_name`, `section_heading`, `last_updated`, `doc_type`,
-and `access_level` from ingestion (see `app/core/models.py::ChunkMetadata`),
-so retrieval and the eval report can break results down by source later.
+and `access_level` from ingestion (see `app/core/models.py::ChunkMetadata`), so
+retrieval and the eval report can break results down by source later. Policy
+documents (`policy.md`) are tagged `restricted`; everything else defaults to
+`internal` (see section 2.5 below for how this is enforced during retrieval).
 
 ## 2. A good answer with verified citations
 
@@ -104,6 +106,32 @@ never mentions SMS codes. In `_generate_stub`, any citation the verifier
 marks unsupported is added to `could_not_verify` and lowers
 `citation_support_rate` in the confidence breakdown instead of being
 presented to the user as fact.
+
+## 2.5. Access control — restricted chunks never leak to unauthorized callers
+
+Request (default caller, no `access_level` specified → `internal`):
+
+```json
+POST /ask
+{"question": "What is the refund policy threshold?"}
+```
+
+Response sources: `["api", "faq", "troubleshooting"]` — the restricted
+`policy.md` chunks are filtered out during retrieval (before ranking, not
+just before display), so they never reach the generator or the answer.
+
+Same question, with an elevated caller (`access_level: "restricted"`):
+
+```json
+POST /ask
+{"question": "What is the refund policy threshold?", "access_level": "restricted"}
+```
+
+Response sources: `["faq", "policy", "troubleshooting"]` — the answer now
+cites `policy::heading::0` ("Refunds are approved by support leads only, up
+to $500 per customer per calendar year..."). The filter (`HybridRetriever._allowed_ids`
+in `app/retrieval/hybrid.py`) is applied identically across the dense, sparse,
+and hybrid strategies, so no retrieval path can bypass it.
 
 ## 4. A no-answer case handled correctly
 

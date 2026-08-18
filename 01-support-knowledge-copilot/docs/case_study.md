@@ -32,10 +32,12 @@ these numbers from `reports/eval_<strategy>.md`.
 
 ## Reading the result honestly
 
-The demo corpus is deliberately small (7 chunks across 6 short documents),
-so raw retrieval hit rate and answer correctness are saturated at the same
-value across all three strategies — there just isn't enough corpus depth for
-retrieval strategy to matter for finding *a* relevant chunk. What the
+The demo corpus is deliberately small (9 chunks across 4 short documents,
+plus a 2-chunk restricted policy doc excluded from this eval's default
+`internal` access level — see "Access control" below), so raw retrieval hit
+rate and answer correctness are saturated at the same value across all three
+strategies — there just isn't enough corpus depth for retrieval strategy to
+matter for finding *a* relevant chunk. What the
 strategy choice actually changes is the **failure mode on edge-case
 questions**: sparse retrieval is overconfident (it always finds *something*
 to cite, so it never refuses), while dense retrieval is more willing to say
@@ -85,6 +87,12 @@ correctly refused no-answer case.
   chunking and fusion logic, but small enough that retrieval hit rate
   saturates — which is itself the finding above: strategy choice shows up
   in refusal calibration long before it shows up in raw hit rate.
+- **Access control (audit finding).** `AskRequest.access_level` is enforced
+  in `HybridRetriever._allowed_ids` and applied to the dense and sparse
+  candidate pools *before* ranking, not filtered out of the response after
+  the fact — a restricted chunk (`policy.md`, tagged `restricted`) can never
+  be scored, cited, or leaked into `could_not_verify` for a caller whose
+  clearance doesn't cover it. See `walkthrough.md` §2.5 for a transcript.
 
 ## What would change at production scale
 

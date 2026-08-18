@@ -12,7 +12,7 @@ from __future__ import annotations
 from rank_bm25 import BM25Okapi
 
 from app.core.config import settings
-from app.core.models import Chunk, RetrievedChunk
+from app.core.models import ACCESS_RANK, AccessLevel, Chunk, RetrievedChunk
 from app.retrieval.embeddings import _tokenize, cosine, embed
 from app.retrieval.reranker import rerank
 
@@ -32,22 +32,37 @@ class HybridRetriever:
         corpus = [_tokenize(self._chunks[i].text) for i in self._bm25_ids]
         self._bm25 = BM25Okapi(corpus) if corpus else None
 
-    def _dense(self, question: str, k: int) -> list[tuple[str, float]]:
+    def _allowed_ids(self, access_level: AccessLevel) -> set[str]:
+        """Access control (audit finding): a requester may only see chunks at
+        their own clearance level or below, so restricted chunks never reach
+        unauthorized answers regardless of retrieval strategy."""
+        limit = ACCESS_RANK[access_level]
+        return {
+            cid for cid, chunk in self._chunks.items()
+            if ACCESS_RANK[chunk.metadata.access_level] <= limit
+        }
+
+    def _dense(self, question: str, k: int, allowed: set[str]) -> list[tuple[str, float]]:
         qv = embed(question)
-        scored = [(cid, cosine(qv, v)) for cid, v in self._vectors.items()]
+        scored = [(cid, cosine(qv, v)) for cid, v in self._vectors.items() if cid in allowed]
         scored.sort(key=lambda x: x[1], reverse=True)
         return scored[:k]
 
-    def _sparse(self, question: str, k: int) -> list[tuple[str, float]]:
+    def _sparse(self, question: str, k: int, allowed: set[str]) -> list[tuple[str, float]]:
         if not self._bm25:
             return []
         scores = self._bm25.get_scores(_tokenize(question))
-        ranked = sorted(zip(self._bm25_ids, scores), key=lambda x: x[1], reverse=True)
+        ranked = sorted(
+            ((cid, s) for cid, s in zip(self._bm25_ids, scores) if cid in allowed),
+            key=lambda x: x[1], reverse=True,
+        )
         return ranked[:k]
 
-    def retrieve(self, question: str, strategy: str = "hybrid") -> list[RetrievedChunk]:
-        dense = self._dense(question, settings.dense_top_k)
-        sparse = self._sparse(question, settings.sparse_top_k)
+    def retrieve(self, question: str, strategy: str = "hybrid",
+                 access_level: AccessLevel = AccessLevel.internal) -> list[RetrievedChunk]:
+        allowed = self._allowed_ids(access_level)
+        dense = self._dense(question, settings.dense_top_k, allowed)
+        sparse = self._sparse(question, settings.sparse_top_k, allowed)
 
         if strategy == "dense":
             return [RetrievedChunk(chunk=self._chunks[c], dense_score=s, fused_score=s)

@@ -23,7 +23,10 @@ client → FastAPI /ask
 
 ## Metadata rules (Phase 1, step 3)
 Every chunk stores: `source_name`, `section_heading`, `last_updated`,
-`doc_type`, `access_level`. Stored from ingestion so retrieval can be filtered later.
+`doc_type`, `access_level`. Stored from ingestion so retrieval can be
+filtered by clearance (`HybridRetriever._allowed_ids`, enforced on both the
+dense and sparse candidate pools before ranking — see the "Access control"
+section of the README).
 
 ## Component choices
 | Component | Choice | Why |

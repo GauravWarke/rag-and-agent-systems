@@ -25,5 +25,7 @@ class Settings(BaseSettings):
 
     generation_model: str = "stub"
 
+    rate_limit_per_minute: int = 60
+
 
 settings = Settings()

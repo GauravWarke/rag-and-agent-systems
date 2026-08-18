@@ -7,19 +7,20 @@ from __future__ import annotations
 import re
 from datetime import date
 
-from app.core.models import Chunk, ChunkMetadata, DocType
+from app.core.models import AccessLevel, Chunk, ChunkMetadata, DocType
 
 _HEADING = re.compile(r"^(#{1,6})\s+(.*)$", re.MULTILINE)
 
 
 def chunk_markdown(text: str, *, source_name: str, doc_type: DocType,
-                   last_updated: date | None = None) -> list[Chunk]:
+                   last_updated: date | None = None,
+                   access_level: AccessLevel = AccessLevel.internal) -> list[Chunk]:
     matches = list(_HEADING.finditer(text))
     chunks: list[Chunk] = []
     if not matches:
         body = text.strip()
         if body:
-            chunks.append(_mk(body, source_name, "", doc_type, last_updated, 0))
+            chunks.append(_mk(body, source_name, "", doc_type, last_updated, access_level, 0))
         return chunks
 
     for i, m in enumerate(matches):
@@ -28,11 +29,11 @@ def chunk_markdown(text: str, *, source_name: str, doc_type: DocType,
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
         body = text[start:end].strip()
         if body:
-            chunks.append(_mk(body, source_name, heading, doc_type, last_updated, i))
+            chunks.append(_mk(body, source_name, heading, doc_type, last_updated, access_level, i))
     return chunks
 
 
-def _mk(body, source_name, heading, doc_type, last_updated, i) -> Chunk:
+def _mk(body, source_name, heading, doc_type, last_updated, access_level, i) -> Chunk:
     cid = f"{source_name}::heading::{i}"
     return Chunk(
         chunk_id=cid,
@@ -43,12 +44,14 @@ def _mk(body, source_name, heading, doc_type, last_updated, i) -> Chunk:
             section_heading=heading,
             last_updated=last_updated,
             doc_type=doc_type,
+            access_level=access_level,
         ),
     )
 
 
 def chunk_fixed_size(text: str, *, source_name: str, doc_type: DocType,
                      last_updated: date | None = None,
+                     access_level: AccessLevel = AccessLevel.internal,
                      chunk_size: int = 200, overlap: int = 40) -> list[Chunk]:
     """Fixed-size chunking with overlap, measured in words. Simpler and
     heading-agnostic compared to `chunk_markdown`; useful as a baseline to
@@ -70,7 +73,7 @@ def chunk_fixed_size(text: str, *, source_name: str, doc_type: DocType,
         window = words[i:i + chunk_size]
         body = " ".join(window).strip()
         if body:
-            chunks.append(_mk_fixed(body, source_name, doc_type, last_updated, idx))
+            chunks.append(_mk_fixed(body, source_name, doc_type, last_updated, access_level, idx))
             idx += 1
         if i + chunk_size >= len(words):
             break
@@ -78,7 +81,7 @@ def chunk_fixed_size(text: str, *, source_name: str, doc_type: DocType,
     return chunks
 
 
-def _mk_fixed(body, source_name, doc_type, last_updated, i) -> Chunk:
+def _mk_fixed(body, source_name, doc_type, last_updated, access_level, i) -> Chunk:
     cid = f"{source_name}::fixed::{i}"
     return Chunk(
         chunk_id=cid,
@@ -89,5 +92,6 @@ def _mk_fixed(body, source_name, doc_type, last_updated, i) -> Chunk:
             section_heading="",
             last_updated=last_updated,
             doc_type=doc_type,
+            access_level=access_level,
         ),
     )
