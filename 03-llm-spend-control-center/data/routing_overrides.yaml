@@ -1,7 +1,0 @@
-# Features that must always route to a specific quality tier, regardless
-# of what the complexity classifier would otherwise pick — because
-# correctness matters more than cost for these.
-feature_forced_tier:
-  legal-review: 3
-  medical-advice: 3
-  security-incident: 3
