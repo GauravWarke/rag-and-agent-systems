@@ -1,4 +1,5 @@
 name: Claude ROADMAP Builder
+
 on:
   schedule:
     - cron: "0 0 * * *"   # every day, 10:00 AM AEST (Australia/Sydney, UTC+10)
@@ -35,9 +36,9 @@ jobs:
             --max-turns 100
             --allowedTools Edit,Read,Write,Bash,Glob,Grep
           prompt: |
-            Advance this monorepo of 15 AI-engineering projects by completing ABOUT HALF of ONE project this run.
+            Advance this repo of 5 AI-engineering projects by completing ABOUT HALF of ONE project this run.
 
-            1. Read ROADMAP.md at the repo root. Identify the FIRST project (P1..P15, in order) that
+            1. Read ROADMAP.md at the repo root. Identify the FIRST project (in listed order) that
                still has ANY unchecked "- [ ]" items. Work ONLY on that single project this run.
                If every project is fully checked, make no changes and stop.
             2. Count that project's remaining unchecked items. Your target for THIS run is to complete
