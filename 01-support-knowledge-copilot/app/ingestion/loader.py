@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
-from app.core.models import Chunk, DocType
+from app.core.models import AccessLevel, Chunk, DocType
 from app.ingestion.chunker import chunk_fixed_size, chunk_markdown
 from app.ingestion.normalizer import SUPPORTED_EXTENSIONS, normalize_document
 
@@ -22,6 +22,15 @@ _DOC_TYPES = {
     "release": DocType.release_notes,
     "policy": DocType.policy,
 }
+
+# Access control (audit finding): policy documents (refund rules, internal
+# security procedures, etc.) carry sensitive operational detail and are
+# restricted by default. Everything else in the sample corpus is internal —
+# visible to support staff but not to an unauthenticated/public caller.
+_ACCESS_LEVELS: dict[DocType, AccessLevel] = {
+    DocType.policy: AccessLevel.restricted,
+}
+_DEFAULT_ACCESS_LEVEL = AccessLevel.internal
 
 _SAMPLE_DIR = Path(__file__).resolve().parents[2] / "data" / "sample_docs"
 
@@ -40,6 +49,7 @@ def load_corpus_from_dir(source_dir: Path, chunking_strategy: str = "heading") -
     for path in paths:
         stem = path.stem
         doc_type = next((v for k, v in _DOC_TYPES.items() if k in stem), DocType.faq)
+        access_level = _ACCESS_LEVELS.get(doc_type, _DEFAULT_ACCESS_LEVEL)
         doc = normalize_document(path)
         if chunking_strategy == "fixed":
             chunks.extend(chunk_fixed_size(
@@ -47,6 +57,7 @@ def load_corpus_from_dir(source_dir: Path, chunking_strategy: str = "heading") -
                 source_name=stem,
                 doc_type=doc_type,
                 last_updated=date(2025, 1, 1),
+                access_level=access_level,
             ))
         else:
             chunks.extend(chunk_markdown(
@@ -54,6 +65,7 @@ def load_corpus_from_dir(source_dir: Path, chunking_strategy: str = "heading") -
                 source_name=stem,
                 doc_type=doc_type,
                 last_updated=date(2025, 1, 1),
+                access_level=access_level,
             ))
     return chunks
 

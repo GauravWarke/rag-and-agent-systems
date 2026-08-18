@@ -96,6 +96,27 @@ aggregate scorecard plus a per-question pass/fail table) and `dashboard.html`
 retrieved sources, citation verdicts, and confidence breakdown — comparing
 `--strategy` against the dense-only baseline).
 
+## Access control
+
+Every chunk carries an `access_level` (`public` / `internal` / `restricted`,
+default `internal`; policy documents default to `restricted`). `POST /ask`
+accepts an `access_level` field (default `internal`) representing the
+caller's clearance. `HybridRetriever` filters the dense and sparse candidate
+pools down to chunks at or below that clearance *before* scoring — a
+restricted chunk is never ranked, cited, or surfaced in `could_not_verify`
+for an unauthorized caller, on any retrieval strategy. See
+[`docs/walkthrough.md`](docs/walkthrough.md) §2.5 for a request/response
+transcript.
+
+## Hardening
+
+`POST /ask` is rate-limited per client IP (in-memory fixed window, default
+60 requests/minute, configurable via `RATE_LIMIT_PER_MINUTE`) and every
+response carries baseline security headers (`X-Content-Type-Options`,
+`X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`). Request
+validation is server-side via Pydantic (`AskRequest`), so an empty or
+oversized question is rejected with `422` before it reaches retrieval.
+
 ## Interview talking point
 
 > Explain why you kept dense and sparse indexes over the same chunk IDs. It shows you understand that semantic search and keyword search solve different failure modes.
@@ -115,6 +136,7 @@ behind it.
 
 ## Status
 
-Complete — all 6 phases done (scope, ingestion, hybrid retrieval, grounded
-generation, eval suite + dashboard, portfolio polish). See root
-`ROADMAP.md`.
+All 6 build phases plus access control and hardening are done (scope,
+ingestion, hybrid retrieval, grounded generation, eval suite + dashboard,
+portfolio polish). Outstanding: the golden Q&A set has 34 cases and should
+grow to the 50-75 the build guide calls for. See root `ROADMAP.md`.

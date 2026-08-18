@@ -27,6 +27,15 @@ class AccessLevel(str, Enum):
     restricted = "restricted"
 
 
+# Ordering used to enforce access control during retrieval (Phase 1 audit
+# finding): a requester may see chunks at their own clearance level or below.
+ACCESS_RANK: dict[AccessLevel, int] = {
+    AccessLevel.public: 0,
+    AccessLevel.internal: 1,
+    AccessLevel.restricted: 2,
+}
+
+
 class DocFormat(str, Enum):
     markdown = "markdown"
     html = "html"
@@ -88,6 +97,7 @@ class ConfidenceBreakdown(BaseModel):
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     strategy: str = "hybrid"  # hybrid | dense | sparse — for eval comparison
+    access_level: AccessLevel = AccessLevel.internal  # requester's clearance for retrieval filtering
 
 
 class AskResponse(BaseModel):
