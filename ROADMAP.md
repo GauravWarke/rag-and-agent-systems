@@ -42,22 +42,22 @@ Folder: `01-support-knowledge-copilot/`
 *Topic: RAG, Data Quality, Monitoring, Knowledge Drift*  
 Folder: `07-rag-freshness-monitor/`
 
-- [ ] **Scaffold** — create `07-rag-freshness-monitor/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
-- [ ] **Phase 1: Build a Baseline RAG Index** — Create a small knowledge base: Use internal-doc-style Markdown files: policies, product pages, troubleshooting docs, and changelogs.
-- [ ] **Phase 1: Build a Baseline RAG Index** — Index documents with metadata: Store document version, last modified date, source path, section heading, chunk hash, and embedding version.
-- [ ] **Phase 1: Build a Baseline RAG Index** — Save an index manifest: The manifest records what was indexed, when, with which embedding model, and with which chunking strategy.
-- [ ] **Phase 2: Detect Source-Level Freshness Issues** — Track content changes: Compare current document hashes to the manifest. Detect added, removed, and modified sections.
-- [ ] **Phase 2: Detect Source-Level Freshness Issues** — Score semantic change: A one-word typo should not trigger panic. Compute semantic similarity between old and new sections to estimate how meaningful the change is.
-- [ ] **Phase 2: Detect Source-Level Freshness Issues** — Prioritize re-indexing: Flag high-impact changes first: pricing, policy, API behavior, troubleshooting steps, and security instructions.
-- [ ] **Phase 3: Detect Retrieval Drift** — Build a probe question set: Create 50 recurring questions tied to known source sections.
-- [ ] **Phase 3: Detect Retrieval Drift** — Run probes against old and new indexes: Compare which chunks are retrieved and whether the top result changes after document updates.
-- [ ] **Phase 3: Detect Retrieval Drift** — Flag suspicious changes: If a known question no longer retrieves the expected section, mark it as retrieval drift.
-- [ ] **Phase 4: Detect Answer Drift** — Generate answers for probe questions: Run the same questions through the RAG pipeline over time.
-- [ ] **Phase 4: Detect Answer Drift** — Compare answers semantically: Use LLM-as-judge to identify whether the answer meaning changed, whether the change was expected, and whether citations still support the answer.
-- [ ] **Phase 4: Detect Answer Drift** — Track stale answer risk: If source docs changed but generated answers did not, the system may be serving stale knowledge. Flag this clearly.
-- [ ] **Phase 5: Build Alerts and Dashboard** — Build freshness scorecards: Show docs changed, chunks stale, probes drifting, answer drift, and re-index recommendations.
-- [ ] **Phase 5: Build Alerts and Dashboard** — Add alerts: Send Slack notifications when high-risk docs changed without re-indexing, or when probe questions fail.
-- [ ] **Phase 5: Build Alerts and Dashboard** — Add one-click rebuild command: From the dashboard, trigger re-indexing for affected docs and rerun probe tests.
+- [x] **Scaffold** — create `07-rag-freshness-monitor/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
+- [x] **Phase 1: Build a Baseline RAG Index** — Create a small knowledge base: Use internal-doc-style Markdown files: policies, product pages, troubleshooting docs, and changelogs.
+- [x] **Phase 1: Build a Baseline RAG Index** — Index documents with metadata: Store document version, last modified date, source path, section heading, chunk hash, and embedding version.
+- [x] **Phase 1: Build a Baseline RAG Index** — Save an index manifest: The manifest records what was indexed, when, with which embedding model, and with which chunking strategy.
+- [x] **Phase 2: Detect Source-Level Freshness Issues** — Track content changes: Compare current document hashes to the manifest. Detect added, removed, and modified sections.
+- [x] **Phase 2: Detect Source-Level Freshness Issues** — Score semantic change: A one-word typo should not trigger panic. Compute semantic similarity between old and new sections to estimate how meaningful the change is.
+- [x] **Phase 2: Detect Source-Level Freshness Issues** — Prioritize re-indexing: Flag high-impact changes first: pricing, policy, API behavior, troubleshooting steps, and security instructions.
+- [x] **Phase 3: Detect Retrieval Drift** — Build a probe question set: Create 50 recurring questions tied to known source sections.
+- [x] **Phase 3: Detect Retrieval Drift** — Run probes against old and new indexes: Compare which chunks are retrieved and whether the top result changes after document updates.
+- [x] **Phase 3: Detect Retrieval Drift** — Flag suspicious changes: If a known question no longer retrieves the expected section, mark it as retrieval drift.
+- [x] **Phase 4: Detect Answer Drift** — Generate answers for probe questions: Run the same questions through the RAG pipeline over time.
+- [x] **Phase 4: Detect Answer Drift** — Compare answers semantically: Use LLM-as-judge to identify whether the answer meaning changed, whether the change was expected, and whether citations still support the answer.
+- [x] **Phase 4: Detect Answer Drift** — Track stale answer risk: If source docs changed but generated answers did not, the system may be serving stale knowledge. Flag this clearly.
+- [x] **Phase 5: Build Alerts and Dashboard** — Build freshness scorecards: Show docs changed, chunks stale, probes drifting, answer drift, and re-index recommendations.
+- [x] **Phase 5: Build Alerts and Dashboard** — Add alerts: Send Slack notifications when high-risk docs changed without re-indexing, or when probe questions fail.
+- [x] **Phase 5: Build Alerts and Dashboard** — Add one-click rebuild command: From the dashboard, trigger re-indexing for affected docs and rerun probe tests.
 - [ ] **Phase 6: Polish for Portfolio** — Demo a stale doc scenario: Change a policy document, show the system detecting risk, rebuild the index, and show probes returning to healthy.
 - [ ] **Phase 6: Polish for Portfolio** — Write the narrative: Frame it as "monitoring for knowledge freshness in RAG systems." Most candidates do not have this lifecycle angle.
 

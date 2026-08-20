@@ -83,18 +83,20 @@ curl -X POST localhost:8000/v1/answers/run      # generate answers for the probe
 curl -X POST localhost:8000/v1/answers/drift    # re-run answers and compare meaning to that baseline
 curl -X POST localhost:8000/v1/answers/stale-risk  # flag probes whose source changed but answer didn't
 curl localhost:8000/v1/scorecard                # roll everything up into one dashboard summary
+curl -X POST localhost:8000/v1/alerts/check     # recompute the scorecard and dispatch any alerts it trips
+curl -X POST localhost:8000/v1/rebuild          # one-click: re-index, re-run probes/answers, alert
 ```
 
 Everything runs offline by default: embeddings use a deterministic hashed
 bag-of-words stub (`app/indexing/embeddings.py`, `EMBEDDING_MODEL=stub`) so
 the full pipeline — indexing, freshness diffing, probe drift, answer
-generation, and answer drift — works with no API keys. Set
-`OPENAI_API_KEY` to swap in the real answer generator and judge.
+generation, answer drift, and alerting — works with no API keys or webhook.
+Set `OPENAI_API_KEY` to swap in the real answer generator and judge, and
+`SLACK_WEBHOOK_URL` to swap in real Slack alerts.
 
 ## Status
 
-In progress — Phases 1-4 of 6 implemented, plus the freshness scorecard
-from Phase 5:
+In progress — Phases 1-5 of 6 implemented:
 
 - **Phase 1 — Baseline RAG Index:** A small Markdown corpus lives in
   `data/docs/` (policies, product, troubleshooting, changelog — 16 sections
@@ -132,18 +134,26 @@ from Phase 5:
   (`compare_answer_runs`) and cross-references a freshness diff against
   answer drift to flag stale-answer risk (`detect_stale_answer_risk`):
   probes whose grounding chunk changed but whose answer did not.
-- **Phase 5 (partial) — Freshness Scorecard:** `app/dashboard/scorecard.py`
-  rolls up docs changed, chunks needing re-index, probes drifting, answer
-  drift, and stale-answer risk into one `FreshnessScorecard`, built from
-  whichever snapshots are available so it degrades gracefully before the
-  full pipeline has been run. Alerting (Slack) and one-click rebuild are
-  still open.
+- **Phase 5 — Alerts and Dashboard:** `app/dashboard/scorecard.py` rolls up
+  docs changed, chunks needing re-index, probes drifting, answer drift, and
+  stale-answer risk into one `FreshnessScorecard`, built from whichever
+  snapshots are available so it degrades gracefully before the full
+  pipeline has been run. `app/alerts/rules.py` turns a scorecard into
+  plain-English alert messages (high-priority doc changes needing
+  re-index, drifting probes, stale-answer risk), and
+  `app/alerts/dispatch.py` sends them through `app/alerts/client.py`:
+  `NullAlertClient` records alerts locally by default, and
+  `SlackAlertClient` posts to a real incoming webhook behind
+  `SLACK_WEBHOOK_URL`. `POST /v1/rebuild` is the one-click rebuild: it
+  re-indexes the corpus, re-runs the probe and answer baselines against
+  the fresh index, recomputes the scorecard, and dispatches any alerts it
+  trips — all in one call.
 - **API:** `POST /v1/index/build`, `GET /v1/index/manifest`,
   `POST /v1/freshness/scan`, `POST /v1/probes/run`,
   `POST /v1/probes/drift`, `POST /v1/answers/run`,
-  `POST /v1/answers/drift`, `POST /v1/answers/stale-risk`, and
-  `GET /v1/scorecard`, all behind a per-client rate limiter
-  (`app/core/rate_limit.py`).
+  `POST /v1/answers/drift`, `POST /v1/answers/stale-risk`,
+  `GET /v1/scorecard`, `POST /v1/alerts/check`, and `POST /v1/rebuild`,
+  all behind a per-client rate limiter (`app/core/rate_limit.py`).
 
-Remaining: rest of Phase 5 (Slack alerts, one-click rebuild), Phase 6
-(portfolio polish) — see root `ROADMAP.md`.
+Remaining: Phase 6 (portfolio polish — demo recording and case-study
+narrative) — see root `ROADMAP.md`.

@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     answer_model: str = "gpt-4o-mini"
 
+    # Slack alerting — leave blank to use the offline "log" alert client
+    # only (alerts are computed and recorded, but nothing is posted).
+    slack_webhook_url: str = ""
+
     rate_limit_per_minute: int = 60
 
 

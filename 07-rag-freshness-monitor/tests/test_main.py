@@ -211,6 +211,56 @@ def test_scorecard_reflects_full_pipeline(isolated_corpus: Path):
         assert body["answer_drift_checked"] == 20
 
 
+def test_alerts_check_clean_scorecard_triggers_nothing(isolated_corpus: Path):
+    with TestClient(app) as client:
+        client.post("/v1/index/build")
+        r = client.post("/v1/alerts/check")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["triggered"] == []
+        assert body["delivered"] is True
+        assert body["channel"] == "log"
+
+
+def test_alerts_check_flags_high_priority_doc_change(isolated_corpus: Path):
+    with TestClient(app) as client:
+        client.post("/v1/index/build")
+
+        policies_path = isolated_corpus / "policies.md"
+        original = policies_path.read_text(encoding="utf-8")
+        updated = original.replace(
+            "Any suspected security breach must be reported to the security team within 1 hour of discovery.",
+            "Any suspected security breach must now be reported within 15 minutes of discovery.",
+        )
+        assert updated != original
+        policies_path.write_text(updated, encoding="utf-8")
+
+        r = client.post("/v1/alerts/check")
+        assert r.status_code == 200
+        body = r.json()
+        assert len(body["triggered"]) == 1
+        assert "re-indexing" in body["triggered"][0]
+
+
+def test_rebuild_reindexes_and_returns_clean_scorecard(isolated_corpus: Path):
+    with TestClient(app) as client:
+        r = client.post("/v1/rebuild")
+        assert r.status_code == 200
+        body = r.json()
+        assert len(body["manifest"]["chunks"]) == 16
+        assert body["probes"]["total_probes"] == 20
+        assert len(body["answers"]["answers"]) == 20
+        # A rebuild re-indexes from the current corpus, so the freshly
+        # rebuilt manifest matches the corpus it was just built from.
+        assert body["scorecard"]["docs_changed"] == 0
+        assert body["alerts"]["triggered"] == []
+
+        # The rebuild should have primed the probe/answer baselines, so a
+        # follow-up drift check succeeds instead of 404ing.
+        drift = client.post("/v1/probes/drift")
+        assert drift.status_code == 200
+
+
 def test_rate_limit_returns_429(monkeypatch: pytest.MonkeyPatch, isolated_corpus: Path):
     monkeypatch.setattr(main_module, "_limiter", RateLimiter(requests_per_minute=1))
     with TestClient(app) as client:

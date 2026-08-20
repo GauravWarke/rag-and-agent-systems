@@ -193,3 +193,29 @@ class FreshnessScorecard(BaseModel):
     answer_drift_changed: int
     stale_answer_risks: int
     recommendations: list[PrioritizedChange] = Field(default_factory=list)
+
+
+class AlertDispatchResult(BaseModel):
+    """The alerts a scorecard triggered, and whether they were delivered.
+
+    `channel` is `"log"` (the offline default — alerts are recorded but not
+    sent anywhere) or `"slack"` when `SLACK_WEBHOOK_URL` is configured.
+    """
+
+    checked_at: str
+    triggered: list[str] = Field(default_factory=list)
+    channel: str
+    delivered: bool
+
+
+class RebuildResult(BaseModel):
+    """The result of a one-click rebuild: re-index the corpus, re-run
+    probes and answers, recompute the scorecard, and dispatch any alerts
+    the new scorecard triggers."""
+
+    rebuilt_at: str
+    manifest: IndexManifest
+    probes: ProbeRunSummary
+    answers: AnswerRunSummary
+    scorecard: FreshnessScorecard
+    alerts: AlertDispatchResult
