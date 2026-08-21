@@ -96,7 +96,7 @@ Set `OPENAI_API_KEY` to swap in the real answer generator and judge, and
 
 ## Status
 
-In progress — Phases 1-5 of 6 implemented:
+All 6 phases implemented:
 
 - **Phase 1 — Baseline RAG Index:** A small Markdown corpus lives in
   `data/docs/` (policies, product, troubleshooting, changelog — 16 sections
@@ -154,6 +154,10 @@ In progress — Phases 1-5 of 6 implemented:
   `POST /v1/answers/drift`, `POST /v1/answers/stale-risk`,
   `GET /v1/scorecard`, `POST /v1/alerts/check`, and `POST /v1/rebuild`,
   all behind a per-client rate limiter (`app/core/rate_limit.py`).
-
-Remaining: Phase 6 (portfolio polish — demo recording and case-study
-narrative) — see root `ROADMAP.md`.
+- **Phase 6 — Portfolio polish:** [`docs/walkthrough.md`](docs/walkthrough.md)
+  is a real, reproducible transcript of the stale-doc scenario — a policy
+  edit gets flagged `high` priority and `stale_answer_risks: 2` before a
+  single retrieval or answer-drift metric moves, then `POST /v1/rebuild`
+  brings every signal back to healthy. [`docs/case_study.md`](docs/case_study.md)
+  is the narrative writeup: monitoring for knowledge *freshness*, not just
+  answer quality, in a RAG system.
