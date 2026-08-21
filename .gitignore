@@ -15,6 +15,7 @@ venv/
 *.db
 *.sqlite3
 data/local/
+data/index/
 storage/
 reports/
 .chroma/

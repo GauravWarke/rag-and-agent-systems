@@ -58,8 +58,8 @@ Folder: `07-rag-freshness-monitor/`
 - [x] **Phase 5: Build Alerts and Dashboard** — Build freshness scorecards: Show docs changed, chunks stale, probes drifting, answer drift, and re-index recommendations.
 - [x] **Phase 5: Build Alerts and Dashboard** — Add alerts: Send Slack notifications when high-risk docs changed without re-indexing, or when probe questions fail.
 - [x] **Phase 5: Build Alerts and Dashboard** — Add one-click rebuild command: From the dashboard, trigger re-indexing for affected docs and rerun probe tests.
-- [ ] **Phase 6: Polish for Portfolio** — Demo a stale doc scenario: Change a policy document, show the system detecting risk, rebuild the index, and show probes returning to healthy.
-- [ ] **Phase 6: Polish for Portfolio** — Write the narrative: Frame it as "monitoring for knowledge freshness in RAG systems." Most candidates do not have this lifecycle angle.
+- [x] **Phase 6: Polish for Portfolio** — Demo a stale doc scenario: Change a policy document, show the system detecting risk, rebuild the index, and show probes returning to healthy.
+- [x] **Phase 6: Polish for Portfolio** — Write the narrative: Frame it as "monitoring for knowledge freshness in RAG systems." Most candidates do not have this lifecycle angle.
 
 ## 3. Permissioned Tool-Using Agent Sandbox
 
