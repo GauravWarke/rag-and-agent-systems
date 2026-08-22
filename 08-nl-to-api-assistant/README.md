@@ -67,4 +67,34 @@ A natural language interface that turns user requests into safe API calls agains
 
 ## Status
 
-Planned. Scaffold pending — see root `ROADMAP.md`.
+In progress — Phases 1-3 implemented:
+
+- **Phase 1 — Mock business API:** a small SaaS admin domain (`app/business_api/`) with
+  customers, subscriptions, invoices, tickets, and refunds, seeded in-memory. Endpoints cover
+  reads (get/list customers, list a customer's subscriptions, list invoices) and writes (create
+  a ticket, update a subscription's plan, issue a refund). Every route declares its risk tier and
+  required roles as OpenAPI extensions — `x-risk-level` (`read_only` / `low_risk_write` /
+  `high_risk_write`) and `x-required-roles` — via `openapi_extra`, so the metadata lives in the
+  schema itself rather than a side table.
+- **Phase 2 — Schema-aware planning:** `app/planning/schema.py` parses `app.openapi()` into a
+  flat list of `EndpointSpec`s (operation id, method, path, parameters, request/response
+  schemas, risk tier, required roles). `app/planning/selector.py` narrows that list down to the
+  endpoints whose name/summary/description/path share a keyword with the request (no embeddings,
+  so this stays offline-runnable by default) — an empty result means no endpoint looked
+  relevant, rather than guessing. `app/planning/planner.py`'s offline `StubPlanner` turns the
+  request into a structured `CallPlan` (endpoint, parameters extracted by regex/keyword,
+  reason, expected result, confidence); `OpenAIPlanner` is available behind `OPENAI_API_KEY`.
+- **Phase 3 — Validation and dry runs:** `app/planning/validation.py` checks a plan's parameters
+  against the endpoint's JSON Schema before anything executes — missing required fields, unknown
+  fields, wrong types, and invalid enum values are all rejected with a specific message.
+  `app/planning/workflow.py` then routes by risk tier: read-only calls validate and execute
+  immediately; low-risk and high-risk writes get a plain-English dry-run preview first and pause
+  (`awaiting_confirmation` / `awaiting_approval`) with the plan persisted, so
+  `POST /v1/assistant/workflows/{id}/resume` can approve (execute the stored plan) or reject
+  (end the workflow) later. A failed execution (e.g. the approved plan's target record no longer
+  exists) is captured as a `failed` status with an `error` field rather than raising.
+
+Multi-step chained calls, execution logs/UI, and the golden workflow test suite are Phase 4-5 —
+not built yet.
+
+Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`

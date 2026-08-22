@@ -66,40 +66,40 @@ Folder: `07-rag-freshness-monitor/`
 *Topic: Agents, Tool Use, Security, Human-in-the-Loop, Observability*  
 Folder: `06-agent-sandbox/`
 
-- [ ] **Scaffold** — create `06-agent-sandbox/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
-- [ ] **Phase 1: Design the Agent and Tool Model** — Define the agent role: Build a "workspace assistant" that can answer questions, inspect files, summarize data, call safe APIs, and prepare actions for approval.
-- [ ] **Phase 1: Design the Agent and Tool Model** — Create a tool registry: Every tool has name, description, input schema, output schema, allowed roles, rate limit, risk level, and whether approval is required.
-- [ ] **Phase 1: Design the Agent and Tool Model** — Build safe starter tools: Add calculator, file reader over a sandbox folder, web-search stub or mock search, CSV query tool, and ticket creation mock API.
-- [ ] **Phase 2: Build Permission Checks** — Add user and role permissions: Users have roles like viewer, analyst, operator, and admin. Tools check permissions before execution.
-- [ ] **Phase 2: Build Permission Checks** — Add risk levels: Low-risk tools execute immediately. Medium-risk tools require confirmation. High-risk tools require human approval before execution.
-- [ ] **Phase 2: Build Permission Checks** — Block invalid tool inputs: Validate every tool call with Pydantic. Never let raw model text become a command without validation.
-- [ ] **Phase 3: Build the LangGraph Workflow** — Create graph nodes: Intake, plan, tool selection, permission check, tool execution, result reflection, approval wait, final response.
-- [ ] **Phase 3: Build the LangGraph Workflow** — Add conditional routing: If permission fails, return a safe explanation. If approval is needed, pause the task. If a tool fails, let the agent retry with a safer alternative.
-- [ ] **Phase 3: Build the LangGraph Workflow** — Store task state: Persist every step so a paused task can resume after human approval.
-- [ ] **Phase 4: Build Human Approval** — Create an approval queue: Show proposed action, tool name, arguments, risk level, model reasoning summary, and expected effect.
-- [ ] **Phase 4: Build Human Approval** — Add approve / reject / modify: A human can approve as-is, edit the tool arguments, reject, or ask the agent to re-plan.
-- [ ] **Phase 4: Build Human Approval** — Log decisions: Store who approved, what changed, and why. This keeps the agent auditable.
-- [ ] **Phase 5: Build Observability** — Trace every decision: Capture prompts, chosen tools, permission decisions, tool outputs, retries, approval events, latency, and cost.
-- [ ] **Phase 5: Build Observability** — Build a trace viewer: Show the workflow as a timeline. Clicking a step reveals inputs, outputs, and decision reasons.
-- [ ] **Phase 5: Build Observability** — Add safety analytics: Track tool usage, blocked attempts, approval rate, rejected actions, and most common failure reasons.
-- [ ] **Phase 6: Polish for Portfolio** — Demo a safe and unsafe task: Show the agent completing a low-risk analysis, then attempting a sensitive action that gets routed to approval.
-- [ ] **Phase 6: Polish for Portfolio** — Write the architecture narrative: Focus on permission boundaries, audit logs, and human-in-the-loop design. Those details make the project feel production-minded.
+- [x] **Scaffold** — create `06-agent-sandbox/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
+- [x] **Phase 1: Design the Agent and Tool Model** — Define the agent role: Build a "workspace assistant" that can answer questions, inspect files, summarize data, call safe APIs, and prepare actions for approval.
+- [x] **Phase 1: Design the Agent and Tool Model** — Create a tool registry: Every tool has name, description, input schema, output schema, allowed roles, rate limit, risk level, and whether approval is required.
+- [x] **Phase 1: Design the Agent and Tool Model** — Build safe starter tools: Add calculator, file reader over a sandbox folder, web-search stub or mock search, CSV query tool, and ticket creation mock API.
+- [x] **Phase 2: Build Permission Checks** — Add user and role permissions: Users have roles like viewer, analyst, operator, and admin. Tools check permissions before execution.
+- [x] **Phase 2: Build Permission Checks** — Add risk levels: Low-risk tools execute immediately. Medium-risk tools require confirmation. High-risk tools require human approval before execution.
+- [x] **Phase 2: Build Permission Checks** — Block invalid tool inputs: Validate every tool call with Pydantic. Never let raw model text become a command without validation.
+- [x] **Phase 3: Build the LangGraph Workflow** — Create graph nodes: Intake, plan, tool selection, permission check, tool execution, result reflection, approval wait, final response.
+- [x] **Phase 3: Build the LangGraph Workflow** — Add conditional routing: If permission fails, return a safe explanation. If approval is needed, pause the task. If a tool fails, let the agent retry with a safer alternative.
+- [x] **Phase 3: Build the LangGraph Workflow** — Store task state: Persist every step so a paused task can resume after human approval.
+- [x] **Phase 4: Build Human Approval** — Create an approval queue: Show proposed action, tool name, arguments, risk level, model reasoning summary, and expected effect.
+- [x] **Phase 4: Build Human Approval** — Add approve / reject / modify: A human can approve as-is, edit the tool arguments, reject, or ask the agent to re-plan.
+- [x] **Phase 4: Build Human Approval** — Log decisions: Store who approved, what changed, and why. This keeps the agent auditable.
+- [x] **Phase 5: Build Observability** — Trace every decision: Capture prompts, chosen tools, permission decisions, tool outputs, retries, approval events, latency, and cost.
+- [x] **Phase 5: Build Observability** — Build a trace viewer: Show the workflow as a timeline. Clicking a step reveals inputs, outputs, and decision reasons.
+- [x] **Phase 5: Build Observability** — Add safety analytics: Track tool usage, blocked attempts, approval rate, rejected actions, and most common failure reasons.
+- [x] **Phase 6: Polish for Portfolio** — Demo a safe and unsafe task: Show the agent completing a low-risk analysis, then attempting a sensitive action that gets routed to approval.
+- [x] **Phase 6: Polish for Portfolio** — Write the architecture narrative: Focus on permission boundaries, audit logs, and human-in-the-loop design. Those details make the project feel production-minded.
 
 ## 4. Natural Language to API Assistant
 
 *Topic: Tool Calling, Guardrails, OpenAPI, Workflow Automation*  
 Folder: `08-nl-to-api-assistant/`
 
-- [ ] **Scaffold** — create `08-nl-to-api-assistant/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
-- [ ] **Phase 1: Build the Mock Business API** — Create a realistic domain: Use a mock SaaS admin system with customers, subscriptions, invoices, tickets, and refunds.
-- [ ] **Phase 1: Build the Mock Business API** — Expose OpenAPI docs: Build endpoints for read actions and write actions. Examples: get customer, list invoices, create ticket, update plan, issue refund.
-- [ ] **Phase 1: Build the Mock Business API** — Add permission metadata: Mark each endpoint as read-only, low-risk write, or high-risk write. Include required roles.
-- [ ] **Phase 2: Build Schema-Aware Planning** — Parse the OpenAPI schema: Extract endpoint names, descriptions, parameters, request bodies, response schemas, and risk tags.
-- [ ] **Phase 2: Build Schema-Aware Planning** — Select relevant endpoints: Given a user request, retrieve candidate endpoints from the schema using embeddings or keyword search.
-- [ ] **Phase 2: Build Schema-Aware Planning** — Generate a call plan: The LLM outputs a structured plan: endpoint, method, parameters, reason, expected result, and whether confirmation is required.
-- [ ] **Phase 3: Build Validation and Dry Runs** — Validate parameters: Use JSON Schema and Pydantic before any API call. Reject missing, ambiguous, or invalid fields.
-- [ ] **Phase 3: Build Validation and Dry Runs** — Add dry-run mode: For write actions, show what would happen without changing data. The assistant should explain the planned action in plain English.
-- [ ] **Phase 3: Build Validation and Dry Runs** — Ask for confirmation: High-risk actions require explicit approval. Store the pending plan and resume only after confirmation.
+- [x] **Scaffold** — create `08-nl-to-api-assistant/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
+- [x] **Phase 1: Build the Mock Business API** — Create a realistic domain: Use a mock SaaS admin system with customers, subscriptions, invoices, tickets, and refunds.
+- [x] **Phase 1: Build the Mock Business API** — Expose OpenAPI docs: Build endpoints for read actions and write actions. Examples: get customer, list invoices, create ticket, update plan, issue refund.
+- [x] **Phase 1: Build the Mock Business API** — Add permission metadata: Mark each endpoint as read-only, low-risk write, or high-risk write. Include required roles.
+- [x] **Phase 2: Build Schema-Aware Planning** — Parse the OpenAPI schema: Extract endpoint names, descriptions, parameters, request bodies, response schemas, and risk tags.
+- [x] **Phase 2: Build Schema-Aware Planning** — Select relevant endpoints: Given a user request, retrieve candidate endpoints from the schema using embeddings or keyword search.
+- [x] **Phase 2: Build Schema-Aware Planning** — Generate a call plan: The LLM outputs a structured plan: endpoint, method, parameters, reason, expected result, and whether confirmation is required.
+- [x] **Phase 3: Build Validation and Dry Runs** — Validate parameters: Use JSON Schema and Pydantic before any API call. Reject missing, ambiguous, or invalid fields.
+- [x] **Phase 3: Build Validation and Dry Runs** — Add dry-run mode: For write actions, show what would happen without changing data. The assistant should explain the planned action in plain English.
+- [x] **Phase 3: Build Validation and Dry Runs** — Ask for confirmation: High-risk actions require explicit approval. Store the pending plan and resume only after confirmation.
 - [ ] **Phase 4: Execute Multi-Step Workflows** — Support chained calls: Example: find customer by email, fetch subscription, check invoice status, then create a support ticket.
 - [ ] **Phase 4: Execute Multi-Step Workflows** — Pass outputs between steps: Store intermediate results in a typed workflow state. Do not rely on unstructured memory.
 - [ ] **Phase 4: Execute Multi-Step Workflows** — Handle failures gracefully: If an API call fails or returns multiple matches, ask a clarifying question instead of guessing.
