@@ -96,3 +96,58 @@ def test_resume_raises_when_workflow_not_pending():
             ResumeWorkflowRequest(decision="approve", reviewer="admin_1", reason="n/a"),
             now=_NOW,
         )
+
+
+def test_chain_workflow_runs_reads_then_pauses_for_write_confirmation():
+    request = (
+        "find customer by email ana@example.com, list her subscriptions, "
+        "list her invoices, then create a support ticket about a login problem"
+    )
+    workflow = create_workflow(CreateWorkflowRequest(user_id="u1", request=request), _schema(), now=_NOW)
+
+    assert workflow.status == "awaiting_confirmation"
+    assert workflow.chain is not None
+    assert len(workflow.chain) == 4
+    assert [step.status for step in workflow.chain] == ["completed", "completed", "completed", "pending"]
+    assert workflow.state["customer_id"] == "cust_1"
+    assert workflow.state["invoice_id"] == "inv_1"
+    assert workflow.chain[-1].parameters["customer_id"] == "cust_1"
+
+
+def test_chain_workflow_resumes_and_completes_final_step():
+    request = "find customer by email ana@example.com, then create a support ticket about a login problem"
+    workflow = create_workflow(CreateWorkflowRequest(user_id="u1", request=request), _schema(), now=_NOW)
+    assert workflow.status == "awaiting_confirmation"
+
+    resumed = resume_workflow(
+        workflow,
+        ResumeWorkflowRequest(decision="approve", reviewer="admin_1", reason="looks fine"),
+        now=_NOW,
+        openapi_schema=_schema(),
+    )
+
+    assert resumed.status == "completed"
+    assert resumed.chain[-1].status == "completed"
+    assert resumed.result["customer_id"] == "cust_1"
+
+
+def test_chain_workflow_rejected_leaves_final_step_unexecuted():
+    request = "find customer by email ana@example.com, then create a support ticket about a login problem"
+    workflow = create_workflow(CreateWorkflowRequest(user_id="u1", request=request), _schema(), now=_NOW)
+
+    rejected = resume_workflow(
+        workflow,
+        ResumeWorkflowRequest(decision="reject", reviewer="admin_1", reason="not needed"),
+        now=_NOW,
+        openapi_schema=_schema(),
+    )
+    assert rejected.status == "rejected"
+    assert rejected.chain[-1].status == "pending"
+
+
+def test_chain_workflow_denied_when_a_step_matches_no_endpoint():
+    request = "find customer by email ana@example.com, then asdkjh qweiouqwoeiu zxcvzxcv"
+    workflow = create_workflow(CreateWorkflowRequest(user_id="u1", request=request), _schema(), now=_NOW)
+    assert workflow.status == "denied"
+    assert workflow.chain[0].status == "completed"
+    assert workflow.chain[1].status == "failed"

@@ -100,10 +100,10 @@ Folder: `08-nl-to-api-assistant/`
 - [x] **Phase 3: Build Validation and Dry Runs** — Validate parameters: Use JSON Schema and Pydantic before any API call. Reject missing, ambiguous, or invalid fields.
 - [x] **Phase 3: Build Validation and Dry Runs** — Add dry-run mode: For write actions, show what would happen without changing data. The assistant should explain the planned action in plain English.
 - [x] **Phase 3: Build Validation and Dry Runs** — Ask for confirmation: High-risk actions require explicit approval. Store the pending plan and resume only after confirmation.
-- [ ] **Phase 4: Execute Multi-Step Workflows** — Support chained calls: Example: find customer by email, fetch subscription, check invoice status, then create a support ticket.
-- [ ] **Phase 4: Execute Multi-Step Workflows** — Pass outputs between steps: Store intermediate results in a typed workflow state. Do not rely on unstructured memory.
-- [ ] **Phase 4: Execute Multi-Step Workflows** — Handle failures gracefully: If an API call fails or returns multiple matches, ask a clarifying question instead of guessing.
-- [ ] **Phase 5: Build Logs, UI, and Tests** — Log every plan and call: Capture user request, selected endpoints, parameters, validation result, approval status, API response, and final answer.
+- [x] **Phase 4: Execute Multi-Step Workflows** — Support chained calls: Example: find customer by email, fetch subscription, check invoice status, then create a support ticket.
+- [x] **Phase 4: Execute Multi-Step Workflows** — Pass outputs between steps: Store intermediate results in a typed workflow state. Do not rely on unstructured memory.
+- [x] **Phase 4: Execute Multi-Step Workflows** — Handle failures gracefully: If an API call fails or returns multiple matches, ask a clarifying question instead of guessing.
+- [x] **Phase 5: Build Logs, UI, and Tests** — Log every plan and call: Capture user request, selected endpoints, parameters, validation result, approval status, API response, and final answer.
 - [ ] **Phase 5: Build Logs, UI, and Tests** — Build a workflow UI: Show the user request, planned calls, dry-run preview, approval button, and final result.
 - [ ] **Phase 5: Build Logs, UI, and Tests** — Create a golden workflow test suite: Write 40-50 natural language requests with expected endpoint plans. Include ambiguous and unsafe requests.
 - [ ] **Phase 6: Polish for Portfolio** — Demo a full workflow: Show a read-only request, a multi-step workflow, and a high-risk write that requires approval.
