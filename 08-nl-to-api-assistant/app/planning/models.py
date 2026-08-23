@@ -68,7 +68,14 @@ class ValidationResult(BaseModel):
 # --- Workflow (dry-run / confirmation / execution) -------------------------
 
 WorkflowStatus = Literal[
-    "completed", "denied", "invalid", "failed", "awaiting_confirmation", "awaiting_approval", "rejected"
+    "completed",
+    "denied",
+    "invalid",
+    "failed",
+    "awaiting_confirmation",
+    "awaiting_approval",
+    "rejected",
+    "needs_clarification",
 ]
 
 
@@ -76,6 +83,29 @@ class WorkflowStep(BaseModel):
     node: str
     detail: str
     timestamp: datetime
+
+
+class ChainStepPlan(BaseModel):
+    """One step of a multi-step chained workflow (`request` split on "then"):
+    the request segment it came from, the proposed call, and — once
+    executed — its outcome. `output_key` names the slot this step's result
+    is stored under in the workflow's typed `state` so later steps can
+    reference it instead of relying on unstructured memory.
+    """
+
+    segment: str
+    operation_id: str | None
+    method: str | None
+    path: str | None
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    reason: str
+    expected_result: str
+    risk_level: RiskLevel | None = None
+    confidence: float = Field(ge=0.0, le=1.0, default=0.0)
+    output_key: str | None = None
+    status: Literal["pending", "completed", "failed"] = "pending"
+    result: Any | None = None
+    error: str | None = None
 
 
 class Workflow(BaseModel):
@@ -89,6 +119,8 @@ class Workflow(BaseModel):
     result: Any | None = None
     error: str | None = None
     steps: list[WorkflowStep] = Field(default_factory=list)
+    chain: list[ChainStepPlan] | None = None
+    state: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
 

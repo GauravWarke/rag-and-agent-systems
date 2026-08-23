@@ -67,7 +67,7 @@ A natural language interface that turns user requests into safe API calls agains
 
 ## Status
 
-In progress — Phases 1-3 implemented:
+In progress — Phases 1-4 implemented, plus the logging item of Phase 5:
 
 - **Phase 1 — Mock business API:** a small SaaS admin domain (`app/business_api/`) with
   customers, subscriptions, invoices, tickets, and refunds, seeded in-memory. Endpoints cover
@@ -94,7 +94,24 @@ In progress — Phases 1-3 implemented:
   (end the workflow) later. A failed execution (e.g. the approved plan's target record no longer
   exists) is captured as a `failed` status with an `error` field rather than raising.
 
-Multi-step chained calls, execution logs/UI, and the golden workflow test suite are Phase 4-5 —
-not built yet.
+- **Phase 4 — Multi-step workflows:** `app/planning/chain.py` splits a request that describes
+  several actions (anything containing "then") into ordered clauses — `find customer by email
+  X, list her subscriptions, list her invoices, then create a support ticket` becomes four
+  clauses. Each clause is planned independently against the endpoint catalog; at execution time
+  `app/planning/workflow.py`'s `_run_chain` runs them in order, threading each step's result into
+  a typed `Workflow.state` dict (e.g. a `list_customers` hit sets `state["customer_id"]`) so
+  later steps that don't mention an id explicitly ("list her subscriptions") still resolve one.
+  Read-only steps execute immediately; the first write step pauses the whole chain for
+  confirmation/approval exactly like a single-call workflow, and `resume` continues from that
+  step once approved. If a step's result is a list with more than one match, the chain stops
+  with `needs_clarification` instead of guessing which one was meant; if a clause matches no
+  endpoint, the chain stops `denied`.
+- **Phase 5 — Audit logging:** `app/planning/audit_log.py` emits one structured log record per
+  workflow create/resume event — request, selected endpoint(s)/parameters per call, validation
+  result, status, result, and error — independent of the in-memory workflow store, via the
+  `app.assistant.audit` logger.
+
+A workflow UI and the golden natural-language-request test suite (Phase 5) and the portfolio
+polish pass (Phase 6) are not built yet.
 
 Run tests: `pip install -r requirements-dev.txt && ruff check . && pytest -q`

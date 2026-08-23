@@ -72,6 +72,33 @@ def test_resume_twice_returns_400():
         assert second.status_code == 400
 
 
+def test_chained_workflow_via_http():
+    with _client() as client:
+        create = client.post(
+            "/v1/assistant/workflows",
+            json={
+                "user_id": "u1",
+                "request": (
+                    "find customer by email ben@example.com, then create a support ticket about billing"
+                ),
+            },
+        )
+        assert create.status_code == 200
+        workflow = create.json()
+        assert workflow["status"] == "awaiting_confirmation"
+        assert len(workflow["chain"]) == 2
+        assert workflow["chain"][0]["status"] == "completed"
+
+        resume = client.post(
+            f"/v1/assistant/workflows/{workflow['id']}/resume",
+            json={"decision": "approve", "reviewer": "admin_1", "reason": "fine"},
+        )
+        assert resume.status_code == 200
+        body = resume.json()
+        assert body["status"] == "completed"
+        assert body["chain"][-1]["status"] == "completed"
+
+
 def test_list_workflows_via_http():
     with _client() as client:
         before = len(client.get("/v1/assistant/workflows").json())
