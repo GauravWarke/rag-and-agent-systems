@@ -104,8 +104,8 @@ Folder: `08-nl-to-api-assistant/`
 - [x] **Phase 4: Execute Multi-Step Workflows** — Pass outputs between steps: Store intermediate results in a typed workflow state. Do not rely on unstructured memory.
 - [x] **Phase 4: Execute Multi-Step Workflows** — Handle failures gracefully: If an API call fails or returns multiple matches, ask a clarifying question instead of guessing.
 - [x] **Phase 5: Build Logs, UI, and Tests** — Log every plan and call: Capture user request, selected endpoints, parameters, validation result, approval status, API response, and final answer.
-- [ ] **Phase 5: Build Logs, UI, and Tests** — Build a workflow UI: Show the user request, planned calls, dry-run preview, approval button, and final result.
-- [ ] **Phase 5: Build Logs, UI, and Tests** — Create a golden workflow test suite: Write 40-50 natural language requests with expected endpoint plans. Include ambiguous and unsafe requests.
+- [x] **Phase 5: Build Logs, UI, and Tests** — Build a workflow UI: Show the user request, planned calls, dry-run preview, approval button, and final result.
+- [x] **Phase 5: Build Logs, UI, and Tests** — Create a golden workflow test suite: Write 40-50 natural language requests with expected endpoint plans. Include ambiguous and unsafe requests.
 - [ ] **Phase 6: Polish for Portfolio** — Demo a full workflow: Show a read-only request, a multi-step workflow, and a high-risk write that requires approval.
 - [ ] **Phase 6: Polish for Portfolio** — Write the narrative: Lead with "safe tool use over real API contracts." That phrase maps closely to the work many AI platform teams are doing.
 

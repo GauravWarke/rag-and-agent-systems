@@ -10,8 +10,14 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.core.rate_limit import enforce_rate_limit
 from app.planning.audit_log import log_workflow_event
-from app.planning.models import CreateWorkflowRequest, ResumeWorkflowRequest, Workflow
+from app.planning.models import (
+    CreateWorkflowRequest,
+    ResumeWorkflowRequest,
+    Workflow,
+    WorkflowView,
+)
 from app.planning.store import WorkflowStore
+from app.planning.view import build_workflow_view
 from app.planning.workflow import create_workflow, resume_workflow
 
 router = APIRouter(prefix="/v1/assistant", tags=["assistant"], dependencies=[Depends(enforce_rate_limit)])
@@ -38,6 +44,19 @@ def get_workflow(workflow_id: str) -> Workflow:
     if workflow is None:
         raise HTTPException(status_code=404, detail=f"No workflow with id '{workflow_id}'.")
     return workflow
+
+
+@router.get("/workflows/{workflow_id}/view", response_model=WorkflowView)
+def get_workflow_view(workflow_id: str) -> WorkflowView:
+    """UI read-model for one workflow: request, planned call(s), dry-run
+    preview, which actions (approve/reject) are currently available, and
+    the final result — everything a workflow review screen needs in one
+    call.
+    """
+    workflow = _store.get(workflow_id)
+    if workflow is None:
+        raise HTTPException(status_code=404, detail=f"No workflow with id '{workflow_id}'.")
+    return build_workflow_view(workflow)
 
 
 @router.post("/workflows/{workflow_id}/resume", response_model=Workflow)
