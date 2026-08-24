@@ -8,6 +8,7 @@ Endpoints:
   POST /v1/assistant/workflows              plan + validate + (execute or dry-run) a NL request
   GET  /v1/assistant/workflows              list assistant workflows
   GET  /v1/assistant/workflows/{id}         fetch one workflow
+  GET  /v1/assistant/workflows/{id}/view    UI read-model: planned calls, dry-run, actions, result
   POST /v1/assistant/workflows/{id}/resume  approve/reject a paused workflow
 """
 from __future__ import annotations

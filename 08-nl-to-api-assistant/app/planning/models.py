@@ -125,12 +125,52 @@ class Workflow(BaseModel):
     updated_at: datetime
 
 
-class CreateWorkflowRequest(BaseModel):
-    user_id: str = Field(min_length=1, max_length=64)
-    request: str = Field(min_length=1, max_length=2000)
+class PlannedCallView(BaseModel):
+    """One planned (or already-run) call, shaped for a UI list — a single
+    workflow contributes one of these, a chained workflow contributes one
+    per step.
+    """
+
+    operation_id: str | None
+    method: str | None
+    path: str | None
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    reason: str
+    expected_result: str
+    risk_level: RiskLevel | None = None
+    confidence: float = 0.0
+    status: Literal["pending", "completed", "failed"] = "pending"
+    result: Any | None = None
+    error: str | None = None
 
 
 ResumeDecision = Literal["approve", "reject"]
+
+
+class WorkflowView(BaseModel):
+    """UI read-model for a workflow: the request, the planned call(s), the
+    dry-run preview, which actions a reviewer can currently take, and the
+    final outcome. Built from a `Workflow` by `app.planning.view` so the
+    frontend never has to know the difference between a single-call and a
+    chained workflow.
+    """
+
+    id: str
+    request: str
+    status: WorkflowStatus
+    planned_calls: list[PlannedCallView] = Field(default_factory=list)
+    dry_run_preview: str | None = None
+    available_actions: list[ResumeDecision] = Field(default_factory=list)
+    final_result: Any | None = None
+    error: str | None = None
+    steps: list[WorkflowStep] = Field(default_factory=list)
+    created_at: datetime
+    updated_at: datetime
+
+
+class CreateWorkflowRequest(BaseModel):
+    user_id: str = Field(min_length=1, max_length=64)
+    request: str = Field(min_length=1, max_length=2000)
 
 
 class ResumeWorkflowRequest(BaseModel):
