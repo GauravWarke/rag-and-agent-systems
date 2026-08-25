@@ -106,8 +106,8 @@ Folder: `08-nl-to-api-assistant/`
 - [x] **Phase 5: Build Logs, UI, and Tests** — Log every plan and call: Capture user request, selected endpoints, parameters, validation result, approval status, API response, and final answer.
 - [x] **Phase 5: Build Logs, UI, and Tests** — Build a workflow UI: Show the user request, planned calls, dry-run preview, approval button, and final result.
 - [x] **Phase 5: Build Logs, UI, and Tests** — Create a golden workflow test suite: Write 40-50 natural language requests with expected endpoint plans. Include ambiguous and unsafe requests.
-- [ ] **Phase 6: Polish for Portfolio** — Demo a full workflow: Show a read-only request, a multi-step workflow, and a high-risk write that requires approval.
-- [ ] **Phase 6: Polish for Portfolio** — Write the narrative: Lead with "safe tool use over real API contracts." That phrase maps closely to the work many AI platform teams are doing.
+- [x] **Phase 6: Polish for Portfolio** — Demo a full workflow: Show a read-only request, a multi-step workflow, and a high-risk write that requires approval.
+- [x] **Phase 6: Polish for Portfolio** — Write the narrative: Lead with "safe tool use over real API contracts." That phrase maps closely to the work many AI platform teams are doing.
 
 ## 5. Multimodal Document Intake Reviewer
 
