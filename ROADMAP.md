@@ -114,16 +114,16 @@ Folder: `08-nl-to-api-assistant/`
 *Topic: Multimodal AI, OCR, Structured Extraction, Human-in-the-Loop*  
 Folder: `09-multimodal-doc-reviewer/`
 
-- [ ] **Scaffold** — create `09-multimodal-doc-reviewer/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
-- [ ] **Phase 1: Build Document Upload and Preprocessing** — Accept multiple formats: Support PDFs, PNGs, JPEGs, and TIFFs. Store the original file and a normalized page image for each page.
-- [ ] **Phase 1: Build Document Upload and Preprocessing** — Detect document type: Classify documents like invoice, reimbursement receipt, insurance claim, onboarding form, or contract summary.
-- [ ] **Phase 1: Build Document Upload and Preprocessing** — Preprocess images: Add rotation correction, contrast enhancement, noise removal, and resolution checks. Track preprocessing steps in metadata.
-- [ ] **Phase 2: Build OCR and Vision Fallback** — Run OCR first: Extract text with Tesseract or EasyOCR. Store text by page and line if possible.
-- [ ] **Phase 2: Build OCR and Vision Fallback** — Estimate OCR confidence: Use OCR confidence scores, text density, and format sanity checks to decide whether OCR is usable.
-- [ ] **Phase 2: Build OCR and Vision Fallback** — Use vision fallback: If OCR confidence is low, send the page image to a vision-capable model and ask it to preserve layout.
-- [ ] **Phase 3: Extract Structured Data** — Define schemas by document type: For invoices, extract vendor, invoice number, dates, line items, tax, and total. For forms, extract applicant details and required fields.
-- [ ] **Phase 3: Extract Structured Data** — Use structured output: The LLM should return data that validates against Pydantic. Include field-level source references where each value came from.
-- [ ] **Phase 3: Extract Structured Data** — Handle long documents: Process by page or section and merge outputs. If two pages disagree, flag the conflict instead of hiding it.
+- [x] **Scaffold** — create `09-multimodal-doc-reviewer/` app skeleton: FastAPI app entry, `requirements.txt`, `config.py`, `.env.example`, `README.md`, `tests/` dir, and a `Dockerfile`. Wire a `/health` endpoint and a smoke test.
+- [x] **Phase 1: Build Document Upload and Preprocessing** — Accept multiple formats: Support PDFs, PNGs, JPEGs, and TIFFs. Store the original file and a normalized page image for each page.
+- [x] **Phase 1: Build Document Upload and Preprocessing** — Detect document type: Classify documents like invoice, reimbursement receipt, insurance claim, onboarding form, or contract summary.
+- [x] **Phase 1: Build Document Upload and Preprocessing** — Preprocess images: Add rotation correction, contrast enhancement, noise removal, and resolution checks. Track preprocessing steps in metadata.
+- [x] **Phase 2: Build OCR and Vision Fallback** — Run OCR first: Extract text with Tesseract or EasyOCR. Store text by page and line if possible.
+- [x] **Phase 2: Build OCR and Vision Fallback** — Estimate OCR confidence: Use OCR confidence scores, text density, and format sanity checks to decide whether OCR is usable.
+- [x] **Phase 2: Build OCR and Vision Fallback** — Use vision fallback: If OCR confidence is low, send the page image to a vision-capable model and ask it to preserve layout.
+- [x] **Phase 3: Extract Structured Data** — Define schemas by document type: For invoices, extract vendor, invoice number, dates, line items, tax, and total. For forms, extract applicant details and required fields.
+- [x] **Phase 3: Extract Structured Data** — Use structured output: The LLM should return data that validates against Pydantic. Include field-level source references where each value came from.
+- [x] **Phase 3: Extract Structured Data** — Handle long documents: Process by page or section and merge outputs. If two pages disagree, flag the conflict instead of hiding it.
 - [ ] **Phase 4: Validate and Route** — Add type validation: Dates parse, totals are numbers, required fields exist, and enums are valid.
 - [ ] **Phase 4: Validate and Route** — Add business rules: Invoice totals must equal line items plus tax. Claim dates must be within policy windows. Vendor names must match known vendors.
 - [ ] **Phase 4: Validate and Route** — Route by confidence: High confidence goes auto-approved. Medium and low confidence go to review with reasons.
