@@ -65,6 +65,27 @@ A document intake system that accepts scanned forms, PDFs, screenshots, and imag
 
 > Explain that vision models are powerful but expensive. A production design should use them as fallback, not as the default for every page.
 
-## Status
+## Implemented so far
 
-Planned. Scaffold pending — see root `ROADMAP.md`.
+Phases 1–3 are built (`app/intake`, `app/ocr`, `app/extraction`):
+
+- **Upload and preprocessing:** `POST /v1/documents` accepts PDF/PNG/JPEG/TIFF. Raster pages run
+  through EXIF-based rotation correction, autocontrast, a median-filter denoise pass, and a
+  resolution sanity check (all real Pillow operations, not stubs). Born-digital PDF pages use
+  their embedded text layer directly and skip OCR entirely; scanned PDF pages are flagged
+  `pdf_image` since no offline rasterizer is bundled. A keyword classifier tags the document type
+  (invoice, receipt, insurance claim, onboarding form, contract summary) from the filename and
+  any embedded text available at upload time.
+- **OCR and vision fallback:** `POST /v1/documents/{id}/ocr` runs `pytesseract` when the
+  `tesseract` binary is available (`OCR_ENGINE=auto`), else falls back to a deterministic offline
+  stub. `app/ocr/confidence.py` scores each result against engine confidence, alphanumeric
+  density, and text density; low-confidence pages are routed to `app/ocr/vision_fallback.py`,
+  which is a stub until `VISION_API_KEY` is set.
+- **Structured extraction:** `POST /v1/documents/{id}/extract` parses `Label: value` lines per
+  document-type schema (`app/extraction/schemas.py`), with every scalar wrapped in a
+  `SourcedValue` (value, page number, source). `app/extraction/merge.py` combines multi-page
+  results — the first page's value wins, and any page that disagrees is recorded as a
+  `FieldConflict` instead of silently overwritten.
+
+Phases 4–6 (validation/business-rule routing, human review UI, and portfolio polish) are queued —
+see root `ROADMAP.md`.
