@@ -86,6 +86,28 @@ Phases 1–3 are built (`app/intake`, `app/ocr`, `app/extraction`):
   `SourcedValue` (value, page number, source). `app/extraction/merge.py` combines multi-page
   results — the first page's value wins, and any page that disagrees is recorded as a
   `FieldConflict` instead of silently overwritten.
+- **Validation and routing:** `POST /v1/documents/{id}/validate` runs extraction first if it
+  hasn't already, then checks the result in `app/validation`:
+  - *Type validation* (`app/validation/rules.py::validate_type`) — every required field for the
+    document's type is present, and any date-looking field (invoice/due date, purchase date,
+    claim/incident date, start date, effective date) actually parses. Numeric fields and the
+    `document_type` enum are already guaranteed valid by the extraction schema, so there's
+    nothing further to check for those here.
+  - *Business rules* (`validate_business_rules`) — invoice `subtotal + tax == total` within a
+    cent, insurance claims filed within a 90-day policy window of the incident (and not before
+    it), and vendor names checked against a small known-vendor allowlist (an unknown vendor is a
+    warning, not a hard error).
+  - *Routing* (`app/validation/routing.py::route_by_confidence`) — any error drops confidence to
+    `low`; warnings only drop it to `medium`; a clean document is `high`. Only `high` confidence
+    is auto-approved — `medium`/`low` are routed to `needs_review` with the specific issues
+    attached so a reviewer knows exactly what to check.
 
-Phases 4–6 (validation/business-rule routing, human review UI, and portfolio polish) are queued —
-see root `ROADMAP.md`.
+- **Side-by-side review:** `GET /v1/documents/{id}/review` runs validation first if it hasn't
+  already, then bundles page summaries, extracted fields (each still carrying its source page
+  number), extraction conflicts, and validation issues into one `ReviewPacket` — everything a
+  reviewer needs to judge one document. `GET /v1/documents/{id}/pages/{n}/image` serves the
+  normalized page PNG referenced by each page summary's `image_url`, so a UI can show the image
+  and jump to the page a clicked field came from.
+
+The rest of Phase 5 (reviewer corrections with an audit trail, and field-level accuracy
+analytics) and Phase 6 (portfolio polish) are queued — see root `ROADMAP.md`.

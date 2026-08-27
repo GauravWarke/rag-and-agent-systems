@@ -23,3 +23,8 @@ class ConfidenceLevel(str, Enum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
+
+
+class RoutingDecision(str, Enum):
+    AUTO_APPROVED = "auto_approved"
+    NEEDS_REVIEW = "needs_review"

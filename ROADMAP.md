@@ -124,10 +124,10 @@ Folder: `09-multimodal-doc-reviewer/`
 - [x] **Phase 3: Extract Structured Data** — Define schemas by document type: For invoices, extract vendor, invoice number, dates, line items, tax, and total. For forms, extract applicant details and required fields.
 - [x] **Phase 3: Extract Structured Data** — Use structured output: The LLM should return data that validates against Pydantic. Include field-level source references where each value came from.
 - [x] **Phase 3: Extract Structured Data** — Handle long documents: Process by page or section and merge outputs. If two pages disagree, flag the conflict instead of hiding it.
-- [ ] **Phase 4: Validate and Route** — Add type validation: Dates parse, totals are numbers, required fields exist, and enums are valid.
-- [ ] **Phase 4: Validate and Route** — Add business rules: Invoice totals must equal line items plus tax. Claim dates must be within policy windows. Vendor names must match known vendors.
-- [ ] **Phase 4: Validate and Route** — Route by confidence: High confidence goes auto-approved. Medium and low confidence go to review with reasons.
-- [ ] **Phase 5: Build Human Review and Analytics** — Create side-by-side review: Show the document image and extracted fields. Clicking a field highlights its source area or page.
+- [x] **Phase 4: Validate and Route** — Add type validation: Dates parse, totals are numbers, required fields exist, and enums are valid.
+- [x] **Phase 4: Validate and Route** — Add business rules: Invoice totals must equal line items plus tax. Claim dates must be within policy windows. Vendor names must match known vendors.
+- [x] **Phase 4: Validate and Route** — Route by confidence: High confidence goes auto-approved. Medium and low confidence go to review with reasons.
+- [x] **Phase 5: Build Human Review and Analytics** — Create side-by-side review: Show the document image and extracted fields. Clicking a field highlights its source area or page.
 - [ ] **Phase 5: Build Human Review and Analytics** — Let reviewers correct fields: Store original value, corrected value, reviewer, and correction reason.
 - [ ] **Phase 5: Build Human Review and Analytics** — Track accuracy by field: Show which fields fail most often, average review time, and auto-approval rate.
 - [ ] **Phase 6: Polish for Portfolio** — Demo a messy document: Use a slightly rotated scan or screenshot where OCR is imperfect. Show extraction, validation, review, and correction.
