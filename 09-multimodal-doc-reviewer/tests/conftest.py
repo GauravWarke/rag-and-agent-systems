@@ -4,6 +4,7 @@ from app.core.rate_limit import limiter
 from app.extraction.store import extraction_result_store
 from app.intake.store import document_store
 from app.ocr.store import ocr_result_store
+from app.review.store import correction_store
 from app.validation.store import validation_result_store
 
 
@@ -18,9 +19,11 @@ def _reset_state():
     ocr_result_store.clear()
     extraction_result_store.clear()
     validation_result_store.clear()
+    correction_store.clear()
     yield
     limiter.clear()
     document_store.clear()
     ocr_result_store.clear()
     extraction_result_store.clear()
     validation_result_store.clear()
+    correction_store.clear()

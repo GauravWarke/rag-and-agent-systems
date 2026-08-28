@@ -108,6 +108,17 @@ Phases 1–3 are built (`app/intake`, `app/ocr`, `app/extraction`):
   reviewer needs to judge one document. `GET /v1/documents/{id}/pages/{n}/image` serves the
   normalized page PNG referenced by each page summary's `image_url`, so a UI can show the image
   and jump to the page a clicked field came from.
+- **Reviewer corrections:** `POST /v1/documents/{id}/review/corrections` records a reviewer's fix
+  for one extracted field — original value, corrected value, reviewer, and an optional reason —
+  and immediately applies it to the stored extraction result (scalar fields are re-wrapped as a
+  `SourcedValue` with `source="human_correction"`, keeping the original page number; list fields
+  like `line_items` are replaced outright). Unknown field names are rejected with 400.
+  `GET /v1/documents/{id}/review/corrections` lists the correction history for one document.
+- **Accuracy analytics:** `GET /v1/review/analytics` aggregates across every ingested document:
+  auto-approval rate, total corrections, which fields get corrected most often
+  (`field_accuracy`), and average review turnaround time (upload → first correction; documents
+  with no corrections don't contribute a sample, since there's no separate "review started"
+  event in this stub).
 
-The rest of Phase 5 (reviewer corrections with an audit trail, and field-level accuracy
-analytics) and Phase 6 (portfolio polish) are queued — see root `ROADMAP.md`.
+Phase 6 (portfolio polish — a messy-document demo and operational metrics writeup) is queued —
+see root `ROADMAP.md`.

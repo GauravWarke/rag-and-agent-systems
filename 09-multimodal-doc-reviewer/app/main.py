@@ -12,6 +12,9 @@ Endpoints:
   POST /v1/documents/{id}/validate           validate fields and route to auto-approve/review
   GET  /v1/documents/{id}/review             side-by-side review packet (pages + fields + issues)
   GET  /v1/documents/{id}/pages/{n}/image    normalized page image (PNG)
+  POST /v1/documents/{id}/review/corrections submit a reviewer's fix for one field
+  GET  /v1/documents/{id}/review/corrections list corrections submitted for a document
+  GET  /v1/review/analytics                  field accuracy, review time, and auto-approval rate
 """
 from __future__ import annotations
 
@@ -20,6 +23,7 @@ from fastapi import FastAPI
 from app.extraction.router import router as extraction_router
 from app.intake.router import router as intake_router
 from app.ocr.router import router as ocr_router
+from app.review.router import analytics_router as review_analytics_router
 from app.review.router import router as review_router
 from app.validation.router import router as validation_router
 
@@ -30,6 +34,7 @@ app.include_router(ocr_router)
 app.include_router(extraction_router)
 app.include_router(validation_router)
 app.include_router(review_router)
+app.include_router(review_analytics_router)
 
 
 @app.get("/health")
