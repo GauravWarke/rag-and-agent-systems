@@ -1,10 +1,12 @@
 # RAG & Agent Systems
 
-> Five AI applications built the way a team would actually ship them with citations you can verify, permissions on tools, and honest answers when the system doesn't know.
+> Five AI applications built the way a team would actually ship them: citations you can check, permissions on tools, and a straight answer when the system doesn't know.
 
-I'm a Computer Engineering grad finishing a Master of Business Analytics, aiming at AI engineering roles. The gap I kept hitting in tutorials: plenty show you how to *call* a model, almost none show you how to *run* one. So I set a harder brief , build the systems that sit around the model, the way an internal team would.
+I'm doing a Master of Business Analytics, with a Computer Engineering degree behind me. Most of my coursework asks what a model predicts. Sitting in those classes I kept circling a different question — what has to be true for anyone to *act* on what it says?
 
-A RAG demo is a weekend. A RAG system you'd let customers touch is a different problem: hybrid retrieval so exact error codes still match, verified citations so answers can be defended, drift monitoring so stale docs get caught, human approval before an agent does anything risky, and graceful "I couldn't find that" handling.
+That question is less about accuracy and more about trust. Can I trace this answer back to a source? What happens when the underlying documents go stale? Who signs off before an agent does something expensive? Analytics work lives or dies on whether someone believes the output enough to make a decision with it, and AI systems are no different.
+
+So I built the parts that decide that. A RAG demo takes a weekend. A RAG system you'd let a customer touch is a different animal: hybrid retrieval so exact error codes still match, citations verified against their sources, drift monitoring that catches stale docs before a user does, human approval on risky actions, and a clean "I couldn't find that" instead of a confident guess.
 
 ## The projects
 
@@ -18,17 +20,17 @@ A RAG demo is a weekend. A RAG system you'd let customers touch is a different p
 
 Each folder is a standalone service with its own README, tests, Dockerfile, and architecture note.
 
-## How I built this (and why I'm telling you)
+## How I built this, and why I'm saying so
 
-These projects are **built by an automated pipeline I designed**, not typed line by line. A GitHub Actions workflow runs daily: it reads `ROADMAP.md`, picks up the next chunk of work, implements it with Claude, then runs `ruff` and `pytest` as an independent CI gate. Tests fail, nothing merges. Tests pass, it opens a PR and merges it.
+The code here is written by an automated pipeline I set up, not typed line by line. A GitHub Actions workflow runs on a schedule: it reads `ROADMAP.md`, builds the next piece with Claude, then runs `ruff` and `pytest` as a gate it cannot skip. Failing tests, nothing merges. Passing tests, it opens a PR and merges itself.
 
-I'm putting that up front because I think it's the most interesting thing here. The specs, architecture decisions, roadmap and quality gates are mine — the typing is automated. Working *with* agents and building guardrails so their output is trustworthy is the job now, and this repo is me practising that on five real systems instead of talking about it.
+I lead with that because it's the most interesting thing I learned. Deciding what to build, how the pieces fit, and what has to pass before anything ships — that was the work. The typing wasn't. Getting something dependable out of a coding agent turns out to be a design problem, and I'd rather show you how I handled it than claim I hand-wrote every file.
 
 The pipeline: [`.github/workflows/claude-builder.yml`](./.github/workflows/claude-builder.yml)
 
 ## Running any of them
 
-Everything runs offline with no API keys — embeddings and LLM calls fall back to deterministic stubs, so `pytest` passes on a clean clone. Add real provider keys in `.env` for full behaviour.
+Everything runs offline without API keys. Embeddings and model calls fall back to deterministic stubs, so `pytest` passes on a fresh clone. Add real provider keys in `.env` when you want full behaviour.
 
 ```bash
 cd 01-support-knowledge-copilot
@@ -38,7 +40,7 @@ pytest -q
 uvicorn app.main:app --reload                       # http://127.0.0.1:8000/docs
 ```
 
-Try `POST /ask` with `{"question": "What does error 429 mean?"}` — you'll get an answer with citations, a confidence breakdown, and the retrieved chunks.
+Send `POST /ask` a question like `{"question": "What does error 429 mean?"}` and you get back the answer, the chunks it came from, a confidence breakdown, and anything it couldn't verify.
 
 ## Stack
 
@@ -46,6 +48,6 @@ Python 3.11 · FastAPI · Pydantic v2 · pytest + ruff · Docker · GitHub Actio
 
 ## Progress
 
-[`ROADMAP.md`](./ROADMAP.md) is the live status and updates itself as the builder works through the list.
+[`ROADMAP.md`](./ROADMAP.md) tracks what's done and what's queued. The builder updates it as it goes.
 
 ---
