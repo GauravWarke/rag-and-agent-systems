@@ -2,11 +2,11 @@
 
 > Five AI applications built the way a team would actually ship them: citations you can check, permissions on tools, and a straight answer when the system doesn't know.
 
-I'm doing a Master of Business Analytics, with a Computer Engineering degree behind me. Most of my coursework asks what a model predicts. Sitting in those classes I kept circling a different question — what has to be true for anyone to *act* on what it says?
+I'm doing a Master of Business Analytics, with a Computer Engineering degree behind me. Most of my coursework asks what a model predicts. Sitting in those classes I kept circling a different question: what has to be true before anyone acts on what it says?
 
-That question is less about accuracy and more about trust. Can I trace this answer back to a source? What happens when the underlying documents go stale? Who signs off before an agent does something expensive? Analytics work lives or dies on whether someone believes the output enough to make a decision with it, and AI systems are no different.
+That's less about accuracy than about trust. Can I trace this answer back to a source? What happens when the documents underneath go stale? Who signs off before an agent does something expensive? Analytics work lives or dies on whether someone believes the output enough to make a decision with it. AI systems are no different.
 
-So I built the parts that decide that. A RAG demo takes a weekend. A RAG system you'd let a customer touch is a different animal: hybrid retrieval so exact error codes still match, citations verified against their sources, drift monitoring that catches stale docs before a user does, human approval on risky actions, and a clean "I couldn't find that" instead of a confident guess.
+So I built the parts that decide that. A RAG demo takes a weekend. A RAG system you'd let a customer touch is a different animal: hybrid retrieval so exact error codes still match, citations checked against their sources, drift monitoring that catches stale docs before a user does, human approval on risky actions, and a clean "I couldn't find that" instead of a confident guess.
 
 ## The projects
 
@@ -22,9 +22,9 @@ Each folder is a standalone service with its own README, tests, Dockerfile, and 
 
 ## How I built this, and why I'm saying so
 
-The code here is written by an automated pipeline I set up, not typed line by line. A GitHub Actions workflow runs on a schedule: it reads `ROADMAP.md`, builds the next piece with Claude, then runs `ruff` and `pytest` as a gate it cannot skip. Failing tests, nothing merges. Passing tests, it opens a PR and merges itself.
+The code here is written by an automated pipeline I set up, not typed line by line. A GitHub Actions workflow runs on a schedule. It reads `ROADMAP.md`, builds the next piece with Claude, then runs `ruff` and `pytest` as a gate it cannot skip. Failing tests, nothing merges. Passing tests, it opens a PR and merges itself.
 
-I lead with that because it's the most interesting thing I learned. Deciding what to build, how the pieces fit, and what has to pass before anything ships — that was the work. The typing wasn't. Getting something dependable out of a coding agent turns out to be a design problem, and I'd rather show you how I handled it than claim I hand-wrote every file.
+I lead with that because it's the most interesting thing I learned. Deciding what to build, how the pieces fit, and what has to pass before anything ships was the real work. The typing wasn't. Getting something dependable out of a coding agent turns out to be a design problem, and I'd rather show you how I handled it than claim I hand-wrote every file.
 
 The pipeline: [`.github/workflows/claude-builder.yml`](./.github/workflows/claude-builder.yml)
 
