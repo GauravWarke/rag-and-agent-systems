@@ -120,5 +120,13 @@ Phases 1–3 are built (`app/intake`, `app/ocr`, `app/extraction`):
   with no corrections don't contribute a sample, since there's no separate "review started"
   event in this stub).
 
-Phase 6 (portfolio polish — a messy-document demo and operational metrics writeup) is queued —
-see root `ROADMAP.md`.
+- **Messy-document demo:** `python demo.py` (implementation in `app/demo.py`) pushes a single
+  low-resolution, sideways-scanned receipt through the full pipeline end to end: preprocessing
+  reports the rotation fix and a low-resolution warning, OCR comes back empty and falls through
+  to the (offline, keyless) vision-fallback stub, extraction ends up with every field `None`,
+  validation flags the three missing required fields and routes the document to
+  `needs_review`, a reviewer fills in the fields it couldn't read, and re-validating shows the
+  document flip to `auto_approved`. `tests/test_demo.py` runs the same walkthrough as a
+  regression test.
+
+Operational metrics writeup is queued — see root `ROADMAP.md`.

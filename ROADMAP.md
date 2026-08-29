@@ -130,5 +130,5 @@ Folder: `09-multimodal-doc-reviewer/`
 - [x] **Phase 5: Build Human Review and Analytics** — Create side-by-side review: Show the document image and extracted fields. Clicking a field highlights its source area or page.
 - [x] **Phase 5: Build Human Review and Analytics** — Let reviewers correct fields: Store original value, corrected value, reviewer, and correction reason.
 - [x] **Phase 5: Build Human Review and Analytics** — Track accuracy by field: Show which fields fail most often, average review time, and auto-approval rate.
-- [ ] **Phase 6: Polish for Portfolio** — Demo a messy document: Use a slightly rotated scan or screenshot where OCR is imperfect. Show extraction, validation, review, and correction.
+- [x] **Phase 6: Polish for Portfolio** — Demo a messy document: Use a slightly rotated scan or screenshot where OCR is imperfect. Show extraction, validation, review, and correction.
 - [ ] **Phase 6: Polish for Portfolio** — Use operational metrics: Example: "Auto-approved 64% of sample documents while routing low-confidence fields to review."
