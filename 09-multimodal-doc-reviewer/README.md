@@ -128,5 +128,31 @@ Phases 1–3 are built (`app/intake`, `app/ocr`, `app/extraction`):
   `needs_review`, a reviewer fills in the fields it couldn't read, and re-validating shows the
   document flip to `auto_approved`. `tests/test_demo.py` runs the same walkthrough as a
   regression test.
+- **Operational metrics:** `python operational_metrics.py` (implementation in `app/metrics.py`)
+  pushes a synthetic 20-document sample corpus — invoices, reimbursement receipts, insurance
+  claims, onboarding forms, and contract summaries, mostly clean but with deliberately planted
+  problems (a missing required field, an invoice total that doesn't add up, a claim filed outside
+  the 90-day policy window, a vendor outside the known-vendor allowlist) — through upload,
+  extraction, and validation, then reports the routing split:
 
-Operational metrics writeup is queued — see root `ROADMAP.md`.
+  ```
+  Auto-approved 55% of 20 sample documents (11 auto-approved, 9 routed to review with reasons attached).
+  Top reasons routed to review:
+    [warning] vendor: 2 document(s)
+    [error] claim_date: 2 document(s)
+    [error] total: 1 document(s)
+    [error] invoice_number: 1 document(s)
+    [error] vendor: 1 document(s)
+    [error] email: 1 document(s)
+    [error] contract_value: 1 document(s)
+  ```
+
+  `tests/test_metrics.py` pins these numbers as a regression test — the corpus and rules are both
+  deterministic, so a routing regression in `app/validation` shows up here immediately.
+
+**Case study:** hybrid document intake — OCR first, vision as a fallback rather than the default
+(cheaper, and just as accurate on born-digital and high-quality scans) — auto-approved 55% of a
+20-document sample corpus outright and routed the remaining 45% to human review with the specific
+field and business-rule reason attached to each, rather than a bare "low confidence" flag. That
+reason-per-issue design is what makes the review queue actionable instead of just a pile of
+maybes.
