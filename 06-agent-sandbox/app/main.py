@@ -16,6 +16,7 @@ Endpoints:
   GET  /v1/agent/decisions            audit log of every approval decision made
   GET  /v1/agent/safety               fleet-wide safety analytics (tool usage, blocks, approval rate)
 """
+from fastapi.responses import RedirectResponse
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -47,7 +48,15 @@ from app.permissions.users import list_users
 from app.tools.executor import execute_tool_call
 from app.tools.registry import list_tools
 
-app = FastAPI(title="Permissioned Tool-Using Agent Sandbox", version="0.1.0")
+app = FastAPI(
+  title: "Permissioned Agent Sandbox"
+  description: "Tool use with built-in permissions, rate limits, and audit logs. **Try it:** expand `/execute`, click *Try it out*, and run a tool call."
+    ),
+    version="1.0.0",
+)
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
 
 _limiter = RateLimiter(settings.rate_limit_per_minute)
 _task_store = TaskStore()
