@@ -16,6 +16,7 @@ Endpoints:
   GET  /v1/documents/{id}/review/corrections list corrections submitted for a document
   GET  /v1/review/analytics                  field accuracy, review time, and auto-approval rate
 """
+from fastapi.responses import RedirectResponse
 from __future__ import annotations
 
 from fastapi import FastAPI
@@ -27,7 +28,15 @@ from app.review.router import analytics_router as review_analytics_router
 from app.review.router import router as review_router
 from app.validation.router import router as validation_router
 
-app = FastAPI(title="Multimodal Document Intake Reviewer", version="0.1.0")
+app = FastAPI(
+    title: "Multimodal Document Reviewer"
+    description: "OCR first, vision fallback when confidence drops. **Try it:** expand `/extract`, click *Try it out*, upload a document."
+    ),
+    version="1.0.0",
+)
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
 
 app.include_router(intake_router)
 app.include_router(ocr_router)
