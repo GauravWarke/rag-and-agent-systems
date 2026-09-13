@@ -21,6 +21,7 @@ Endpoints:
   POST /v1/rebuild            one-click rebuild: re-index, re-run probes and
                                answers, recompute the scorecard, and alert
 """
+from fastapi.responses import RedirectResponse
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -71,7 +72,15 @@ def _resolve(path_str: str) -> Path:
     return path if path.is_absolute() else _BASE_DIR / path
 
 
-app = FastAPI(title="RAG Freshness and Drift Monitor", version="0.1.0")
+app = FastAPI(
+    title: "RAG Freshness & Drift Monitor"
+    description: "Detects stale documents and knowledge drift before they reach users. **Try it:** use `/check` endpoint with a document ID."
+    ),
+    version="1.0.0",
+)
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
 
 _limiter = RateLimiter(settings.rate_limit_per_minute)
 _last_probe_run: ProbeRunSummary | None = None
