@@ -4,6 +4,8 @@ Endpoints:
   GET  /health   readiness probe
   POST /ask      answer a support question with verified citations
 """
+
+from fastapi.responses import RedirectResponse
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
@@ -27,7 +29,17 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Support Knowledge Copilot", version="0.1.0", lifespan=lifespan)
+app = FastAPI(
+    title="Support Knowledge Copilot", 
+    description=(
+        "Your description here. "
+        "**Try it:** expand `POST /ask`, click *Try it out*, and send a question."
+    ),
+    version="1.0.0",
+)
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
 
 
 @app.middleware("http")
