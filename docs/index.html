@@ -1,0 +1,318 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gaurav Warke — AI Systems Showcase</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050409;--panel:#0d0a18;--panel2:#120e20;--line:#241d3a;
+  --fg:#ece9f5;--mut:#9289ad;--dim:#65597f;--acc:#7c3aed;--acc2:#a78bfa}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:16px/1.7 -apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px;position:relative;z-index:2}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+nav{position:sticky;top:0;z-index:60;background:rgba(5,4,9,.85);
+  backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px;gap:20px}
+.brand{font-weight:680;font-size:.97rem;letter-spacing:-.01em}
+.brand span{color:var(--acc2)}
+.navlinks{display:flex;gap:22px;overflow-x:auto}
+.navlinks a{color:var(--mut);text-decoration:none;font-size:.85rem;white-space:nowrap}
+.navlinks a:hover{color:var(--fg)}
+
+/* hero with arc glow */
+header{position:relative;overflow:hidden;padding:104px 0 150px;text-align:center}
+.arc{position:absolute;top:262px;left:50%;transform:translateX(-50%);
+  width:1560px;height:1560px;border-radius:50%;background:var(--bg);z-index:1;
+  box-shadow:0 -3px 120px 14px rgba(124,58,237,.6),
+             0 -2px 44px 4px rgba(214,200,255,.4),
+             0 -1px 10px 1px rgba(255,255,255,.55)}
+.pill{display:inline-block;padding:6px 15px;border:1px solid var(--line);border-radius:999px;
+  font-size:.77rem;color:var(--mut);margin-bottom:26px;background:rgba(124,58,237,.08)}
+h1{font-size:clamp(2.1rem,5.6vw,3.6rem);line-height:1.14;margin:0 0 22px;
+  letter-spacing:-.026em;font-weight:700}
+h1 em{font-style:normal;color:var(--acc2)}
+.lede{max-width:630px;margin:0 auto 38px;color:var(--mut);font-size:1.05rem}
+.cta a{display:inline-block;padding:13px 26px;border-radius:9px;text-decoration:none;
+  font-size:.93rem;font-weight:570;margin:0 5px}
+.primary{background:var(--acc);color:#fff;box-shadow:0 6px 28px rgba(124,58,237,.42)}
+.secondary{border:1px solid var(--line);color:var(--fg);background:rgba(255,255,255,.03)}
+
+.proj{padding:92px 0;border-top:1px solid var(--line)}
+.proj .inner{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.proj.flip .copy{order:2}
+@media(max-width:860px){.proj .inner{grid-template-columns:1fr;gap:34px}.proj.flip .copy{order:0}}
+.kicker{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.kicker .n{font:700 .74rem/1 ui-monospace,monospace;padding:6px 10px;border-radius:6px;
+  background:rgba(124,58,237,.16);color:var(--acc2)}
+.kicker .label{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.proj h2{font-size:1.88rem;margin:0 0 14px;letter-spacing:-.02em;font-weight:660;line-height:1.24}
+.desc{color:var(--mut);margin:0 0 22px}
+.bullets{list-style:none;padding:0;margin:0 0 26px}
+.bullets li{position:relative;padding-left:22px;margin-bottom:9px;color:var(--mut);font-size:.93rem}
+.bullets li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;
+  border-radius:50%;background:var(--acc2)}
+.stack{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:26px}
+.stack span{font:.72rem/1 ui-monospace,monospace;color:var(--dim);
+  border:1px solid var(--line);border-radius:5px;padding:5px 8px}
+.golink{color:var(--acc2);text-decoration:none;font-size:.92rem;font-weight:570}
+.golink:hover{text-decoration:underline}
+
+.vis{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.vis .bar{display:flex;align-items:center;gap:7px;padding:11px 15px;
+  border-bottom:1px solid var(--line);background:var(--panel2)}
+.dot{width:9px;height:9px;border-radius:50%;background:#2e2547}
+.vis .bar .path{margin-left:8px;font:.74rem/1 ui-monospace,monospace;color:var(--dim)}
+.vis .body{padding:20px;font-size:.86rem}
+.q{margin:0 0 14px;font-size:.9rem}
+.q b{color:var(--dim);font-weight:500;font-family:ui-monospace,monospace;font-size:.75rem;
+  display:block;margin-bottom:5px}
+.ans{color:var(--mut);line-height:1.68;margin:0 0 16px;font-size:.87rem}
+.cites{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.cite{font:.71rem/1 ui-monospace,monospace;padding:5px 8px;border-radius:5px;
+  border:1px solid rgba(167,139,250,.35);color:var(--acc2)}
+.meter{display:flex;align-items:center;gap:10px;font:.73rem/1 ui-monospace,monospace;color:var(--dim)}
+.track{flex:1;height:5px;border-radius:3px;background:#221b36;overflow:hidden}
+.fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#7c3aed,#a78bfa)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.rname{font:.8rem/1.4 ui-monospace,monospace;color:var(--mut);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font:.69rem/1 ui-monospace,monospace;padding:4px 8px;border-radius:5px;white-space:nowrap}
+.ok{background:rgba(74,222,128,.11);color:#4ade80}
+.warn{background:rgba(251,191,36,.12);color:#fbbf24}
+.bad{background:rgba(251,113,133,.13);color:#fb7185}
+.hold{background:rgba(167,139,250,.16);color:#c4b5fd}
+.info{background:rgba(34,211,238,.11);color:#22d3ee}
+.step{display:flex;gap:11px;padding:9px 0;font:.79rem/1.5 ui-monospace,monospace;color:var(--mut)}
+.step .i{color:var(--dim);flex-shrink:0}
+
+/* purple band */
+.band{background:linear-gradient(180deg,#5b21b6,#4c1d95);padding:86px 0;text-align:center}
+.band h2{font-size:1.9rem;margin:0 0 12px;font-weight:680;letter-spacing:-.018em}
+.band .sub{color:#d8ccf5;margin:0 auto 46px;max-width:580px}
+.cards4{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:18px;text-align:left}
+.c4{border:1px solid rgba(255,255,255,.26);border-radius:13px;padding:24px;
+  background:rgba(255,255,255,.05)}
+.c4 .big{font-size:2rem;font-weight:720;letter-spacing:-.03em;margin-bottom:12px;color:#fff}
+.c4 h4{margin:0 0 8px;font-size:1rem;font-weight:640}
+.c4 p{margin:0;font-size:.88rem;color:#d3c6f2;line-height:1.6}
+
+section.plain{padding:84px 0;border-top:1px solid var(--line)}
+.eyebrow{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--acc2);margin:0 0 12px}
+.plain h2{font-size:1.75rem;margin:0 0 10px;font-weight:650;letter-spacing:-.015em}
+.plain .sub{color:var(--mut);margin:0 0 40px;max-width:580px}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:19px 21px;
+  overflow-x:auto;font:.85rem/1.75 ui-monospace,monospace;color:#b8aad6;margin:0}
+footer{padding:50px 0 72px;border-top:1px solid var(--line);color:var(--mut);font-size:.92rem}
+footer a{color:var(--acc2);text-decoration:none}
+</style></head><body>
+
+<nav><div class="wrap">
+  <span class="brand">Gaurav<span>.</span></span>
+  <div class="navlinks">
+    <a href="#p1">Copilot</a><a href="#p2">Freshness</a><a href="#p3">Sandbox</a>
+    <a href="#p4">NL→API</a><a href="#p5">Documents</a>
+    <a href="#approach" style="color:var(--acc2)">Approach</a>
+  </div>
+</div></nav>
+
+<header>
+  <div class="arc"></div>
+  <div class="wrap">
+    <span class="pill">Master of Business Analytics · Computer Engineering</span>
+    <h1>Innovating with AI.<br><em>Engineering for trust.</em></h1>
+    <p class="lede">Five systems across retrieval, agents and document processing — each built
+      around the question a business asks first: can I rely on what this tells me?</p>
+    <p class="cta">
+      <a class="primary" href="https://github.com/GauravWarke/rag-and-agent-systems">View the code →</a>
+      <a class="secondary" href="#p1">See the systems</a>
+    </p>
+  </div>
+</header>
+
+<!-- 1 -->
+<section class="proj" id="p1"><div class="wrap"><div class="inner">
+  <div class="copy">
+    <div class="kicker"><span class="n">01</span><span class="label">Retrieval</span></div>
+    <h2>Support Knowledge Copilot</h2>
+    <p class="desc">Answers questions from internal documentation and shows exactly which passage
+      supports each claim — so the answer can be checked rather than trusted blindly.</p>
+    <ul class="bullets">
+      <li>Hybrid retrieval: dense embeddings and BM25, fused with Reciprocal Rank Fusion</li>
+      <li>Every citation verified against the source text before it's returned</li>
+      <li>Confidence scored from retrieval strength, citation support and completeness</li>
+      <li>Returns "I could not find this in the docs" instead of guessing</li>
+    </ul>
+    <div class="stack"><span>FastAPI</span><span>Pydantic v2</span><span>BM25</span><span>RRF</span></div>
+    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/01-support-knowledge-copilot">Read the code →</a>
+  </div>
+  <div class="vis">
+    <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">POST /ask</span></div>
+    <div class="body">
+      <p class="q"><b>question</b>How long is the refund window for annual plans?</p>
+      <p class="ans">Annual plans can be refunded in full within 30 days of purchase.
+        After 30 days, refunds are prorated against unused months.</p>
+      <div class="cites"><span class="cite">billing.md §2.1 ✓</span><span class="cite">refunds.md §4 ✓</span></div>
+      <div class="meter"><span>confidence</span>
+        <span class="track"><span class="fill" style="width:87%"></span></span><span>0.87</span></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 2 -->
+<section class="proj flip" id="p2"><div class="wrap"><div class="inner">
+  <div class="copy">
+    <div class="kicker"><span class="n">02</span><span class="label">Data quality</span></div>
+    <h2>RAG Freshness &amp; Drift Monitor</h2>
+    <p class="desc">A knowledge base decays quietly. This watches for documents going stale and
+      embeddings drifting from the corpus, so the problem surfaces before a user hits a wrong answer.</p>
+    <ul class="bullets">
+      <li>Tracks age, revision cadence and last-verified date per document</li>
+      <li>Flags index drift when embeddings diverge from the current corpus</li>
+      <li>Ranks by blast radius — how often a stale document is actually retrieved</li>
+      <li>Emits alerts a scheduled job can act on</li>
+    </ul>
+    <div class="stack"><span>FastAPI</span><span>drift detection</span><span>scheduling</span></div>
+    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/07-rag-freshness-monitor">Read the code →</a>
+  </div>
+  <div class="vis">
+    <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">GET /freshness/report</span></div>
+    <div class="body">
+      <div class="row"><span class="rname">pricing-2024.md</span><span class="badge bad">stale · 412d</span></div>
+      <div class="row"><span class="rname">onboarding-guide.md</span><span class="badge warn">review · 96d</span></div>
+      <div class="row"><span class="rname">security-policy.md</span><span class="badge ok">fresh · 11d</span></div>
+      <div class="row"><span class="rname">api-reference.md</span><span class="badge ok">fresh · 3d</span></div>
+      <div class="row"><span class="rname">index drift</span><span class="badge warn">0.23 ↑</span></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 3 -->
+<section class="proj" id="p3"><div class="wrap"><div class="inner">
+  <div class="copy">
+    <div class="kicker"><span class="n">03</span><span class="label">Agents</span></div>
+    <h2>Permissioned Agent Sandbox</h2>
+    <p class="desc">Giving an agent tools is the easy part. This is about what happens when it
+      reaches for one it shouldn't — every tool carries permissions, limits and an audit trail.</p>
+    <ul class="bullets">
+      <li>Per-tool permission scopes checked before execution, not after</li>
+      <li>Rate limits and budget ceilings enforced at the tool boundary</li>
+      <li>Consequential actions pause and wait for explicit human approval</li>
+      <li>Full audit log of every call, argument and decision</li>
+    </ul>
+    <div class="stack"><span>FastAPI</span><span>tool registry</span><span>audit log</span><span>HITL</span></div>
+    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/06-agent-sandbox">Read the code →</a>
+  </div>
+  <div class="vis">
+    <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">POST /execute — audit trail</span></div>
+    <div class="body">
+      <div class="row"><span class="rname">search_docs(q="Q3 revenue")</span><span class="badge ok">allowed</span></div>
+      <div class="row"><span class="rname">read_record(id=4412)</span><span class="badge ok">allowed</span></div>
+      <div class="row"><span class="rname">send_email(to=…)</span><span class="badge hold">awaiting approval</span></div>
+      <div class="row"><span class="rname">delete_record(id=4412)</span><span class="badge bad">denied · scope</span></div>
+      <div class="row"><span class="rname">calls this window</span><span class="badge info">8 / 20</span></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 4 -->
+<section class="proj flip" id="p4"><div class="wrap"><div class="inner">
+  <div class="copy">
+    <div class="kicker"><span class="n">04</span><span class="label">Tool calling</span></div>
+    <h2>Natural Language to API Assistant</h2>
+    <p class="desc">Reads an OpenAPI schema, works out which calls a request needs and in what order,
+      validates the parameters, and dry-runs anything that writes before committing.</p>
+    <ul class="bullets">
+      <li>Plans multi-step call sequences from the schema, not from guesswork</li>
+      <li>Parameters validated against the spec before a request is sent</li>
+      <li>Writes are simulated first and shown for confirmation</li>
+      <li>Refuses cleanly when the schema can't satisfy the request</li>
+    </ul>
+    <div class="stack"><span>FastAPI</span><span>OpenAPI</span><span>planner</span><span>dry-run</span></div>
+    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/08-nl-to-api-assistant">Read the code →</a>
+  </div>
+  <div class="vis">
+    <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">POST /plan</span></div>
+    <div class="body">
+      <p class="q"><b>request</b>Move the Acme order to express shipping</p>
+      <div class="step"><span class="i">1</span><span>GET /customers?name=Acme → id 8842</span></div>
+      <div class="step"><span class="i">2</span><span>GET /orders?customer=8842&amp;status=open → 1 match</span></div>
+      <div class="step"><span class="i">3</span><span>PATCH /orders/5517 {shipping:"express"}</span></div>
+      <div style="margin-top:14px"><span class="badge info">dry-run · +$14.00 · awaiting confirm</span></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- 5 -->
+<section class="proj" id="p5"><div class="wrap"><div class="inner">
+  <div class="copy">
+    <div class="kicker"><span class="n">05</span><span class="label">Multimodal</span></div>
+    <h2>Multimodal Document Reviewer</h2>
+    <p class="desc">OCR handles the clean pages cheaply. A vision model takes over where confidence
+      drops. Anything still uncertain goes to a person rather than silently downstream.</p>
+    <ul class="bullets">
+      <li>Cost-aware cascade — vision only runs where OCR is weak</li>
+      <li>Per-field confidence, not one score for the whole document</li>
+      <li>Low-confidence fields routed to a human review queue</li>
+      <li>Structured output validated against the expected schema</li>
+    </ul>
+    <div class="stack"><span>FastAPI</span><span>OCR</span><span>vision fallback</span><span>extraction</span></div>
+    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/09-multimodal-doc-reviewer">Read the code →</a>
+  </div>
+  <div class="vis">
+    <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">POST /extract — invoice_4471.pdf</span></div>
+    <div class="body">
+      <div class="row"><span class="rname">vendor_name</span><span class="badge ok">ocr · 0.98</span></div>
+      <div class="row"><span class="rname">invoice_total</span><span class="badge ok">ocr · 0.96</span></div>
+      <div class="row"><span class="rname">due_date</span><span class="badge info">vision · 0.91</span></div>
+      <div class="row"><span class="rname">po_number</span><span class="badge warn">vision · 0.64</span></div>
+      <div class="row"><span class="rname">signature_block</span><span class="badge bad">→ human review</span></div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- purple band -->
+<section class="band"><div class="wrap">
+  <h2>Built to be verified.</h2>
+  <p class="sub">Four constraints every one of these systems was held to.</p>
+  <div class="cards4">
+    <div class="c4"><div class="big">01</div><h4>Cite or decline</h4>
+      <p>An answer without a verifiable source isn't returned. Saying "not in the docs" is a valid outcome.</p></div>
+    <div class="c4"><div class="big">02</div><h4>Gate the risky path</h4>
+      <p>Anything consequential stops for a human. Permissions are checked before execution, not audited after.</p></div>
+    <div class="c4"><div class="big">03</div><h4>Independent verification</h4>
+      <p>Ruff and pytest run separately from the agent that wrote the code. A failing check blocks the merge.</p></div>
+    <div class="c4"><div class="big">04</div><h4>Reproducible offline</h4>
+      <p>Deterministic stub embeddings mean the suite runs with no API key and no network. Same input, same result.</p></div>
+  </div>
+</div></section>
+
+<section class="plain" id="approach"><div class="wrap">
+  <p class="eyebrow">Approach</p>
+  <h2>How these were built</h2>
+  <p class="sub">Worth being direct about, because the process is part of what the projects demonstrate.</p>
+  <p class="desc" style="max-width:700px">I wrote the architecture and acceptance criteria for each
+    system, then had a scheduled GitHub Actions pipeline implement against that roadmap. Nothing merges
+    on the agent's say-so — an independent CI gate runs the linter and the test suite, and a failing
+    check blocks the pull request regardless of what the agent reported. Designing that verification
+    loop was most of the engineering.</p>
+</div></section>
+
+<section class="plain"><div class="wrap">
+  <p class="eyebrow">Run it</p>
+  <h2>Two minutes, no keys</h2>
+  <p class="sub">Swagger UI at <code>/docs</code> lets you send real requests against any of the five.</p>
+<pre>git clone https://github.com/GauravWarke/rag-and-agent-systems.git
+cd rag-and-agent-systems/01-support-knowledge-copilot
+pip install -r requirements.txt
+uvicorn app.main:app --reload     # → http://localhost:8000/docs</pre>
+</div></section>
+
+<footer><div class="wrap">
+  <strong style="color:var(--fg)">Gaurav Warke</strong><br>
+  <a href="https://github.com/GauravWarke">github.com/GauravWarke</a> ·
+  <a href="mailto:gauravwarke8@gmail.com">gauravwarke8@gmail.com</a>
+</div></footer>
+</body></html>
