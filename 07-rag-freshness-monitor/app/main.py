@@ -21,13 +21,13 @@ Endpoints:
   POST /v1/rebuild            one-click rebuild: re-index, re-run probes and
                                answers, recompute the scorecard, and alert
 """
-from fastapi.responses import RedirectResponse
 from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import RedirectResponse
 
 from app.alerts.client import AlertClient, NullAlertClient, SlackAlertClient
 from app.alerts.dispatch import dispatch_alerts
@@ -73,11 +73,18 @@ def _resolve(path_str: str) -> Path:
 
 
 app = FastAPI(
-    title: "RAG Freshness & Drift Monitor"
-    description: "Detects stale documents and knowledge drift before they reach users. **Try it:** use `/check` endpoint with a document ID."
+    title='RAG Freshness & Drift Monitor',
+    description=(
+        'Watches a RAG knowledge base for stale sources, changed content and '
+        'retrieval drift, and reports when the index needs rebuilding. Runs probe '
+        'queries against the corpus and compares results between snapshots.'
+        '\n\n**Try it:** `POST /v1/index/build`, then `POST /v1/freshness/scan`, then '
+        '`GET /v1/scorecard`.'
     ),
     version="1.0.0",
 )
+
+
 @app.get("/", include_in_schema=False)
 def root():
     return RedirectResponse(url="/docs")

@@ -1,0 +1,358 @@
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAG Freshness &amp; Drift Monitor — live demo</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050409;--panel:#0d0a18;--panel2:#120e20;--line:#241d3a;
+  --fg:#ece9f5;--mut:#9289ad;--dim:#65597f;--acc:#7c3aed;--acc2:#a78bfa;
+  --ok:#4ade80;--warn:#fbbf24;--bad:#fb7185;--info:#22d3ee}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:15px/1.65 -apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+a{color:var(--acc2)}code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+header{padding:44px 0 30px;border-bottom:1px solid var(--line)}
+.back{font-size:.86rem;text-decoration:none;color:var(--mut)}.back:hover{color:var(--fg)}
+h1{font-size:1.75rem;margin:18px 0 10px;letter-spacing:-.02em;font-weight:660}
+.lede{color:var(--mut);margin:0;font-size:.97rem;max-width:690px}
+.notice{margin:24px 0 0;padding:14px 16px;border-radius:9px;font-size:.87rem;
+  background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.3);color:#cbbdf0}
+.notice b{color:#e2d8fb}
+main{padding:34px 0 70px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:22px}
+.ctls{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:22px}
+.ctl label{display:block;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:10px}
+.ctl label span{color:var(--acc2);font-family:ui-monospace,monospace;letter-spacing:0;text-transform:none}
+input[type=range]{width:100%;accent-color:var(--acc);cursor:pointer}
+select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--fg);
+  border-radius:9px;padding:11px 12px;font-size:.9rem;font-family:inherit}
+select:focus{outline:none;border-color:var(--acc)}
+.hint{font-size:.77rem;color:var(--dim);margin-top:7px;line-height:1.5}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(136px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:16px}
+.kpi .v{font:700 1.5rem/1 ui-monospace,monospace;margin-bottom:6px}
+.kpi .k{font-size:.75rem;color:var(--dim);line-height:1.4}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:22px;overflow:hidden}
+.card .hd{padding:11px 16px;border-bottom:1px solid var(--line);background:var(--panel2);
+  font:.74rem/1 ui-monospace,monospace;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:10px}
+.card .bd{padding:16px}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;font:.7rem/1 ui-monospace,monospace;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.07em;padding:0 8px 11px;border-bottom:1px solid var(--line);white-space:nowrap}
+th.r,td.r{text-align:right}
+td{padding:11px 8px;border-bottom:1px solid rgba(36,29,58,.5);color:var(--mut)}
+tr:last-child td{border-bottom:0}
+td.nm{font:.82rem/1.4 ui-monospace,monospace;color:#cfc6e4}
+td.allin{font-weight:650;color:#e2dcf0}
+.cbar{width:60px;height:6px;border-radius:4px;background:#221b36;overflow:hidden;display:inline-block;
+  vertical-align:middle;margin-right:7px}
+.cfil{height:100%;border-radius:4px}
+.badge{font:.68rem/1 ui-monospace,monospace;padding:4px 8px;border-radius:5px;white-space:nowrap}
+.b-ok{background:rgba(74,222,128,.12);color:var(--ok)}
+.b-info{background:rgba(34,211,238,.11);color:var(--info)}
+.b-warn{background:rgba(251,191,36,.12);color:var(--warn)}
+.b-bad{background:rgba(251,113,133,.13);color:var(--bad)}
+.b-acc{background:rgba(167,139,250,.16);color:#c4b5fd}
+tr.best td{background:rgba(74,222,128,.06)}
+tr.best td:first-child{box-shadow:inset 2px 0 0 var(--ok)}
+.lesson{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.25);
+  border-radius:10px;padding:16px 18px;margin-top:18px;font-size:.89rem;color:#c9bce8}
+.lesson b{color:#e6ddf7}
+.note{font-size:.81rem;color:var(--dim);margin:14px 0 0;line-height:1.6}
+.expl{margin-top:34px;padding-top:28px;border-top:1px solid var(--line)}
+.expl h2{font-size:1.05rem;margin:0 0 14px;font-weight:620}
+.expl p{color:var(--mut);font-size:.92rem}
+.expl b{color:var(--fg);font-weight:600}
+footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+</style></head><body>
+
+<header><div class="wrap">
+  <a class="back" href="./index.html">← All projects</a>
+  <h1>RAG Freshness &amp; Drift Monitor</h1>
+  <p class="lede">A retrieval index is a photograph of a corpus that keeps moving. Between one
+    rebuild and the next, some share of what you serve is quietly out of date — and the documents
+    that change fastest are usually the ones people ask about most. The interesting question isn't
+    how to make staleness zero. It's whether detecting change is worth more than simply rebuilding
+    everything on a timer.</p>
+  <div class="notice"><b>What's real:</b> the staleness windows, query-weighted exposure and cost
+    comparison all compute live. The document classes, their change rates and their share of query
+    traffic are a stated sample corpus of 12,000 chunks — the honest version of those numbers comes
+    from your own retrieval logs, not from a demo. Detector recall is assumed at <b>88%</b>, which
+    is the single assumption that decides the whole comparison; see the note below the cost table.
+    The scan-and-compare logic being modelled lives in
+    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/07-rag-freshness-monitor">the repo</a>.</div>
+</div></header>
+
+<main><div class="wrap">
+
+  <div class="panel">
+    <div class="ctls">
+      <div class="ctl">
+        <label for="p">Corpus profile</label>
+        <select id="p">
+          <option value="product" selected>Product documentation</option>
+          <option value="support">Support knowledge base</option>
+          <option value="pricing">Pricing &amp; commercial</option>
+          <option value="policy">Policy &amp; HR library</option>
+        </select>
+        <p class="hint">Sets which document classes exist, how fast each changes, and how much
+          query traffic each attracts.</p>
+      </div>
+      <div class="ctl">
+        <label for="t">Your cadence: every <span id="tv">7 days</span></label>
+        <input type="range" id="t" min="1" max="120" step="1" value="7">
+        <p class="hint">Average staleness is roughly half this, because a change can land at any
+          point in the cycle.</p>
+      </div>
+      <div class="ctl">
+        <label for="r">Cost per full rebuild <span id="rv">$180</span></label>
+        <input type="range" id="r" min="1" max="600" step="1" value="180">
+        <p class="hint">Embedding spend plus pipeline time for the whole corpus. This is the number
+          that decides whether detection is worth building.</p>
+      </div>
+      <div class="ctl">
+        <label for="e">Cost of one stale answer <span id="ev">$12</span></label>
+        <input type="range" id="e" min="1" max="400" step="1" value="12">
+        <p class="hint">A support escalation, a wrong quote, a compliance miss. A business number,
+          not an engineering one.</p>
+      </div>
+      <div class="ctl">
+        <label for="q">Monthly queries <span id="qv">40,000</span></label>
+        <input type="range" id="q" min="500" max="500000" step="500" value="40000">
+        <p class="hint">Staleness is a rate. Volume turns it into a bill.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chips" id="kpis"></div>
+
+  <div class="card">
+    <div class="hd"><span>exposure by document class — at your cadence</span><span id="plabel"></span></div>
+    <div class="bd">
+      <table><thead><tr>
+        <th>Class</th><th class="r">of corpus</th><th class="r">of queries</th>
+        <th>change rate</th><th class="r">stale</th><th class="r">bad answers/mo</th>
+      </tr></thead><tbody id="rows"></tbody></table>
+      <p class="note">"Stale" is the expected share of that class sitting out of date at a random
+        moment: change rate × half the rebuild interval, capped at 100%. Bad answers weight that by
+        <b>query share, not corpus share</b> — which is the entire point of the table.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><span>all-in monthly cost</span><span id="winner"></span></div>
+    <div class="bd">
+      <table><thead><tr>
+        <th>Strategy</th><th class="r">index spend</th><th class="r">stale answers</th>
+        <th class="r">stale cost</th><th class="r">all-in</th><th></th>
+      </tr></thead><tbody id="cmp"></tbody></table>
+      <div class="lesson" id="lesson"></div>
+      <p class="note"><b>The monitor's assumptions, stated plainly:</b> $38/month running cost,
+        change batches processed every 6 hours, 1% of a full rebuild in fixed overhead per batch,
+        partial re-embedding at 1.35× the proportional cost, and <b>88% detection recall</b> — the
+        12% of changes it misses stay stale until a fallback full rebuild 30 days later. A
+        scheduled full rebuild has 100% recall by construction: it re-embeds everything, whether or
+        not it noticed the change.</p>
+    </div>
+  </div>
+
+  <div class="expl">
+    <h2>Reading the trade-off</h2>
+    <p>Start with the gap between <b>of corpus</b> and <b>of queries</b>. On the product profile,
+      pricing pages are 4% of the index and 14% of the traffic, and they change roughly eighteen
+      times faster than the policy library. A freshness metric averaged over the corpus would call
+      that index 96% clean and be worthless. Staleness only means something weighted by what people
+      actually ask.</p>
+    <p><b>The monitor is frequently not the cheapest option, and that's the honest finding.</b> At
+      the default settings a nightly cron job beats it. Detection only starts paying when a full
+      rebuild is genuinely expensive — drag <b>cost per full rebuild</b> up past roughly $220 and
+      the ordering flips, because at that point re-embedding everything 30 times a month costs more
+      than the machinery required to avoid it. Below that line, building a freshness monitor is
+      over-engineering, and the correct answer is a scheduled job and a good night's sleep.</p>
+    <p><b>Recall is the detector's real specification, not latency.</b> Six-hour detection sounds
+      like the headline number, and it isn't — set recall to 100% and the monitor would win every
+      configuration on this page outright. It loses where it loses because 12% of changes slip past
+      content hashing: an upstream source that was edited without changing bytes, a document that
+      is still accurate-looking but now wrong because the world moved. Those sit stale for a month.
+      When someone sells you a change-detection system, the number to ask about is what fraction of
+      real changes it catches, not how fast it reacts to the ones it does.</p>
+    <p>The other regime worth finding is the low end of <b>cost of one stale answer</b>. Below
+      about $10 the monitor wins again, for an unglamorous reason: when stale answers are cheap,
+      accuracy stops mattering and the strategy that spends least on indexing simply wins. Two
+      different regimes, same winner, completely different reasoning — which is why the table shows
+      every strategy rather than just the winner.</p>
+    <p><b>Worth noticing:</b> switch to the policy profile, where almost nothing changes, and the
+      monitor wins comfortably. That's the opposite of the intuition that slow corpora don't need
+      freshness tooling — and the reason is that only 11% of that corpus moves in a month, so
+      re-embedding just the changed part is very cheap. Nearly half the staleness comes from a
+      single class — <code>announcements</code> is 6% of the index and changes about seven times
+      faster than anything else in that corpus. A slow corpus with one fast class buried inside it
+      is the best case for detection, not the worst.</p>
+  </div>
+</div></main>
+
+<footer><div class="wrap">
+  <a href="./index.html">AI Systems Lab</a> ·
+  <a href="https://github.com/GauravWarke/rag-and-agent-systems">source on GitHub</a>
+</div></footer>
+
+<script>
+// [name, share of corpus, share of query traffic, fraction changing per month]
+const PROFILES={
+ product:{label:"Product documentation",classes:[
+   ["api_reference",   .32,.28,.18],
+   ["how_to_guides",   .26,.31,.12],
+   ["troubleshooting", .15,.13,.20],
+   ["release_notes",   .12,.09,.90],
+   ["policy_legal",    .11,.05,.03],
+   ["pricing_plans",   .04,.14,.55]]},
+ support:{label:"Support knowledge base",classes:[
+   ["kb_articles",     .40,.38,.15],
+   ["product_specs",   .18,.14,.22],
+   ["policies",        .14,.06,.04],
+   ["known_issues",    .12,.18,1.10],
+   ["macros_canned",   .08,.16,.30],
+   ["onboarding",      .08,.08,.07]]},
+ pricing:{label:"Pricing & commercial",classes:[
+   ["sku_catalog",     .30,.20,.45],
+   ["contract_terms",  .20,.12,.10],
+   ["competitor_notes",.18,.11,.80],
+   ["faq",             .15,.15,.25],
+   ["price_book",      .10,.24,1.40],
+   ["promotions",      .07,.18,2.60]]},
+ policy:{label:"Policy & HR library",classes:[
+   ["employee_handbook",.28,.30,.04],
+   ["compliance_sops",  .22,.14,.06],
+   ["benefits",         .18,.26,.09],
+   ["regional_addenda", .17,.10,.11],
+   ["forms_templates",  .09,.13,.05],
+   ["announcements",    .06,.07,.75]]}
+};
+const M_FIXED=38,        // monitor running cost, $/month
+      RECALL=0.88,       // fraction of real changes the detector catches
+      BATCH_D=0.25,      // detected changes processed every 6 hours
+      RUNS=120,          // partial-rebuild runs per month
+      RUN_OV=0.01,       // fixed overhead per run, as a fraction of a full rebuild
+      PARTIAL_OV=1.35,   // re-embedding overhead for neighbouring chunks
+      FALLBACK=30,       // fallback full rebuild, for what the detector missed
+      NEVER=90;          // "never rebuild" evaluated over a 90-day window
+
+const el=id=>document.getElementById(id);
+const whole=n=>"$"+Math.round(n).toLocaleString();
+const pct=n=>(n*100).toFixed(n<0.01?2:1)+"%";
+
+// Expected share of a class sitting stale at a random moment.
+const staleShare=(rate,days)=>Math.min(1,rate*(days/2)/30);
+const staleAnswers=(cl,days,q)=>cl.reduce((s,[,,qs,r])=>s+q*qs*staleShare(r,days),0);
+
+function run(){
+  const prof=PROFILES[el("p").value];
+  const cl=prof.classes;
+  const days=+el("t").value, rebuild=+el("r").value;
+  const ecost=+el("e").value, queries=+el("q").value;
+
+  el("tv").textContent=days===1?"1 day":days+" days";
+  el("rv").textContent="$"+rebuild;
+  el("ev").textContent="$"+ecost;
+  el("qv").textContent=queries.toLocaleString();
+  el("plabel").textContent=prof.label;
+
+  el("rows").innerHTML=cl.map(([nm,cs,qs,rate])=>{
+    const st=staleShare(rate,days), bad=queries*qs*st;
+    const sev=st<.02?"var(--ok)":st<.10?"var(--warn)":"var(--bad)";
+    const hot=qs>cs*1.25;
+    return `<tr>
+      <td class="nm">${nm}</td>
+      <td class="r mono" style="font-size:.79rem">${pct(cs)}</td>
+      <td class="r mono" style="font-size:.79rem;color:${hot?"var(--acc2)":"var(--mut)"}">${pct(qs)}${
+        hot?' <span class="badge b-acc">hot</span>':""}</td>
+      <td><span class="cbar"><span class="cfil" style="width:${
+        Math.min(100,rate/2.6*100)}%;background:${
+        rate<.1?"var(--ok)":rate<.5?"var(--warn)":"var(--bad)"}"></span></span>
+        <span class="mono" style="font-size:.77rem">${rate.toFixed(2)}/mo</span></td>
+      <td class="r mono" style="font-size:.79rem;color:${sev}">${pct(st)}</td>
+      <td class="r mono" style="font-size:.79rem">${Math.round(bad).toLocaleString()}</td></tr>`;
+  }).join("");
+
+  const changed=cl.reduce((s,[,cs,,r])=>s+cs*r,0);
+  const yourStale=staleAnswers(cl,days,queries), yourOps=rebuild*(30/days);
+
+  // Monitor: fast on what it catches, blind for a month on what it doesn't.
+  const mOps=M_FIXED+RUNS*RUN_OV*rebuild+rebuild*changed*PARTIAL_OV;
+  const mStale=staleAnswers(cl,BATCH_D,queries)*RECALL
+              +staleAnswers(cl,FALLBACK,queries)*(1-RECALL);
+
+  el("kpis").innerHTML=
+    kpi((days/2).toFixed(days<2?2:1)+"d","your average staleness window","var(--fg)")+
+    kpi(pct(changed),"of corpus changes monthly","var(--fg)")+
+    kpi(Math.round(yourStale).toLocaleString(),"stale answers at your cadence",
+       yourStale/queries<.01?"var(--ok)":yourStale/queries<.05?"var(--warn)":"var(--bad)")+
+    kpi(pct(yourStale/queries),"of traffic served stale",
+       yourStale/queries<.01?"var(--ok)":yourStale/queries<.05?"var(--warn)":"var(--bad)")+
+    kpi(whole(yourOps+yourStale*ecost),"your all-in monthly","var(--acc2)");
+
+  const mk=(n,ops,st,x={})=>({n,ops,st,cost:ops+st*ecost,...x});
+  const strategies=[
+    mk("Never rebuild",0,staleAnswers(cl,NEVER,queries)),
+    mk("Rebuild monthly",rebuild,staleAnswers(cl,30,queries)),
+    mk("Rebuild weekly",rebuild*(30/7),staleAnswers(cl,7,queries)),
+    mk("Rebuild nightly",rebuild*30,staleAnswers(cl,1,queries)),
+    mk("Your cadence",yourOps,yourStale,{mine:true}),
+    mk("Change-triggered monitor",mOps,mStale,{monitor:true})
+  ];
+  const best=strategies.reduce((a,b)=>b.cost<a.cost?b:a);
+  const monitor=strategies.find(s=>s.monitor);
+  const nightly=strategies.find(s=>s.n==="Rebuild nightly");
+
+  el("winner").innerHTML=`<span class="badge ${
+    best.monitor?"b-ok":"b-warn"}">cheapest: ${best.n}</span>`;
+  el("cmp").innerHTML=strategies.map(s=>`<tr class="${s===best?"best":""}">
+    <td class="nm">${s.n}${s.mine?' <span class="badge b-acc">slider</span>':""}${
+      s.monitor?' <span class="badge b-acc">this project</span>':""}</td>
+    <td class="r mono">${whole(s.ops)}</td>
+    <td class="r mono">${Math.round(s.st).toLocaleString()}</td>
+    <td class="r mono">${whole(s.st*ecost)}</td>
+    <td class="r mono allin">${whole(s.cost)}</td>
+    <td>${s===best?'<span class="badge b-ok">best here</span>':
+      `<span style="font-size:.8rem;color:var(--dim)">+${whole(s.cost-best.cost)}</span>`}</td>
+    </tr>`).join("");
+
+  const missed=staleAnswers(cl,FALLBACK,queries)*(1-RECALL);
+  let msg;
+  if(best.monitor && ecost<=6)
+    msg=`<b>Monitoring wins here — but not for the reason you'd hope.</b> At ${whole(ecost)} a
+      stale answer, accuracy barely matters and the cheapest indexing strategy simply wins:
+      ${whole(monitor.ops)} to re-embed the ${pct(changed)} that changed, against
+      ${whole(nightly.ops)} to rebuild everything nightly. Raise the error cost past about $10 and
+      the ${Math.round(missed).toLocaleString()} answers its 88% recall misses start to hurt.`;
+  else if(best.monitor)
+    msg=`<b>Monitoring wins at these settings.</b> A full rebuild costs ${whole(rebuild)}, so
+      nightly re-indexing runs ${whole(nightly.ops)} a month while detecting and re-embedding just
+      the ${pct(changed)} that changed costs ${whole(monitor.ops)}. That margin is big enough to
+      absorb the ${Math.round(missed).toLocaleString()} stale answers its 88% recall lets through.
+      Drag the rebuild cost down towards $60 and watch this stop being true.`;
+  else if(best.n==="Rebuild nightly")
+    msg=`<b>At ${whole(rebuild)} a rebuild, a nightly cron job beats the monitor by
+      ${whole(monitor.cost-best.cost)}.</b> Re-indexing everything is cheap enough here that
+      detecting what changed isn't worth it — and the monitor still leaks
+      ${Math.round(missed).toLocaleString()} stale answers a month through the 12% of changes it
+      never notices. This is the regime where a freshness monitor is over-engineering.`;
+  else if(best.n==="Never rebuild")
+    msg=`<b>At ${whole(ecost)} a stale answer, leaving the index alone beats every maintenance
+      strategy by ${whole(monitor.cost-best.cost)}.</b> Nothing in this corpus moves fast enough to
+      matter at that error cost. Worth sanity-checking whether a stale answer really is that cheap
+      — but if it is, your index isn't the problem worth solving.`;
+  else
+    msg=`<b>${best.n} beats the monitor by ${whole(monitor.cost-best.cost)} here.</b> A fixed
+      cadence is landing close enough to this corpus's change rate that continuous detection can't
+      justify its running cost plus the ${Math.round(missed).toLocaleString()} stale answers its
+      recall gap lets through. The monitor's edge is latency, and latency isn't what's binding.`;
+  el("lesson").innerHTML=msg;
+}
+function kpi(v,k,c){return `<div class="kpi"><div class="v" style="color:${c}">${v}</div>
+  <div class="k">${k}</div></div>`;}
+["p","t","r","e","q"].forEach(id=>el(id).addEventListener("input",run));
+run();
+</script>
+</body></html>

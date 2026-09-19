@@ -16,12 +16,12 @@ Endpoints:
   GET  /v1/agent/decisions            audit log of every approval decision made
   GET  /v1/agent/safety               fleet-wide safety analytics (tool usage, blocks, approval rate)
 """
-from fastapi.responses import RedirectResponse
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import RedirectResponse
 
 from app.agent.approvals import build_approval_queue
 from app.agent.decisions import DecisionStore, build_decision_log
@@ -49,11 +49,19 @@ from app.tools.executor import execute_tool_call
 from app.tools.registry import list_tools
 
 app = FastAPI(
-  title: "Permissioned Agent Sandbox"
-  description: "Tool use with built-in permissions, rate limits, and audit logs. **Try it:** expand `/execute`, click *Try it out*, and run a tool call."
+    title='Permissioned Agent Sandbox',
+    description=(
+        'An agent that uses tools under a permission model. Every tool declares a '
+        'required role and a risk tier; calls are checked before execution, rate '
+        'limited, and high-risk actions pause for human approval. Every decision is '
+        'written to an audit log.'
+        '\n\n**Try it:** `GET /v1/tools` to see the registry, then `POST /v1/agent/tasks` '
+        'to run a request through the workflow.'
     ),
     version="1.0.0",
 )
+
+
 @app.get("/", include_in_schema=False)
 def root():
     return RedirectResponse(url="/docs")

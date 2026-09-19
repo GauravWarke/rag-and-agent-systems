@@ -5,12 +5,12 @@ Endpoints:
   POST /ask      answer a support question with verified citations
 """
 
-from fastapi.responses import RedirectResponse
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import RedirectResponse
 
 from app.core.config import settings
 from app.core.models import AskRequest, AskResponse
@@ -30,13 +30,18 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Support Knowledge Copilot", 
+    title='Support Knowledge Copilot',
     description=(
-        "Your description here. "
-        "**Try it:** expand `POST /ask`, click *Try it out*, and send a question."
+        'Answers questions from internal documentation and shows which passage '
+        'supports each claim. Hybrid retrieval (dense + BM25, fused with Reciprocal '
+        'Rank Fusion), citations verified against source text, and a confidence '
+        "score. Returns 'I could not find this in the docs' rather than guessing."
+        '\n\n**Try it:** expand `POST /ask`, click *Try it out*, and send a question.'
     ),
     version="1.0.0",
 )
+
+
 @app.get("/", include_in_schema=False)
 def root():
     return RedirectResponse(url="/docs")

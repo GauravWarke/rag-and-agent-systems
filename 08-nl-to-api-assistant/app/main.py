@@ -11,20 +11,28 @@ Endpoints:
   GET  /v1/assistant/workflows/{id}/view    UI read-model: planned calls, dry-run, actions, result
   POST /v1/assistant/workflows/{id}/resume  approve/reject a paused workflow
 """
-from fastapi.responses import RedirectResponse
 from __future__ import annotations
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from app.business_api.router import router as business_router
 from app.planning.router import router as assistant_router
 
 app = FastAPI(
-    title: "Natural Language to API Assistant"
-    description: "Reads OpenAPI specs, plans API calls, and dry-runs writes. **Try it:** expand `/query-api`, click *Try it out*, ask a question about your API."
+    title='Natural Language to API Assistant',
+    description=(
+        'Turns a natural-language request into schema-validated, risk-gated calls '
+        'against a mock SaaS admin API. Plans the call sequence from the OpenAPI '
+        'schema, validates parameters before sending, and dry-runs anything that '
+        'writes.'
+        '\n\n**Try it:** `POST /v1/assistant/workflows` with a request like "move the '
+        'Acme order to express shipping".'
     ),
     version="1.0.0",
 )
+
+
 @app.get("/", include_in_schema=False)
 def root():
     return RedirectResponse(url="/docs")
