@@ -1,0 +1,273 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Multimodal Document Reviewer — live demo</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050409;--panel:#0d0a18;--panel2:#120e20;--line:#241d3a;
+  --fg:#ece9f5;--mut:#9289ad;--dim:#65597f;--acc:#7c3aed;--acc2:#a78bfa;
+  --ok:#4ade80;--warn:#fbbf24;--bad:#fb7185;--info:#22d3ee}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:15px/1.65 -apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+a{color:var(--acc2)}code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+header{padding:44px 0 30px;border-bottom:1px solid var(--line)}
+.back{font-size:.86rem;text-decoration:none;color:var(--mut)}.back:hover{color:var(--fg)}
+h1{font-size:1.75rem;margin:18px 0 10px;letter-spacing:-.02em;font-weight:660}
+.lede{color:var(--mut);margin:0;font-size:.97rem;max-width:680px}
+.notice{margin:24px 0 0;padding:14px 16px;border-radius:9px;font-size:.87rem;
+  background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.3);color:#cbbdf0}
+.notice b{color:#e2d8fb}
+main{padding:34px 0 70px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:22px}
+.ctls{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px}
+.ctl label{display:block;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:10px}
+.ctl label span{color:var(--acc2);font-family:ui-monospace,monospace;letter-spacing:0;text-transform:none}
+input[type=range]{width:100%;accent-color:var(--acc);cursor:pointer}
+select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--fg);
+  border-radius:9px;padding:11px 12px;font-size:.9rem;font-family:inherit}
+select:focus{outline:none;border-color:var(--acc)}
+.hint{font-size:.78rem;color:var(--dim);margin-top:7px;line-height:1.5}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:16px}
+.kpi .v{font:700 1.55rem/1 ui-monospace,monospace;margin-bottom:6px}
+.kpi .k{font-size:.76rem;color:var(--dim);line-height:1.4}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:22px;overflow:hidden}
+.card .hd{padding:11px 16px;border-bottom:1px solid var(--line);background:var(--panel2);
+  font:.74rem/1 ui-monospace,monospace;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:10px}
+.card .bd{padding:16px}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;font:.7rem/1 ui-monospace,monospace;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.07em;padding:0 8px 11px;border-bottom:1px solid var(--line);white-space:nowrap}
+th.r,td.r{text-align:right}
+td{padding:11px 8px;border-bottom:1px solid rgba(36,29,58,.5);color:var(--mut)}
+tr:last-child td{border-bottom:0}
+td.nm{font:.82rem/1.4 ui-monospace,monospace;color:#cfc6e4}
+.cbar{width:64px;height:6px;border-radius:4px;background:#221b36;overflow:hidden;display:inline-block;
+  vertical-align:middle;margin-right:7px}
+.cfil{height:100%;border-radius:4px}
+.badge{font:.69rem/1 ui-monospace,monospace;padding:4px 8px;border-radius:5px;white-space:nowrap}
+.b-ok{background:rgba(74,222,128,.12);color:var(--ok)}
+.b-info{background:rgba(34,211,238,.11);color:var(--info)}
+.b-warn{background:rgba(251,191,36,.12);color:var(--warn)}
+.b-bad{background:rgba(251,113,133,.13);color:var(--bad)}
+.b-dim{background:rgba(255,255,255,.05);color:var(--dim)}
+.win{outline:1px solid rgba(74,222,128,.45);background:rgba(74,222,128,.05)}
+.lesson{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.25);
+  border-radius:10px;padding:16px 18px;margin-top:18px;font-size:.89rem;color:#c9bce8}
+.lesson b{color:#e6ddf7}
+.note{font-size:.82rem;color:var(--dim);margin:14px 0 0;line-height:1.6}
+.expl{margin-top:34px;padding-top:28px;border-top:1px solid var(--line)}
+.expl h2{font-size:1.05rem;margin:0 0 14px;font-weight:620}
+.expl p{color:var(--mut);font-size:.92rem}
+.expl b{color:var(--fg);font-weight:600}
+footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+</style></head><body>
+
+<header><div class="wrap">
+  <a class="back" href="./index.html">← All projects</a>
+  <h1>Multimodal Document Reviewer</h1>
+  <p class="lede">OCR is cheap and sometimes wrong. A vision model is accurate and expensive. A
+    human is the most accurate and by far the most expensive. Move the two thresholds and watch
+    cost trade against errors — the whole engineering problem is choosing where they sit.</p>
+  <div class="notice"><b>What's real:</b> the cascade routing, cost model and error projection all
+    compute live from the confidence figures below. The per-field OCR and vision confidences are a
+    fixed sample set standing in for actual model output — running real OCR in a browser isn't
+    possible, and inventing confidences per keystroke would be worse than using a stated sample.
+    Routing logic matches
+    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/09-multimodal-doc-reviewer">the repo</a>.</div>
+</div></header>
+
+<main><div class="wrap">
+
+  <div class="panel">
+    <div class="ctls">
+      <div class="ctl">
+        <label for="q">Document quality</label>
+        <select id="q">
+          <option value="clean">Clean 300dpi scan</option>
+          <option value="phone" selected>Phone photo, some glare</option>
+          <option value="fax">Faxed copy, low contrast</option>
+          <option value="hand">Scan with handwritten annotations</option>
+        </select>
+        <p class="hint">Changes the OCR confidence profile. Real intake queues are a mix — the
+          thresholds have to work across all of these, not just the good ones.</p>
+      </div>
+      <div class="ctl">
+        <label for="o">Escalate to vision below <span id="ov">0.90</span></label>
+        <input type="range" id="o" min="0" max="100" step="1" value="90">
+        <p class="hint">OCR confidence under this sends the field to the vision model.</p>
+      </div>
+      <div class="ctl">
+        <label for="v">Escalate to human below <span id="vv">0.85</span></label>
+        <input type="range" id="v" min="0" max="100" step="1" value="85">
+        <p class="hint">Vision confidence under this routes to a person.</p>
+      </div>
+      <div class="ctl">
+        <label for="m">Monthly volume <span id="mv">1,000 docs</span></label>
+        <input type="range" id="m" min="100" max="50000" step="100" value="1000">
+        <p class="hint">Scales the projection. Threshold choices that look free at 100 documents
+          stop looking free at 50,000.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chips" id="kpis"></div>
+
+  <div class="card">
+    <div class="hd"><span>field-level routing — invoice_4471.pdf</span><span id="qlabel"></span></div>
+    <div class="bd">
+      <table><thead><tr>
+        <th>Field</th><th>OCR</th><th>Vision</th><th>Final</th><th>Route</th><th class="r">cost</th>
+      </tr></thead><tbody id="rows"></tbody></table>
+      <div class="lesson" id="lesson"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><span>cascade vs the three naive strategies</span><span>per <span id="volx"></span> documents</span></div>
+    <div class="bd">
+      <table><thead><tr>
+        <th>Strategy</th><th class="r">cost</th><th class="r">wrong fields</th>
+        <th class="r">human touches</th><th>verdict</th>
+      </tr></thead><tbody id="cmp"></tbody></table>
+      <p class="note">Wrong fields is an expectation, not a count: each accepted field contributes
+        its own (1 − confidence). Human review is modelled at 99.5% accurate — better than either
+        model, but not free and not perfect.</p>
+    </div>
+  </div>
+
+  <div class="expl">
+    <h2>Reading the trade-off</h2>
+    <p>Push <b>escalate to vision</b> to 1.00 and every field goes to the vision model. Errors drop
+      and cost climbs roughly tenfold. Drop it to 0.00 and you're running OCR alone — nearly free,
+      and on a faxed document about one field in four comes out wrong.</p>
+    <p>Neither extreme is the answer, and the interesting part is that the cascade beats both on
+      the combined measure while only escalating the fields that need it. That's the whole idea:
+      spend the expensive capability where confidence says it's warranted, not uniformly.</p>
+    <p><b>The second threshold matters more than it looks.</b> Human review is roughly fifty times
+      the cost of a vision call. Raising <b>escalate to human</b> a few points can double your
+      operating cost while removing a fraction of a percent of errors. Try 0.85 versus 0.95 on the
+      faxed profile and watch what happens to the monthly figure.</p>
+    <p><b>Worth noticing:</b> <code>signature_block</code> is the weakest field on every profile.
+      Some fields are hard for reasons no threshold fixes — the right response there is a schema
+      that marks the field optional, or a different capture process, not a more expensive model.</p>
+  </div>
+</div></main>
+
+<footer><div class="wrap">
+  <a href="./index.html">AI Systems Lab</a> ·
+  <a href="https://github.com/GauravWarke/rag-and-agent-systems">source on GitHub</a>
+</div></footer>
+
+<script>
+const FIELDS=["vendor_name","invoice_number","invoice_date","due_date","subtotal",
+              "tax_amount","total","po_number","signature_block"];
+const PROFILES={
+ clean:{label:"Clean 300dpi scan",
+   ocr:[.99,.98,.97,.96,.99,.98,.99,.94,.61],
+   vis:[.99,.99,.99,.98,.99,.99,.99,.97,.88]},
+ phone:{label:"Phone photo, some glare",
+   ocr:[.95,.88,.72,.64,.93,.81,.94,.58,.34],
+   vis:[.99,.97,.95,.93,.98,.96,.98,.91,.72]},
+ fax:{label:"Faxed copy, low contrast",
+   ocr:[.84,.71,.63,.55,.78,.61,.83,.42,.22],
+   vis:[.95,.89,.86,.81,.93,.85,.94,.74,.55]},
+ hand:{label:"Handwritten annotations",
+   ocr:[.93,.90,.58,.41,.88,.74,.91,.29,.18],
+   vis:[.98,.96,.90,.86,.96,.92,.97,.83,.64]}
+};
+const C_OCR=0.004, C_VIS=0.038, C_HUM=1.85, HUM_ACC=0.995;
+const el=id=>document.getElementById(id);
+const money=n=>"$"+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function run(){
+  const p=PROFILES[el("q").value];
+  const oth=+el("o").value/100, vth=+el("v").value/100, vol=+el("m").value;
+  el("ov").textContent=oth.toFixed(2);
+  el("vv").textContent=vth.toFixed(2);
+  el("mv").textContent=vol.toLocaleString()+" docs";
+  el("volx").textContent=vol.toLocaleString();
+  el("qlabel").textContent=p.label;
+
+  let cost=C_OCR, err=0, nOcr=0, nVis=0, nHum=0;
+  const rows=FIELDS.map((f,i)=>{
+    const o=p.ocr[i], v=p.vis[i];
+    let route,cls,final,fc=0,visShown="—";
+    if(o>=oth){route="ocr";cls="b-ok";final=o;nOcr++;}
+    else{
+      visShown=v.toFixed(2); fc+=C_VIS;
+      if(v>=vth){route="vision";cls="b-info";final=v;nVis++;}
+      else{route="human";cls="b-warn";final=HUM_ACC;fc+=C_HUM;nHum++;}
+    }
+    cost+=fc; err+=1-final;
+    return `<tr>
+      <td class="nm">${f}</td>
+      <td><span class="cbar"><span class="cfil" style="width:${o*100}%;background:${
+        o>=.9?"var(--ok)":o>=.7?"var(--warn)":"var(--bad)"}"></span></span>
+        <span class="mono" style="font-size:.78rem">${o.toFixed(2)}</span></td>
+      <td class="mono" style="font-size:.79rem;color:${visShown==="—"?"var(--dim)":"var(--info)"}">${visShown}</td>
+      <td class="mono" style="font-size:.79rem">${final.toFixed(3)}</td>
+      <td><span class="badge ${cls}">${route}</span></td>
+      <td class="r mono" style="font-size:.78rem">${fc?money(fc):"—"}</td></tr>`;
+  }).join("");
+  el("rows").innerHTML=rows;
+
+  el("kpis").innerHTML=
+    kpi(nOcr,"accepted from OCR","var(--ok)")+
+    kpi(nVis,"resolved by vision","var(--info)")+
+    kpi(nHum,"sent to a human","var(--warn)")+
+    kpi(money(cost),"cost per document","var(--fg)")+
+    kpi(err.toFixed(2),"expected wrong fields per doc",
+       err<0.05?"var(--ok)":err<0.2?"var(--warn)":"var(--bad)");
+
+  /* strategy comparison */
+  const sum=a=>a.reduce((s,x)=>s+(1-x),0);
+  const strategies=[
+    {n:"OCR only",           c:C_OCR,                       e:sum(p.ocr), h:0,
+     w:"cheapest, and wrong often enough to matter"},
+    {n:"Vision on everything",c:C_OCR+FIELDS.length*C_VIS,  e:sum(p.vis), h:0,
+     w:"accurate, but pays premium price on fields OCR already had"},
+    {n:"Human on everything", c:C_OCR+FIELDS.length*C_HUM,  e:FIELDS.length*(1-HUM_ACC), h:FIELDS.length,
+     w:"most accurate, does not scale"},
+    {n:"Confidence cascade",  c:cost,                        e:err, h:nHum,
+     w:"escalates only where confidence is low", best:true}
+  ];
+  el("cmp").innerHTML=strategies.map(s=>`<tr class="${s.best?"win":""}">
+    <td class="nm">${s.n}${s.best?' <span class="badge b-ok">this demo</span>':""}</td>
+    <td class="r mono">${money(s.c*vol)}</td>
+    <td class="r mono">${Math.round(s.e*vol).toLocaleString()}</td>
+    <td class="r mono">${Math.round(s.h*vol).toLocaleString()}</td>
+    <td style="font-size:.83rem">${s.w}</td></tr>`).join("");
+
+  /* contextual lesson */
+  const ocrOnly=sum(p.ocr), visAll=C_OCR+FIELDS.length*C_VIS;
+  let msg;
+  if(nHum===0&&nVis===0)
+    msg=`<b>Nothing is escalating.</b> Every field cleared the OCR threshold, so you're running
+      OCR alone — ${money(cost*vol)} a month, with about
+      ${Math.round(ocrOnly*vol).toLocaleString()} wrong fields. Raise the vision threshold until
+      the weak fields start routing.`;
+  else if(nHum>=5)
+    msg=`<b>${nHum} of ${FIELDS.length} fields are going to a person.</b> At ${money(C_HUM)} each
+      that's ${money(nHum*C_HUM*vol)} of human review a month before anything else. Human review
+      is about ${Math.round(C_HUM/C_VIS)}× the cost of a vision call — check whether lowering the
+      human threshold a few points costs you any real accuracy.`;
+  else if(nVis===0)
+    msg=`<b>Vision is never winning a field here.</b> Everything that fails OCR also fails the
+      vision threshold and goes straight to a human, which makes the vision call pure overhead.
+      Either lower the human threshold or drop the vision stage for this profile.`;
+  else
+    msg=`<b>The cascade is doing its job.</b> ${nOcr} fields cleared on cheap OCR, ${nVis} needed
+      the vision model, ${nHum} needed a person. That's ${money(cost*vol)} a month against
+      ${money(visAll*vol)} for running vision on everything — and with fewer expected errors than
+      OCR alone. Now try the faxed profile without touching the sliders.`;
+  el("lesson").innerHTML=msg;
+}
+function kpi(v,k,c){return `<div class="kpi"><div class="v" style="color:${c}">${v}</div>
+  <div class="k">${k}</div></div>`;}
+["q","o","v","m"].forEach(id=>el(id).addEventListener("input",run));
+run();
+</script>
+</body></html>
