@@ -1,0 +1,349 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Permissioned Agent Sandbox — live demo</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050409;--panel:#0d0a18;--panel2:#120e20;--line:#241d3a;
+  --fg:#ece9f5;--mut:#9289ad;--dim:#65597f;--acc:#7c3aed;--acc2:#a78bfa;
+  --ok:#4ade80;--warn:#fbbf24;--bad:#fb7185;--info:#22d3ee}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:15px/1.65 -apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+a{color:var(--acc2)}code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+header{padding:44px 0 30px;border-bottom:1px solid var(--line)}
+.back{font-size:.86rem;text-decoration:none;color:var(--mut)}.back:hover{color:var(--fg)}
+h1{font-size:1.75rem;margin:18px 0 10px;letter-spacing:-.02em;font-weight:660}
+.lede{color:var(--mut);margin:0;font-size:.97rem;max-width:680px}
+.notice{margin:24px 0 0;padding:14px 16px;border-radius:9px;font-size:.87rem;
+  background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.3);color:#cbbdf0}
+.notice b{color:#e2d8fb}
+main{padding:34px 0 70px}
+.fl{display:block;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 9px}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:720px){.ctl{grid-template-columns:1fr}}
+select,input[type=text]{width:100%;background:var(--panel);border:1px solid var(--line);
+  color:var(--fg);border-radius:9px;padding:11px 13px;font-size:.92rem;font-family:inherit}
+select:focus,input:focus{outline:none;border-color:var(--acc)}
+.args{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:16px}
+.args label{font:.74rem/1 ui-monospace,monospace;color:var(--dim);display:block;margin-bottom:6px}
+.actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+button{font-family:inherit;cursor:pointer;border-radius:9px;font-size:.9rem;font-weight:560}
+.go{background:var(--acc);color:#fff;border:0;padding:12px 22px}.go:hover{background:#8b5cf6}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--mut);padding:12px 18px}
+.ghost:hover{color:var(--fg);border-color:var(--acc)}
+
+/* pipeline */
+.pipe{display:flex;align-items:stretch;gap:0;margin:28px 0 0;overflow-x:auto;padding-bottom:6px}
+.stg{flex:1;min-width:112px;text-align:center;position:relative;padding:0 4px}
+.stg .box{border:1px solid var(--line);border-radius:10px;padding:13px 8px;background:var(--panel);
+  transition:.25s}
+.stg .n{font:700 .68rem/1 ui-monospace,monospace;color:var(--dim);display:block;margin-bottom:7px}
+.stg .t{font-size:.76rem;line-height:1.35;color:var(--mut)}
+.stg::after{content:"";position:absolute;top:50%;right:-2px;width:8px;height:1px;background:var(--line)}
+.stg:last-child::after{display:none}
+.stg.pass .box{border-color:rgba(74,222,128,.5);background:rgba(74,222,128,.07)}
+.stg.pass .t,.stg.pass .n{color:var(--ok)}
+.stg.block .box{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.09)}
+.stg.block .t,.stg.block .n{color:var(--bad)}
+.stg.hold .box{border-color:rgba(167,139,250,.55);background:rgba(167,139,250,.12)}
+.stg.hold .t,.stg.hold .n{color:#c4b5fd}
+.stg.skip .box{opacity:.4}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-top:22px;overflow:hidden}
+.card .hd{padding:11px 16px;border-bottom:1px solid var(--line);background:var(--panel2);
+  font:.74rem/1 ui-monospace,monospace;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;
+  display:flex;justify-content:space-between;align-items:center}
+.card .bd{padding:16px}
+.ln{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid rgba(36,29,58,.55);font-size:.87rem}
+.ln:last-child{border-bottom:0}
+.ln .ic{flex-shrink:0;width:16px;font-family:ui-monospace,monospace;font-size:.85rem}
+.ln .tx{color:var(--mut)}.ln .tx b{color:var(--fg);font-weight:600}
+.badge{font:.68rem/1 ui-monospace,monospace;padding:4px 8px;border-radius:5px;white-space:nowrap}
+.b-ok{background:rgba(74,222,128,.12);color:var(--ok)}
+.b-bad{background:rgba(251,113,133,.13);color:var(--bad)}
+.b-hold{background:rgba(167,139,250,.16);color:#c4b5fd}
+.b-warn{background:rgba(251,191,36,.12);color:var(--warn)}
+.b-info{background:rgba(34,211,238,.11);color:var(--info)}
+.pend{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;
+  border-bottom:1px solid rgba(36,29,58,.55);flex-wrap:wrap}
+.pend:last-child{border-bottom:0}
+.pend .d{font:.82rem/1.5 ui-monospace,monospace;color:#c5bcdb}
+.pend .r{font-size:.79rem;color:var(--dim);margin-top:3px}
+.pend .bt{display:flex;gap:7px}
+.ap{background:rgba(74,222,128,.14);border:1px solid rgba(74,222,128,.4);color:var(--ok);padding:7px 14px;font-size:.82rem}
+.dn{background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.4);color:var(--bad);padding:7px 14px;font-size:.82rem}
+.audit{font:.78rem/1.55 ui-monospace,monospace}
+.audit .e{padding:9px 0;border-bottom:1px solid rgba(36,29,58,.5);display:grid;
+  grid-template-columns:32px 1fr auto;gap:10px;align-items:baseline}
+.audit .e:last-child{border-bottom:0}
+.audit .sq{color:var(--dim)}
+.audit .hs{color:var(--dim);font-size:.71rem}
+.meter{display:flex;align-items:center;gap:10px;font:.75rem/1 ui-monospace,monospace;color:var(--dim)}
+.trk{flex:1;height:6px;border-radius:4px;background:#221b36;overflow:hidden}
+.fil{height:100%;border-radius:4px;transition:.3s}
+.note{font-size:.82rem;color:var(--dim);margin:13px 0 0;line-height:1.6}
+.empty{color:var(--dim);font-size:.87rem;font-style:italic}
+.expl{margin-top:34px;padding-top:28px;border-top:1px solid var(--line)}
+.expl h2{font-size:1.05rem;margin:0 0 14px;font-weight:620}
+.expl ol{margin:0;padding-left:20px;color:var(--mut);font-size:.9rem}
+.expl li{margin-bottom:9px}.expl b{color:var(--fg);font-weight:600}
+footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+</style></head><body>
+
+<header><div class="wrap">
+  <a class="back" href="./index.html">← All projects</a>
+  <h1>Permissioned Agent Sandbox</h1>
+  <p class="lede">Pick a role, choose a tool call, and watch it move through the policy pipeline.
+    Scope checks, rate limiting, risk classification, budget ceilings and the human approval gate
+    all evaluate for real — including the rate limiter, which is stateful, so calling repeatedly
+    will get you throttled.</p>
+  <div class="notice"><b>What's real here:</b> the entire policy engine. In the production service
+    an LLM decides <em>which</em> tool to call; that choice is yours in this demo. Everything after
+    it — the gating logic that is the actual point of the project — is the same logic as
+    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/06-agent-sandbox">the repo</a>,
+    ported to run in your browser. Tool effects are simulated; the decisions about whether they'd
+    run are not.</div>
+</div></header>
+
+<main><div class="wrap">
+  <div class="ctl">
+    <div>
+      <span class="fl">Acting as</span>
+      <select id="role">
+        <option value="viewer">viewer — read-only</option>
+        <option value="analyst" selected>analyst — read + write + email</option>
+        <option value="admin">admin — full scope</option>
+      </select>
+    </div>
+    <div>
+      <span class="fl">Tool call</span>
+      <select id="tool"></select>
+    </div>
+  </div>
+  <div class="args" id="args"></div>
+  <div class="actions">
+    <button class="go" id="run">Execute call</button>
+    <button class="ghost" id="reset">Reset session</button>
+  </div>
+
+  <div class="pipe" id="pipe"></div>
+  <div id="out"></div>
+
+  <div class="card">
+    <div class="hd"><span>pending human approval</span><span id="pcount"></span></div>
+    <div class="bd" id="pending"><p class="empty">Nothing waiting.</p></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><span>audit log — hash-chained</span><span id="acount"></span></div>
+    <div class="bd"><div class="audit" id="audit"><p class="empty">No entries yet.</p></div>
+      <p class="note">Each entry hashes the entry before it. Altering or removing any line breaks
+        every hash that follows, which is what makes the log tamper-evident rather than merely
+        append-only.</p></div>
+  </div>
+
+  <div class="expl">
+    <h2>The pipeline, stage by stage</h2>
+    <ol>
+      <li><b>Bind.</b> The tool name is resolved against a registry that declares its required
+        scope, risk tier and cost. A tool not in the registry cannot be called at all — the agent
+        has no path to an unregistered capability.</li>
+      <li><b>Scope.</b> The caller's role is checked against the tool's required scope
+        <em>before</em> execution. This is the difference between authorisation and after-the-fact
+        auditing: a denied call never runs.</li>
+      <li><b>Rate limit.</b> A sliding 60-second window, 10 calls. Genuinely stateful in this demo
+        — spam the button and you'll hit it. Limits sit at the tool boundary so a looping agent
+        can't exhaust a downstream system.</li>
+      <li><b>Risk tier.</b> Registry-declared: low, medium, high, critical. Tier drives whether
+        the next gates engage, so adding a tool means declaring its blast radius up front.</li>
+      <li><b>Budget.</b> Money-moving tools draw against a session ceiling. A call that would
+        breach it is refused even when the caller's scope permits it — authorisation and spending
+        authority are separate questions.</li>
+      <li><b>Human gate.</b> High and critical tiers suspend rather than execute. The agent gets a
+        pending handle, not a result, and a person decides. This is the stage that makes the
+        difference between an agent that can act and an agent that can act <em>unsupervised</em>.</li>
+      <li><b>Execute &amp; audit.</b> Every outcome — allowed, denied, throttled, held, approved,
+        rejected — is written to the hash-chained log. Denials are recorded as carefully as
+        successes, since a refused call is exactly what an incident review needs to see.</li>
+    </ol>
+  </div>
+</div></main>
+
+<footer><div class="wrap">
+  Gaurav Warke · <a href="https://github.com/GauravWarke/rag-and-agent-systems">source on GitHub</a>
+</div></footer>
+
+<script>
+const ROLES={
+  viewer:["docs:read","records:read"],
+  analyst:["docs:read","records:read","records:write","email:send"],
+  admin:["docs:read","records:read","records:write","records:delete","email:send","billing:write"]
+};
+const TOOLS={
+  search_docs:{scope:"docs:read",risk:"low",args:{query:"Q3 revenue"},
+    eff:a=>`4 passages matched "${a.query}"`},
+  read_record:{scope:"records:read",risk:"low",args:{id:"4412"},
+    eff:a=>`record ${a.id} returned (7 fields)`},
+  update_record:{scope:"records:write",risk:"medium",args:{id:"4412",field:"status",value:"active"},
+    eff:a=>`record ${a.id}.${a.field} → "${a.value}"`},
+  send_email:{scope:"email:send",risk:"high",args:{to:"ops@acme.example",subject:"Q3 summary"},
+    eff:a=>`message queued to ${a.to}`},
+  delete_record:{scope:"records:delete",risk:"critical",args:{id:"4412"},
+    eff:a=>`record ${a.id} deleted`},
+  issue_refund:{scope:"billing:write",risk:"critical",args:{order:"5517",amount:"240"},
+    eff:a=>`$${a.amount} refunded on order ${a.order}`,money:true}
+};
+const STAGES=["bind","scope","rate limit","risk tier","budget","human gate","execute"];
+const LIMIT=10, WINDOW=60000, BUDGET=500;
+
+let calls=[], spent=0, pending=[], audit=[], lastHash="genesis", seq=0;
+const el=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function fnv(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}
+  return h.toString(16).padStart(8,"0");}
+
+el("tool").innerHTML=Object.keys(TOOLS).map(t=>
+  `<option value="${t}">${t}() — ${TOOLS[t].scope} · ${TOOLS[t].risk}</option>`).join("");
+function drawArgs(){
+  const t=TOOLS[el("tool").value];
+  el("args").innerHTML=Object.entries(t.args).map(([k,v])=>
+    `<div><label>${k}</label><input type="text" id="a_${k}" value="${esc(v)}"></div>`).join("");
+}
+function readArgs(){
+  const t=TOOLS[el("tool").value], o={};
+  for(const k of Object.keys(t.args)){const i=el("a_"+k);o[k]=i?i.value:t.args[k];}
+  return o;
+}
+el("tool").onchange=drawArgs; drawArgs();
+
+function drawPipe(states){
+  el("pipe").innerHTML=STAGES.map((s,i)=>
+    `<div class="stg ${states&&states[i]?states[i]:""}"><div class="box">
+      <span class="n">${String(i+1).padStart(2,"0")}</span><span class="t">${s}</span>
+    </div></div>`).join("");
+}
+drawPipe();
+
+function log(actor,tool,args,decision,detail){
+  seq++;
+  const ts=new Date().toISOString().slice(11,19);
+  const body=seq+ts+actor+tool+JSON.stringify(args)+decision+lastHash;
+  const h=fnv(body); lastHash=h;
+  audit.unshift({seq,ts,actor,tool,decision,detail,h});
+  drawAudit();
+}
+function drawAudit(){
+  el("acount").textContent=audit.length?audit.length+" entries":"";
+  el("audit").innerHTML=audit.length?audit.map(e=>{
+    const cls=e.decision==="allowed"||e.decision==="approved"?"b-ok":
+      e.decision==="held"?"b-hold":e.decision==="throttled"?"b-warn":"b-bad";
+    return `<div class="e"><span class="sq">${String(e.seq).padStart(3,"0")}</span>
+      <span><span class="badge ${cls}">${e.decision}</span> ${esc(e.actor)} · ${esc(e.tool)}
+      <span style="color:var(--dim)"> — ${esc(e.detail)}</span></span>
+      <span class="hs">${e.h}</span></div>`;}).join(""):'<p class="empty">No entries yet.</p>';
+}
+function drawPending(){
+  el("pcount").textContent=pending.length?pending.length+" waiting":"";
+  el("pending").innerHTML=pending.length?pending.map(p=>
+    `<div class="pend"><div><div class="d">${esc(p.tool)}(${esc(JSON.stringify(p.args))})</div>
+      <div class="r">${esc(p.actor)} · ${esc(p.risk)} risk · held ${p.ts}</div></div>
+      <div class="bt"><button class="ap" data-ap="${p.id}">Approve</button>
+      <button class="dn" data-dn="${p.id}">Deny</button></div></div>`).join(""):
+    '<p class="empty">Nothing waiting.</p>';
+  el("pending").querySelectorAll("[data-ap]").forEach(b=>b.onclick=()=>resolve(+b.dataset.ap,true));
+  el("pending").querySelectorAll("[data-dn]").forEach(b=>b.onclick=()=>resolve(+b.dataset.dn,false));
+}
+function resolve(id,ok){
+  const i=pending.findIndex(p=>p.id===id); if(i<0)return;
+  const p=pending.splice(i,1)[0];
+  if(ok){
+    if(TOOLS[p.tool].money)spent+=Number(p.args.amount||0);
+    log(p.actor,p.tool,p.args,"approved",TOOLS[p.tool].eff(p.args));
+  } else log(p.actor,p.tool,p.args,"rejected","operator denied");
+  drawPending(); drawUsage();
+}
+function drawUsage(){
+  const now=Date.now(); calls=calls.filter(t=>now-t<WINDOW);
+  const pc=calls.length/LIMIT, pb=spent/BUDGET;
+  el("out").querySelectorAll("[data-usage]").forEach(n=>n.remove());
+}
+
+el("reset").onclick=()=>{calls=[];spent=0;pending=[];audit=[];lastHash="genesis";seq=0;
+  drawPipe();drawPending();drawAudit();el("out").innerHTML="";};
+
+el("run").onclick=()=>{
+  const actor=el("role").value, name=el("tool").value, t=TOOLS[name], args=readArgs();
+  const st=["","","","","","",""], lines=[];
+  const now=Date.now(); calls=calls.filter(x=>now-x<WINDOW);
+
+  st[0]="pass";
+  lines.push(["✓",`Resolved <b>${name}</b> from registry — requires <b>${t.scope}</b>, risk tier <b>${t.risk}</b>.`]);
+
+  const scopes=ROLES[actor];
+  if(!scopes.includes(t.scope)){
+    st[1]="block"; for(let i=2;i<7;i++)st[i]="skip";
+    lines.push(["✕",`Role <b>${actor}</b> does not hold <b>${t.scope}</b>. Call denied before execution.`]);
+    render(st,lines,"denied","missing scope "+t.scope);
+    log(actor,name,args,"denied","missing scope "+t.scope); return;
+  }
+  st[1]="pass"; lines.push(["✓",`Role <b>${actor}</b> holds <b>${t.scope}</b>.`]);
+
+  if(calls.length>=LIMIT){
+    st[2]="block"; for(let i=3;i<7;i++)st[i]="skip";
+    const wait=Math.ceil((WINDOW-(now-calls[0]))/1000);
+    lines.push(["✕",`Rate limit reached — <b>${LIMIT}</b> calls in the last 60s. Retry-After: <b>${wait}s</b>.`]);
+    render(st,lines,"throttled","429 rate limited");
+    log(actor,name,args,"throttled",`429 · retry after ${wait}s`); return;
+  }
+  calls.push(now); st[2]="pass";
+  lines.push(["✓",`Rate limit — <b>${calls.length}/${LIMIT}</b> used in the current 60s window.`]);
+
+  st[3]="pass"; lines.push(["✓",`Risk tier <b>${t.risk}</b>` +
+    (t.risk==="high"||t.risk==="critical"?" — human approval required." : " — may proceed unattended.")]);
+
+  if(t.money){
+    const amt=Number(args.amount||0);
+    if(spent+amt>BUDGET){
+      st[4]="block"; st[5]="skip"; st[6]="skip";
+      lines.push(["✕",`Budget ceiling — $${amt} would take session spend to $${spent+amt}, over the $${BUDGET} cap.`]);
+      render(st,lines,"denied","budget ceiling exceeded");
+      log(actor,name,args,"denied",`budget: $${spent+amt} > $${BUDGET}`); return;
+    }
+    st[4]="pass"; lines.push(["✓",`Budget — $${amt} against $${BUDGET - spent} remaining.`]);
+  } else { st[4]="skip"; lines.push(["·",`Budget check not applicable — tool moves no money.`]); }
+
+  if(t.risk==="high"||t.risk==="critical"){
+    st[5]="hold"; st[6]="skip";
+    const id=Date.now()+Math.random();
+    pending.push({id,actor,tool:name,args,risk:t.risk,ts:new Date().toTimeString().slice(0,8)});
+    lines.push(["⏸",`Suspended for human approval. The agent receives a pending handle, not a result.`]);
+    render(st,lines,"held","awaiting operator decision");
+    log(actor,name,args,"held","awaiting operator"); drawPending(); return;
+  }
+  st[5]="skip"; st[6]="pass";
+  lines.push(["✓",`Executed — ${esc(t.eff(args))}`]);
+  render(st,lines,"allowed",t.eff(args));
+  log(actor,name,args,"allowed",t.eff(args));
+};
+
+function render(st,lines,verdict,detail){
+  drawPipe(st);
+  const cls={allowed:"b-ok",denied:"b-bad",throttled:"b-warn",held:"b-hold"}[verdict];
+  const now=Date.now(); calls=calls.filter(x=>now-x<WINDOW);
+  el("out").innerHTML=
+   `<div class="card"><div class="hd"><span>policy decision</span>
+      <span class="badge ${cls}">${verdict}</span></div><div class="bd">`+
+    lines.map(l=>`<div class="ln"><span class="ic">${l[0]}</span><span class="tx">${l[1]}</span></div>`).join("")+
+    `<div style="margin-top:16px" class="meter"><span>rate window</span>
+      <span class="trk"><span class="fil" style="width:${calls.length/LIMIT*100}%;
+        background:${calls.length>=LIMIT?"var(--bad)":"linear-gradient(90deg,#7c3aed,#a78bfa)"}"></span></span>
+      <span>${calls.length}/${LIMIT}</span></div>
+     <div style="margin-top:9px" class="meter"><span>session budget</span>
+      <span class="trk"><span class="fil" style="width:${Math.min(100,spent/BUDGET*100)}%;
+        background:linear-gradient(90deg,#7c3aed,#a78bfa)"></span></span>
+      <span>$${spent}/$${BUDGET}</span></div>
+    </div></div>`;
+}
+</script>
+</body></html>
