@@ -13,25 +13,25 @@ a{color:var(--acc2)}code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,mon
 header{padding:44px 0 30px;border-bottom:1px solid var(--line)}
 .back{font-size:.86rem;text-decoration:none;color:var(--mut)}.back:hover{color:var(--fg)}
 h1{font-size:1.75rem;margin:18px 0 10px;letter-spacing:-.02em;font-weight:660}
-.lede{color:var(--mut);margin:0;font-size:.97rem;max-width:680px}
+.lede{color:var(--mut);margin:0;font-size:.97rem;max-width:690px}
 .notice{margin:24px 0 0;padding:14px 16px;border-radius:9px;font-size:.87rem;
   background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.3);color:#cbbdf0}
 .notice b{color:#e2d8fb}
 main{padding:34px 0 70px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:22px}
-.ctls{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px}
-.ctl label{display:block;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;
+.ctls{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:22px}
+.ctl label{display:block;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;
   color:var(--dim);margin-bottom:10px}
 .ctl label span{color:var(--acc2);font-family:ui-monospace,monospace;letter-spacing:0;text-transform:none}
 input[type=range]{width:100%;accent-color:var(--acc);cursor:pointer}
 select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--fg);
   border-radius:9px;padding:11px 12px;font-size:.9rem;font-family:inherit}
 select:focus{outline:none;border-color:var(--acc)}
-.hint{font-size:.78rem;color:var(--dim);margin-top:7px;line-height:1.5}
-.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:12px;margin-bottom:22px}
+.hint{font-size:.77rem;color:var(--dim);margin-top:7px;line-height:1.5}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(136px,1fr));gap:12px;margin-bottom:22px}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:16px}
-.kpi .v{font:700 1.55rem/1 ui-monospace,monospace;margin-bottom:6px}
-.kpi .k{font-size:.76rem;color:var(--dim);line-height:1.4}
+.kpi .v{font:700 1.5rem/1 ui-monospace,monospace;margin-bottom:6px}
+.kpi .k{font-size:.75rem;color:var(--dim);line-height:1.4}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:22px;overflow:hidden}
 .card .hd{padding:11px 16px;border-bottom:1px solid var(--line);background:var(--panel2);
   font:.74rem/1 ui-monospace,monospace;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;
@@ -44,20 +44,22 @@ th.r,td.r{text-align:right}
 td{padding:11px 8px;border-bottom:1px solid rgba(36,29,58,.5);color:var(--mut)}
 tr:last-child td{border-bottom:0}
 td.nm{font:.82rem/1.4 ui-monospace,monospace;color:#cfc6e4}
-.cbar{width:64px;height:6px;border-radius:4px;background:#221b36;overflow:hidden;display:inline-block;
+td.allin{font-weight:650;color:#e2dcf0}
+.cbar{width:60px;height:6px;border-radius:4px;background:#221b36;overflow:hidden;display:inline-block;
   vertical-align:middle;margin-right:7px}
 .cfil{height:100%;border-radius:4px}
-.badge{font:.69rem/1 ui-monospace,monospace;padding:4px 8px;border-radius:5px;white-space:nowrap}
+.badge{font:.68rem/1 ui-monospace,monospace;padding:4px 8px;border-radius:5px;white-space:nowrap}
 .b-ok{background:rgba(74,222,128,.12);color:var(--ok)}
 .b-info{background:rgba(34,211,238,.11);color:var(--info)}
 .b-warn{background:rgba(251,191,36,.12);color:var(--warn)}
 .b-bad{background:rgba(251,113,133,.13);color:var(--bad)}
-.b-dim{background:rgba(255,255,255,.05);color:var(--dim)}
-.win{outline:1px solid rgba(74,222,128,.45);background:rgba(74,222,128,.05)}
+.b-acc{background:rgba(167,139,250,.16);color:#c4b5fd}
+tr.best td{background:rgba(74,222,128,.06)}
+tr.best td:first-child{box-shadow:inset 2px 0 0 var(--ok)}
 .lesson{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.25);
   border-radius:10px;padding:16px 18px;margin-top:18px;font-size:.89rem;color:#c9bce8}
 .lesson b{color:#e6ddf7}
-.note{font-size:.82rem;color:var(--dim);margin:14px 0 0;line-height:1.6}
+.note{font-size:.81rem;color:var(--dim);margin:14px 0 0;line-height:1.6}
 .expl{margin-top:34px;padding-top:28px;border-top:1px solid var(--line)}
 .expl h2{font-size:1.05rem;margin:0 0 14px;font-weight:620}
 .expl p{color:var(--mut);font-size:.92rem}
@@ -69,13 +71,13 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   <a class="back" href="./index.html">← All projects</a>
   <h1>Multimodal Document Reviewer</h1>
   <p class="lede">OCR is cheap and sometimes wrong. A vision model is accurate and expensive. A
-    human is the most accurate and by far the most expensive. Move the two thresholds and watch
-    cost trade against errors — the whole engineering problem is choosing where they sit.</p>
-  <div class="notice"><b>What's real:</b> the cascade routing, cost model and error projection all
-    compute live from the confidence figures below. The per-field OCR and vision confidences are a
-    fixed sample set standing in for actual model output — running real OCR in a browser isn't
-    possible, and inventing confidences per keystroke would be worse than using a stated sample.
-    Routing logic matches
+    human is the most accurate and by far the most expensive. There is no strategy that wins
+    everywhere — which one is correct depends on what a wrong field costs you. Move the controls
+    and watch the winner change.</p>
+  <div class="notice"><b>What's real:</b> the cascade routing, cost model and error projection
+    compute live. The per-field OCR and vision confidences are a fixed sample set standing in for
+    real model output — running OCR in a browser isn't possible, and regenerating confidences on
+    every keystroke would be less honest than using a stated sample. Routing logic matches
     <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/09-multimodal-doc-reviewer">the repo</a>.</div>
 </div></header>
 
@@ -89,26 +91,31 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
           <option value="clean">Clean 300dpi scan</option>
           <option value="phone" selected>Phone photo, some glare</option>
           <option value="fax">Faxed copy, low contrast</option>
-          <option value="hand">Scan with handwritten annotations</option>
+          <option value="hand">Handwritten annotations</option>
         </select>
-        <p class="hint">Changes the OCR confidence profile. Real intake queues are a mix — the
-          thresholds have to work across all of these, not just the good ones.</p>
+        <p class="hint">Sets the OCR confidence profile. Real intake is a mix — thresholds have to
+          work across all of these.</p>
       </div>
       <div class="ctl">
-        <label for="o">Escalate to vision below <span id="ov">0.90</span></label>
+        <label for="o">Vision if OCR below <span id="ov">0.90</span></label>
         <input type="range" id="o" min="0" max="100" step="1" value="90">
-        <p class="hint">OCR confidence under this sends the field to the vision model.</p>
+        <p class="hint">OCR confidence under this escalates the field to the vision model.</p>
       </div>
       <div class="ctl">
-        <label for="v">Escalate to human below <span id="vv">0.85</span></label>
+        <label for="v">Human if vision below <span id="vv">0.85</span></label>
         <input type="range" id="v" min="0" max="100" step="1" value="85">
-        <p class="hint">Vision confidence under this routes to a person.</p>
+        <p class="hint">The expensive threshold. A human costs roughly 50 vision calls.</p>
+      </div>
+      <div class="ctl">
+        <label for="e">Cost of a wrong field <span id="ev">$40</span></label>
+        <input type="range" id="e" min="1" max="400" step="1" value="40">
+        <p class="hint">What one undetected error costs downstream — rework, a bad payment, a
+          customer call. This number decides everything below.</p>
       </div>
       <div class="ctl">
         <label for="m">Monthly volume <span id="mv">1,000 docs</span></label>
         <input type="range" id="m" min="100" max="50000" step="100" value="1000">
-        <p class="hint">Scales the projection. Threshold choices that look free at 100 documents
-          stop looking free at 50,000.</p>
+        <p class="hint">Choices that look free at 100 documents stop looking free at 50,000.</p>
       </div>
     </div>
   </div>
@@ -121,38 +128,43 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
       <table><thead><tr>
         <th>Field</th><th>OCR</th><th>Vision</th><th>Final</th><th>Route</th><th class="r">cost</th>
       </tr></thead><tbody id="rows"></tbody></table>
-      <div class="lesson" id="lesson"></div>
     </div>
   </div>
 
   <div class="card">
-    <div class="hd"><span>cascade vs the three naive strategies</span><span>per <span id="volx"></span> documents</span></div>
+    <div class="hd"><span>all-in cost per <span id="volx"></span> documents</span>
+      <span id="winner"></span></div>
     <div class="bd">
       <table><thead><tr>
-        <th>Strategy</th><th class="r">cost</th><th class="r">wrong fields</th>
-        <th class="r">human touches</th><th>verdict</th>
+        <th>Strategy</th><th class="r">processing</th><th class="r">wrong fields</th>
+        <th class="r">error cost</th><th class="r">all-in</th><th></th>
       </tr></thead><tbody id="cmp"></tbody></table>
-      <p class="note">Wrong fields is an expectation, not a count: each accepted field contributes
-        its own (1 − confidence). Human review is modelled at 99.5% accurate — better than either
-        model, but not free and not perfect.</p>
+      <div class="lesson" id="lesson"></div>
+      <p class="note">Wrong fields is an expectation, not a count — each accepted field contributes
+        its own (1 − confidence). Human review is modelled at 99.5% accurate: better than either
+        model, not free and not perfect.</p>
     </div>
   </div>
 
   <div class="expl">
     <h2>Reading the trade-off</h2>
-    <p>Push <b>escalate to vision</b> to 1.00 and every field goes to the vision model. Errors drop
-      and cost climbs roughly tenfold. Drop it to 0.00 and you're running OCR alone — nearly free,
-      and on a faxed document about one field in four comes out wrong.</p>
-    <p>Neither extreme is the answer, and the interesting part is that the cascade beats both on
-      the combined measure while only escalating the fields that need it. That's the whole idea:
-      spend the expensive capability where confidence says it's warranted, not uniformly.</p>
-    <p><b>The second threshold matters more than it looks.</b> Human review is roughly fifty times
-      the cost of a vision call. Raising <b>escalate to human</b> a few points can double your
-      operating cost while removing a fraction of a percent of errors. Try 0.85 versus 0.95 on the
-      faxed profile and watch what happens to the monthly figure.</p>
+    <p>Push <b>vision if OCR below</b> to 1.00 and every field goes to the vision model. Errors
+      drop, processing cost climbs roughly tenfold. Drop it to 0.00 and you're running OCR alone —
+      almost free, and on a faxed document about a third of the fields come out wrong.</p>
+    <p><b>The cascade is frequently not the cheapest option, and that's the honest finding.</b> On
+      the faxed profile at default thresholds it costs many times what running vision on every
+      field would, because a few fields fall through to human review and a human costs about fifty
+      vision calls. What a cascade buys is accuracy spent where it's needed — not a smaller
+      processing bill. Whether that trade is worth making depends on the error cost, which is a
+      business number, not an engineering one.</p>
+    <p>That's why the comparison includes it. Set <b>cost of a wrong field</b> to $5 and OCR-only
+      usually wins outright — the errors are cheaper than avoiding them. Set it to $300 and
+      human-on-everything starts to look reasonable. The cascade wins the middle of that range,
+      which is where most real document workflows sit, but you should be able to say which regime
+      you're in before choosing.</p>
     <p><b>Worth noticing:</b> <code>signature_block</code> is the weakest field on every profile.
-      Some fields are hard for reasons no threshold fixes — the right response there is a schema
-      that marks the field optional, or a different capture process, not a more expensive model.</p>
+      Some fields are hard for reasons no threshold fixes — the right response is a schema that
+      marks the field optional, or a different capture process, not a more expensive model.</p>
   </div>
 </div></main>
 
@@ -180,19 +192,23 @@ const PROFILES={
 };
 const C_OCR=0.004, C_VIS=0.038, C_HUM=1.85, HUM_ACC=0.995;
 const el=id=>document.getElementById(id);
-const money=n=>"$"+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const money=n=>"$"+n.toLocaleString(undefined,
+  {minimumFractionDigits:n<1?3:2,maximumFractionDigits:n<1?3:2});
+const whole=n=>"$"+Math.round(n).toLocaleString();
 
 function run(){
   const p=PROFILES[el("q").value];
-  const oth=+el("o").value/100, vth=+el("v").value/100, vol=+el("m").value;
+  const oth=+el("o").value/100, vth=+el("v").value/100;
+  const ecost=+el("e").value, vol=+el("m").value;
   el("ov").textContent=oth.toFixed(2);
   el("vv").textContent=vth.toFixed(2);
+  el("ev").textContent="$"+ecost;
   el("mv").textContent=vol.toLocaleString()+" docs";
   el("volx").textContent=vol.toLocaleString();
   el("qlabel").textContent=p.label;
 
-  let cost=C_OCR, err=0, nOcr=0, nVis=0, nHum=0;
-  const rows=FIELDS.map((f,i)=>{
+  let ops=C_OCR, err=0, nOcr=0, nVis=0, nHum=0;
+  el("rows").innerHTML=FIELDS.map((f,i)=>{
     const o=p.ocr[i], v=p.vis[i];
     let route,cls,final,fc=0,visShown="—";
     if(o>=oth){route="ocr";cls="b-ok";final=o;nOcr++;}
@@ -201,7 +217,7 @@ function run(){
       if(v>=vth){route="vision";cls="b-info";final=v;nVis++;}
       else{route="human";cls="b-warn";final=HUM_ACC;fc+=C_HUM;nHum++;}
     }
-    cost+=fc; err+=1-final;
+    ops+=fc; err+=1-final;
     return `<tr>
       <td class="nm">${f}</td>
       <td><span class="cbar"><span class="cfil" style="width:${o*100}%;background:${
@@ -212,62 +228,72 @@ function run(){
       <td><span class="badge ${cls}">${route}</span></td>
       <td class="r mono" style="font-size:.78rem">${fc?money(fc):"—"}</td></tr>`;
   }).join("");
-  el("rows").innerHTML=rows;
+
+  const sum=a=>a.reduce((s,x)=>s+(1-x),0);
+  const ocrErr=sum(p.ocr);
+  const avoided=ocrErr-err;
+  const perAvoided=avoided>0?(ops-C_OCR)/avoided:null;
 
   el("kpis").innerHTML=
-    kpi(nOcr,"accepted from OCR","var(--ok)")+
-    kpi(nVis,"resolved by vision","var(--info)")+
-    kpi(nHum,"sent to a human","var(--warn)")+
-    kpi(money(cost),"cost per document","var(--fg)")+
+    kpi(nOcr+" / "+nVis+" / "+nHum,"OCR / vision / human","var(--fg)")+
+    kpi(money(ops),"processing per document","var(--fg)")+
     kpi(err.toFixed(2),"expected wrong fields per doc",
-       err<0.05?"var(--ok)":err<0.2?"var(--warn)":"var(--bad)");
+       err<0.05?"var(--ok)":err<0.2?"var(--warn)":"var(--bad)")+
+    kpi(perAvoided===null?"—":money(perAvoided),"spent per error avoided",
+       perAvoided===null?"var(--dim)":perAvoided<=ecost?"var(--ok)":"var(--bad)")+
+    kpi(whole((ops+err*ecost)*vol),"all-in monthly","var(--acc2)");
 
-  /* strategy comparison */
-  const sum=a=>a.reduce((s,x)=>s+(1-x),0);
   const strategies=[
-    {n:"OCR only",           c:C_OCR,                       e:sum(p.ocr), h:0,
-     w:"cheapest, and wrong often enough to matter"},
-    {n:"Vision on everything",c:C_OCR+FIELDS.length*C_VIS,  e:sum(p.vis), h:0,
-     w:"accurate, but pays premium price on fields OCR already had"},
-    {n:"Human on everything", c:C_OCR+FIELDS.length*C_HUM,  e:FIELDS.length*(1-HUM_ACC), h:FIELDS.length,
+    {n:"OCR only",            ops:C_OCR,                     e:ocrErr,
+     w:"no escalation at all"},
+    {n:"Vision on everything",ops:C_OCR+FIELDS.length*C_VIS, e:sum(p.vis),
+     w:"uniform premium, no human loop"},
+    {n:"Human on everything", ops:C_OCR+FIELDS.length*C_HUM, e:FIELDS.length*(1-HUM_ACC),
      w:"most accurate, does not scale"},
-    {n:"Confidence cascade",  c:cost,                        e:err, h:nHum,
-     w:"escalates only where confidence is low", best:true}
-  ];
-  el("cmp").innerHTML=strategies.map(s=>`<tr class="${s.best?"win":""}">
-    <td class="nm">${s.n}${s.best?' <span class="badge b-ok">this demo</span>':""}</td>
-    <td class="r mono">${money(s.c*vol)}</td>
-    <td class="r mono">${Math.round(s.e*vol).toLocaleString()}</td>
-    <td class="r mono">${Math.round(s.h*vol).toLocaleString()}</td>
-    <td style="font-size:.83rem">${s.w}</td></tr>`).join("");
+    {n:"Confidence cascade",  ops:ops,                       e:err,
+     w:"escalates only where confidence is low", me:true}
+  ].map(s=>({...s,allIn:(s.ops+s.e*ecost)*vol}));
+  const best=strategies.reduce((a,b)=>b.allIn<a.allIn?b:a);
 
-  /* contextual lesson */
-  const ocrOnly=sum(p.ocr), visAll=C_OCR+FIELDS.length*C_VIS;
+  el("winner").innerHTML=`<span class="badge ${best.me?"b-ok":"b-warn"}">cheapest: ${best.n}</span>`;
+  el("cmp").innerHTML=strategies.map(s=>`<tr class="${s===best?"best":""}">
+    <td class="nm">${s.n}${s.me?' <span class="badge b-acc">this demo</span>':""}</td>
+    <td class="r mono">${whole(s.ops*vol)}</td>
+    <td class="r mono">${Math.round(s.e*vol).toLocaleString()}</td>
+    <td class="r mono">${whole(s.e*ecost*vol)}</td>
+    <td class="r mono allin">${whole(s.allIn)}</td>
+    <td>${s===best?'<span class="badge b-ok">best here</span>':
+      `<span style="font-size:.8rem;color:var(--dim)">+${whole(s.allIn-best.allIn)}</span>`}</td>
+    </tr>`).join("");
+
+  const cascade=strategies.find(s=>s.me);
+  const gap=cascade.allIn-best.allIn;
   let msg;
-  if(nHum===0&&nVis===0)
-    msg=`<b>Nothing is escalating.</b> Every field cleared the OCR threshold, so you're running
-      OCR alone — ${money(cost*vol)} a month, with about
-      ${Math.round(ocrOnly*vol).toLocaleString()} wrong fields. Raise the vision threshold until
-      the weak fields start routing.`;
-  else if(nHum>=5)
-    msg=`<b>${nHum} of ${FIELDS.length} fields are going to a person.</b> At ${money(C_HUM)} each
-      that's ${money(nHum*C_HUM*vol)} of human review a month before anything else. Human review
-      is about ${Math.round(C_HUM/C_VIS)}× the cost of a vision call — check whether lowering the
-      human threshold a few points costs you any real accuracy.`;
-  else if(nVis===0)
-    msg=`<b>Vision is never winning a field here.</b> Everything that fails OCR also fails the
-      vision threshold and goes straight to a human, which makes the vision call pure overhead.
-      Either lower the human threshold or drop the vision stage for this profile.`;
+  if(best.me)
+    msg=`<b>The cascade wins at these settings.</b> ${nOcr} fields cleared on cheap OCR, ${nVis}
+      needed vision, ${nHum} needed a person — ${whole(cascade.allIn)} all-in against
+      ${whole(strategies[0].allIn)} for OCR alone and ${whole(strategies[1].allIn)} for vision on
+      everything. Drag the error cost down towards $5 and watch that stop being true.`;
+  else if(best.n==="OCR only")
+    msg=`<b>At ${money(ecost)} an error, OCR alone is cheaper than the cascade by
+      ${whole(gap)}.</b> Errors here are cheaper than the machinery required to avoid them. That's
+      a real answer, not a broken configuration — if your errors genuinely cost this little,
+      escalation is over-engineering.`;
+  else if(best.n==="Human on everything")
+    msg=`<b>At ${money(ecost)} an error, sending everything to a human beats the cascade by
+      ${whole(gap)}.</b> When errors are this expensive, accuracy dominates and the cheap paths
+      stop paying for themselves. Worth sanity-checking whether an error really costs this much
+      before acting on it.`;
   else
-    msg=`<b>The cascade is doing its job.</b> ${nOcr} fields cleared on cheap OCR, ${nVis} needed
-      the vision model, ${nHum} needed a person. That's ${money(cost*vol)} a month against
-      ${money(visAll*vol)} for running vision on everything — and with fewer expected errors than
-      OCR alone. Now try the faxed profile without touching the sliders.`;
+    msg=`<b>Running vision on everything beats the cascade by ${whole(gap)} here.</b> The cascade
+      is routing ${nHum} field${nHum===1?"":"s"} to a human at ${money(C_HUM)} each, which
+      outweighs what it saves by skipping vision elsewhere. Lower the human threshold, or accept
+      that on this document quality the cascade buys accuracy rather than savings.`;
   el("lesson").innerHTML=msg;
 }
 function kpi(v,k,c){return `<div class="kpi"><div class="v" style="color:${c}">${v}</div>
   <div class="k">${k}</div></div>`;}
-["q","o","v","m"].forEach(id=>el(id).addEventListener("input",run));
+["q","o","v","e","m"].forEach(id=>el(id).addEventListener("input",run));
 run();
 </script>
 </body></html>
