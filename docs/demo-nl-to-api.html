@@ -1,0 +1,352 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Natural Language to API — live demo</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050409;--panel:#0d0a18;--panel2:#120e20;--line:#241d3a;
+  --fg:#ece9f5;--mut:#9289ad;--dim:#65597f;--acc:#7c3aed;--acc2:#a78bfa;
+  --ok:#4ade80;--warn:#fbbf24;--bad:#fb7185;--info:#22d3ee}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:15px/1.65 -apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+a{color:var(--acc2)}code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+header{padding:44px 0 30px;border-bottom:1px solid var(--line)}
+.back{font-size:.86rem;text-decoration:none;color:var(--mut)}.back:hover{color:var(--fg)}
+h1{font-size:1.75rem;margin:18px 0 10px;letter-spacing:-.02em;font-weight:660}
+.lede{color:var(--mut);margin:0;font-size:.97rem;max-width:680px}
+.notice{margin:24px 0 0;padding:14px 16px;border-radius:9px;font-size:.87rem;
+  background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.3);color:#cbbdf0}
+.notice b{color:#e2d8fb}
+main{padding:34px 0 70px}
+.fl{display:block;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:0 0 9px}
+.ask{display:flex;gap:9px}
+input[type=text]{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--fg);
+  border-radius:9px;padding:13px 15px;font-size:.95rem;font-family:inherit}
+input:focus{outline:none;border-color:var(--acc)}
+button{font-family:inherit;cursor:pointer;border-radius:9px;font-weight:560}
+.go{background:var(--acc);color:#fff;border:0;padding:0 22px;font-size:.92rem}.go:hover{background:#8b5cf6}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0 0}
+.chip{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--mut);
+  border-radius:999px;padding:6px 12px;font-size:.81rem;cursor:pointer}
+.chip:hover{border-color:var(--acc);color:var(--fg)}
+.pipe{display:flex;margin:28px 0 0;overflow-x:auto;padding-bottom:6px}
+.stg{flex:1;min-width:108px;text-align:center;position:relative;padding:0 4px}
+.stg .box{border:1px solid var(--line);border-radius:10px;padding:13px 8px;background:var(--panel);transition:.25s}
+.stg .n{font:700 .68rem/1 ui-monospace,monospace;color:var(--dim);display:block;margin-bottom:7px}
+.stg .t{font-size:.75rem;line-height:1.35;color:var(--mut)}
+.stg.llm .box{border-style:dashed}
+.stg.pass .box{border-color:rgba(74,222,128,.5);background:rgba(74,222,128,.07)}
+.stg.pass .t,.stg.pass .n{color:var(--ok)}
+.stg.block .box{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.09)}
+.stg.block .t,.stg.block .n{color:var(--bad)}
+.stg.hold .box{border-color:rgba(167,139,250,.55);background:rgba(167,139,250,.12)}
+.stg.hold .t,.stg.hold .n{color:#c4b5fd}
+.stg.skip .box{opacity:.4}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-top:22px;overflow:hidden}
+.card .hd{padding:11px 16px;border-bottom:1px solid var(--line);background:var(--panel2);
+  font:.74rem/1 ui-monospace,monospace;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;
+  display:flex;justify-content:space-between;align-items:center}
+.card .bd{padding:16px}
+.step{padding:13px 0;border-bottom:1px solid rgba(36,29,58,.55)}
+.step:last-child{border-bottom:0}
+.step .h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.step .mth{font:700 .7rem/1 ui-monospace,monospace;padding:4px 7px;border-radius:4px}
+.m-get{background:rgba(34,211,238,.13);color:var(--info)}
+.m-patch{background:rgba(251,191,36,.14);color:var(--warn)}
+.m-post{background:rgba(167,139,250,.16);color:#c4b5fd}
+.step .pt{font:.85rem/1 ui-monospace,monospace;color:#d5cdea}
+.step .dep{font-size:.78rem;color:var(--dim);margin-top:7px}
+.step .prm{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
+.p{font:.74rem/1 ui-monospace,monospace;padding:5px 8px;border-radius:5px;
+  border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.07);color:var(--ok)}
+.p.err{border-color:rgba(251,113,133,.4);background:rgba(251,113,133,.09);color:var(--bad)}
+.badge{font:.68rem/1 ui-monospace,monospace;padding:4px 8px;border-radius:5px;white-space:nowrap}
+.b-ok{background:rgba(74,222,128,.12);color:var(--ok)}
+.b-bad{background:rgba(251,113,133,.13);color:var(--bad)}
+.b-hold{background:rgba(167,139,250,.16);color:#c4b5fd}
+.b-warn{background:rgba(251,191,36,.12);color:var(--warn)}
+.b-info{background:rgba(34,211,238,.11);color:var(--info)}
+.diff{font:.83rem/1.7 ui-monospace,monospace;background:#08060f;border:1px solid var(--line);
+  border-radius:8px;padding:13px 15px;margin-top:11px}
+.diff .rm{color:var(--bad)}.diff .ad{color:var(--ok)}
+.ln{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid rgba(36,29,58,.55);font-size:.87rem}
+.ln:last-child{border-bottom:0}
+.ln .ic{flex-shrink:0;width:16px;font-family:ui-monospace,monospace}
+.ln .tx{color:var(--mut)}.ln .tx b{color:var(--fg);font-weight:600}
+.cf{display:flex;gap:9px;margin-top:15px}
+.ap{background:rgba(74,222,128,.14);border:1px solid rgba(74,222,128,.4);color:var(--ok);padding:9px 18px;font-size:.85rem}
+.dn{background:transparent;border:1px solid var(--line);color:var(--mut);padding:9px 18px;font-size:.85rem}
+.spec{font:.79rem/1.75 ui-monospace,monospace;color:var(--mut)}
+.spec .e{padding:6px 0;border-bottom:1px solid rgba(36,29,58,.45)}
+.spec .e:last-child{border-bottom:0}
+.note{font-size:.82rem;color:var(--dim);margin:13px 0 0;line-height:1.6}
+.expl{margin-top:34px;padding-top:28px;border-top:1px solid var(--line)}
+.expl h2{font-size:1.05rem;margin:0 0 14px;font-weight:620}
+.expl ol{margin:0;padding-left:20px;color:var(--mut);font-size:.9rem}
+.expl li{margin-bottom:9px}.expl b{color:var(--fg);font-weight:600}
+footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+</style></head><body>
+
+<header><div class="wrap">
+  <a class="back" href="./index.html">← All projects</a>
+  <h1>Natural Language to API Assistant</h1>
+  <p class="lede">Type a request against the sample OpenAPI schema below. The planner resolves which
+    endpoints are needed and in what order, validates every parameter against the spec, and
+    dry-runs anything that writes before it commits.</p>
+  <div class="notice"><b>Where the LLM sits:</b> exactly one stage — turning your sentence into a
+    structured intent. In this demo that stage is pattern-matched so the page runs offline; it's
+    drawn with a dashed border below. Every stage after it — endpoint selection, dependency
+    planning, schema validation, write classification, dry-run — is deterministic and is the same
+    logic as
+    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/08-nl-to-api-assistant">the repo</a>.
+    That boundary is the design: the model proposes, the schema disposes.</div>
+</div></header>
+
+<main><div class="wrap">
+  <span class="fl">Your request</span>
+  <div class="ask">
+    <input type="text" id="q" placeholder="e.g. Move the Acme order to express shipping" autocomplete="off">
+    <button class="go" id="go">Plan</button>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div class="pipe" id="pipe"></div>
+  <div id="out"></div>
+
+  <div class="card">
+    <div class="hd">available schema — openapi 3.1</div>
+    <div class="bd"><div class="spec" id="spec"></div>
+      <p class="note">The planner can only compose calls from these endpoints. A request that
+        can't be satisfied by the schema is refused rather than approximated — an assistant that
+        invents an endpoint is worse than one that says no.</p></div>
+  </div>
+
+  <div class="expl">
+    <h2>The pipeline, stage by stage</h2>
+    <ol>
+      <li><b>Intent.</b> The one model-dependent step: free text becomes a structured intent plus
+        extracted entities. Isolating it to a single stage means everything downstream is testable
+        without a model in the loop — which is why the test suite runs offline.</li>
+      <li><b>Endpoint selection.</b> The intent is matched against operations in the schema. No
+        match means a clean refusal; the planner never fabricates a path.</li>
+      <li><b>Dependency planning.</b> Most useful requests need several calls where later ones
+        depend on earlier results. The planner emits an ordered plan with explicit references —
+        <code>$1.id</code> means "the id from step 1" — so the data flow is inspectable before
+        anything runs.</li>
+      <li><b>Validation.</b> Every parameter is checked against the spec: type, required, enum
+        membership, numeric bounds. A plan that wouldn't survive the API is caught here rather
+        than producing a 400 halfway through a sequence.</li>
+      <li><b>Write classification.</b> Operations are split by whether they mutate. Reads proceed;
+        writes are held.</li>
+      <li><b>Dry-run.</b> Writes are simulated against current state and the result shown as a diff.
+        You see what <em>would</em> change before agreeing to change it.</li>
+      <li><b>Confirm.</b> Nothing that writes executes without an explicit yes. The confirmation
+        shows the concrete diff, not a restatement of the original request.</li>
+    </ol>
+  </div>
+</div></main>
+
+<footer><div class="wrap">
+  Gaurav Warke · <a href="https://github.com/GauravWarke/rag-and-agent-systems">source on GitHub</a>
+</div></footer>
+
+<script>
+const SPEC=[
+ {m:"GET",p:"/customers",w:0,params:{name:{t:"string"},limit:{t:"integer",max:100,def:20}}},
+ {m:"GET",p:"/orders",w:0,params:{customer:{t:"integer"},status:{t:"enum",vals:["open","shipped","cancelled"]}}},
+ {m:"GET",p:"/invoices",w:0,params:{customer:{t:"integer"},unpaid:{t:"boolean"}}},
+ {m:"PATCH",p:"/orders/{id}",w:1,params:{id:{t:"integer",req:1},
+    shipping:{t:"enum",vals:["standard","express","overnight"]},notes:{t:"string"}}},
+ {m:"POST",p:"/orders/{id}/cancel",w:1,params:{id:{t:"integer",req:1},reason:{t:"string",req:1}}},
+ {m:"POST",p:"/refunds",w:1,params:{order_id:{t:"integer",req:1},
+    amount:{t:"number",req:1,max:1000},reason:{t:"string",req:1}}}
+];
+const CUST=[{id:8842,name:"Acme Industries"},{id:8851,name:"Globex Corp"},
+  {id:8863,name:"Initech"},{id:8870,name:"Umbra Systems"}];
+const ORD=[{id:5517,customer:8842,status:"open",shipping:"standard",total:1240},
+  {id:5520,customer:8851,status:"open",shipping:"standard",total:860},
+  {id:5498,customer:8842,status:"shipped",shipping:"express",total:410},
+  {id:5531,customer:8863,status:"open",shipping:"standard",total:2300}];
+const INV=[{id:9001,customer:8842,unpaid:true,amount:1240},
+  {id:9002,customer:8842,unpaid:false,amount:410},
+  {id:9003,customer:8851,unpaid:true,amount:860}];
+const STAGES=[["intent","llm"],["endpoint",""],["plan",""],["validate",""],
+  ["read/write",""],["dry-run",""],["confirm",""]];
+const el=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+el("spec").innerHTML=SPEC.map(s=>{
+  const ps=Object.entries(s.params).map(([k,v])=>{
+    let d=k+":"+(v.t==="enum"?v.vals.join("|"):v.t);
+    if(v.req)d+="!"; if(v.max!=null)d+=" ≤"+v.max; return d;}).join(", ");
+  return `<div class="e"><span class="badge ${s.w?"b-warn":"b-info"}">${s.m}</span>
+    ${esc(s.p)} <span style="color:var(--dim)">( ${esc(ps)} )</span></div>`;}).join("");
+
+function drawPipe(st){
+  el("pipe").innerHTML=STAGES.map((s,i)=>
+    `<div class="stg ${s[1]} ${st&&st[i]?st[i]:""}"><div class="box">
+      <span class="n">${String(i+1).padStart(2,"0")}</span><span class="t">${s[0]}</span>
+    </div></div>`).join("");
+}
+drawPipe();
+
+const EX=["Move the Acme order to express shipping","Cancel Globex's open order",
+  "Show unpaid invoices for Acme","Refund 2000 on order 5517","Delete all customers"];
+el("chips").innerHTML=EX.map(e=>`<button class="chip">${esc(e)}</button>`).join("");
+el("chips").onclick=e=>{if(e.target.classList.contains("chip")){el("q").value=e.target.textContent;run();}};
+el("go").onclick=run; el("q").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
+
+/* stage 1 — LLM in production, pattern-matched here */
+function intent(q){
+  const s=q.toLowerCase();
+  const cust=CUST.find(c=>s.includes(c.name.toLowerCase().split(" ")[0]));
+  const nums=(q.match(/\d+/g)||[]).map(Number);
+  const ship=["standard","express","overnight"].find(x=>s.includes(x));
+  if(/refund/.test(s))
+    return {k:"refund",cust,order:nums.find(n=>n>4000&&n<9000),amount:nums.find(n=>n<4000)};
+  if(/cancel/.test(s))   return {k:"cancel",cust};
+  if(/invoice|unpaid|owe/.test(s)) return {k:"invoices",cust};
+  if(/ship|express|overnight|delivery/.test(s)) return {k:"shipping",cust,ship:ship||"express"};
+  return {k:null};
+}
+function validate(op,args){
+  const out=[];
+  for(const [k,d] of Object.entries(op.params)){
+    const v=args[k];
+    if(v===undefined||v===""||v===null){
+      out.push({k,v:"—",ok:!d.req,msg:d.req?"required, missing":"omitted"});continue;
+    }
+    if(typeof v==="string"&&v.startsWith("$")){out.push({k,v,ok:true,msg:"from earlier step"});continue;}
+    if(d.t==="enum"&&!d.vals.includes(String(v))){out.push({k,v,ok:false,msg:"not in "+d.vals.join("|")});continue;}
+    if((d.t==="integer"||d.t==="number")&&isNaN(Number(v))){out.push({k,v,ok:false,msg:"not a "+d.t});continue;}
+    if(d.max!=null&&Number(v)>d.max){out.push({k,v,ok:false,msg:"exceeds max "+d.max});continue;}
+    out.push({k,v,ok:true,msg:d.t});
+  }
+  return out;
+}
+const find=p=>SPEC.find(s=>s.p===p);
+
+function run(){
+  const q=el("q").value.trim(); if(!q){el("out").innerHTML="";drawPipe();return;}
+  const st=["","","","","","",""], I=intent(q);
+  let html="";
+
+  if(!I.k){
+    st[0]="pass"; st[1]="block"; for(let i=2;i<7;i++)st[i]="skip";
+    drawPipe(st);
+    el("out").innerHTML=card("planner result",
+      `<div class="ln"><span class="ic">✓</span><span class="tx">Intent parsed, but no operation in the schema matches it.</span></div>
+       <div class="ln"><span class="ic">✕</span><span class="tx"><b>Request refused.</b> The schema exposes no endpoint for this action. The planner does not approximate with a near-miss endpoint or invent a path.</span></div>`,
+      '<span class="badge b-bad">no matching operation</span>');
+    return;
+  }
+  st[0]="pass"; st[1]="pass";
+
+  let steps=[];
+  const c=I.cust;
+  if(I.k==="shipping"){
+    steps=[{op:find("/customers"),args:{name:c?c.name.split(" ")[0]:"—"},lbl:"resolve customer"},
+      {op:find("/orders"),args:{customer:"$1.id",status:"open"},lbl:"find the open order"},
+      {op:find("/orders/{id}"),args:{id:"$2.id",shipping:I.ship},lbl:"apply shipping change"}];
+  } else if(I.k==="cancel"){
+    steps=[{op:find("/customers"),args:{name:c?c.name.split(" ")[0]:"—"},lbl:"resolve customer"},
+      {op:find("/orders"),args:{customer:"$1.id",status:"open"},lbl:"find the open order"},
+      {op:find("/orders/{id}/cancel"),args:{id:"$2.id"},lbl:"cancel it"}];
+  } else if(I.k==="invoices"){
+    steps=[{op:find("/customers"),args:{name:c?c.name.split(" ")[0]:"—"},lbl:"resolve customer"},
+      {op:find("/invoices"),args:{customer:"$1.id",unpaid:true},lbl:"list unpaid invoices"}];
+  } else if(I.k==="refund"){
+    steps=[{op:find("/refunds"),args:{order_id:I.order,amount:I.amount},lbl:"issue refund"}];
+  }
+  st[2]="pass";
+
+  const vals=steps.map(s=>validate(s.op,s.args));
+  const bad=vals.some(v=>v.some(x=>!x.ok));
+  const writes=steps.filter(s=>s.op.w).length;
+
+  html+=card("execution plan",steps.map((s,i)=>{
+    const v=vals[i];
+    return `<div class="step"><div class="h">
+      <span class="mth m-${s.op.m.toLowerCase()}">${s.op.m}</span>
+      <span class="pt">${esc(s.op.p)}</span>
+      <span class="badge ${s.op.w?"b-warn":"b-info"}">${s.op.w?"write":"read"}</span></div>
+      <div class="dep">step ${i+1} · ${esc(s.lbl)}</div>
+      <div class="prm">${v.map(x=>
+        `<span class="p ${x.ok?"":"err"}">${esc(x.k)}=${esc(x.v)} · ${esc(x.msg)}</span>`).join("")}</div>
+      </div>`;}).join(""),
+    `<span class="badge ${bad?"b-bad":"b-ok"}">${steps.length} calls · ${writes} write${writes===1?"":"s"}</span>`);
+
+  if(bad){
+    st[3]="block"; for(let i=4;i<7;i++)st[i]="skip"; drawPipe(st);
+    const errs=[]; vals.forEach((v,i)=>v.filter(x=>!x.ok).forEach(x=>
+      errs.push(`Step ${i+1} · <b>${esc(x.k)}</b> — ${esc(x.msg)}.`)));
+    html+=card("validation",
+      errs.map(e=>`<div class="ln"><span class="ic">✕</span><span class="tx">${e}</span></div>`).join("")+
+      `<div class="ln"><span class="ic">⛔</span><span class="tx"><b>Plan halted before execution.</b>
+        Caught against the schema rather than by sending the request and reading a 400 back —
+        which matters most in a multi-step plan, where a late failure can leave earlier writes
+        already applied.</span></div>`,'<span class="badge b-bad">failed</span>');
+    el("out").innerHTML=html; return;
+  }
+  st[3]="pass"; st[4]="pass";
+
+  if(!writes){
+    st[5]="skip"; st[6]="skip"; drawPipe(st);
+    let rows="";
+    if(I.k==="invoices"&&c){
+      const r=INV.filter(x=>x.customer===c.id&&x.unpaid);
+      rows=r.map(x=>`<div class="ln"><span class="ic">·</span><span class="tx">
+        invoice <b>${x.id}</b> — $${x.amount} outstanding</span></div>`).join("")||
+        `<div class="ln"><span class="ic">·</span><span class="tx">No unpaid invoices.</span></div>`;
+    }
+    html+=card("executed",
+      `<div class="ln"><span class="ic">✓</span><span class="tx">Read-only plan — no confirmation
+        gate needed, so it ran straight through.</span></div>`+rows,
+      '<span class="badge b-ok">complete</span>');
+    el("out").innerHTML=html; return;
+  }
+
+  st[5]="pass"; st[6]="hold"; drawPipe(st);
+  let diff="";
+  if(I.k==="shipping"&&c){
+    const o=ORD.find(x=>x.customer===c.id&&x.status==="open");
+    if(o)diff=`<div class="diff">order ${o.id}<br>
+      <span class="rm">- shipping: "${o.shipping}"</span><br>
+      <span class="ad">+ shipping: "${I.ship}"</span><br>
+      <span style="color:var(--dim)">  estimated cost delta: +$14.00</span></div>`;
+  } else if(I.k==="cancel"&&c){
+    const o=ORD.find(x=>x.customer===c.id&&x.status==="open");
+    if(o)diff=`<div class="diff">order ${o.id}<br>
+      <span class="rm">- status: "open"</span><br>
+      <span class="ad">+ status: "cancelled"</span><br>
+      <span style="color:var(--dim)">  refund triggered: $${o.total}.00 · 1 fulfilment cancelled</span></div>`;
+  } else if(I.k==="refund"){
+    diff=`<div class="diff">order ${I.order}<br>
+      <span class="ad">+ refund: $${I.amount}.00</span><br>
+      <span style="color:var(--dim)">  irreversible once submitted</span></div>`;
+  }
+  html+=card("dry-run",
+    `<div class="ln"><span class="ic">◷</span><span class="tx">Simulated against current state.
+      Nothing has been written.</span></div>`+diff+
+    `<div class="cf"><button class="ap" id="ok">Confirm and execute</button>
+      <button class="dn" id="no">Discard</button></div>
+     <p class="note">The confirmation shows the concrete diff rather than repeating your original
+       sentence back. If the planner misread the request, this is where you'd see it — and the
+       misreading would cost nothing.</p>`,
+    '<span class="badge b-hold">awaiting confirmation</span>');
+  el("out").innerHTML=html;
+  el("ok").onclick=()=>{drawPipe(["pass","pass","pass","pass","pass","pass","pass"]);
+    el("out").innerHTML=html.replace(/awaiting confirmation/,"executed")+
+      card("executed",`<div class="ln"><span class="ic">✓</span><span class="tx">
+        <b>${writes} write${writes===1?"":"s"} applied.</b> Request id <code>req_8f2a41c</code> ·
+        logged for audit.</span></div>`,'<span class="badge b-ok">complete</span>');};
+  el("no").onclick=()=>{drawPipe(["pass","pass","pass","pass","pass","pass","block"]);
+    el("out").innerHTML=html.replace(/awaiting confirmation/,"discarded")+
+      card("discarded",`<div class="ln"><span class="ic">✕</span><span class="tx">
+        Plan discarded. Nothing was written.</span></div>`,'<span class="badge b-bad">discarded</span>');};
+}
+function card(h,b,badge){return `<div class="card"><div class="hd"><span>${h}</span>
+  ${badge||""}</div><div class="bd">${b}</div></div>`;}
+el("q").value="Move the Acme order to express shipping"; run();
+</script>
+</body></html>
