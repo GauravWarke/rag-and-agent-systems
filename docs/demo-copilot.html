@@ -11,17 +11,14 @@ body{margin:0;background:var(--bg);color:var(--fg);
 .wrap{max-width:900px;margin:0 auto;padding:0 24px}
 a{color:var(--acc2)}
 code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-
 header{padding:44px 0 30px;border-bottom:1px solid var(--line)}
 .back{font-size:.86rem;text-decoration:none;color:var(--mut)}
 .back:hover{color:var(--fg)}
 h1{font-size:1.75rem;margin:18px 0 10px;letter-spacing:-.02em;font-weight:660}
 .lede{color:var(--mut);margin:0;font-size:.97rem;max-width:660px}
-
 .notice{margin:24px 0 0;padding:14px 16px;border-radius:9px;font-size:.87rem;
   background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.3);color:#cbbdf0}
 .notice b{color:#e2d8fb}
-
 main{padding:34px 0 70px}
 label.fl{display:block;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;
   color:var(--dim);margin-bottom:9px}
@@ -32,23 +29,19 @@ input[type=text]:focus{outline:none;border-color:var(--acc)}
 button.go{background:var(--acc);color:#fff;border:0;border-radius:9px;padding:0 22px;
   font-size:.92rem;font-weight:570;cursor:pointer;font-family:inherit}
 button.go:hover{background:#8b5cf6}
-
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0 0}
 .chip{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--mut);
   border-radius:999px;padding:6px 12px;font-size:.81rem;cursor:pointer;font-family:inherit}
 .chip:hover{border-color:var(--acc);color:var(--fg)}
-
 .strat{display:flex;align-items:center;gap:8px;margin:22px 0 0;flex-wrap:wrap}
 .strat .lbl{font-size:.8rem;color:var(--dim);margin-right:4px}
 .sbtn{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:7px;
   padding:7px 13px;font-size:.82rem;cursor:pointer;font-family:inherit}
 .sbtn.on{background:rgba(124,58,237,.18);border-color:var(--acc);color:#d9cdf7}
-
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-top:22px;overflow:hidden}
 .card .hd{padding:11px 16px;border-bottom:1px solid var(--line);background:var(--panel2);
   font:.75rem/1 ui-monospace,monospace;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
 .card .bd{padding:18px 16px}
-
 .answer{font-size:1rem;line-height:1.72;margin:0}
 .refusal{color:var(--warn);font-size:.97rem;margin:0}
 .cites{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
@@ -60,7 +53,6 @@ button.go:hover{background:#8b5cf6}
 .src.show{display:block}
 .src .sh{font:.72rem/1 ui-monospace,monospace;color:var(--dim);margin-bottom:8px;display:block}
 mark{background:rgba(124,58,237,.35);color:#fff;border-radius:2px;padding:0 2px}
-
 .mrow{display:grid;grid-template-columns:150px 1fr 54px;gap:11px;align-items:center;
   margin-bottom:11px;font-size:.84rem}
 .mrow:last-child{margin-bottom:0}
@@ -72,7 +64,6 @@ mark{background:rgba(124,58,237,.35);color:#fff;border-radius:2px;padding:0 2px}
   display:flex;justify-content:space-between;align-items:baseline}
 .total .tl{font-size:.86rem;color:var(--mut)}
 .total .tv{font:700 1.3rem/1 ui-monospace,monospace}
-
 table{width:100%;border-collapse:collapse;font-size:.83rem}
 th{text-align:left;font:.71rem/1 ui-monospace,monospace;color:var(--dim);
   text-transform:uppercase;letter-spacing:.07em;padding:0 8px 10px;border-bottom:1px solid var(--line)}
@@ -82,7 +73,6 @@ tr:last-child td{border-bottom:0}
 td.nm{font:.79rem/1.4 ui-monospace,monospace;color:#c5bcdb}
 td.win{color:var(--acc2);font-weight:600}
 .note{font-size:.82rem;color:var(--dim);margin:13px 0 0;line-height:1.6}
-
 .expl{margin-top:34px;padding-top:28px;border-top:1px solid var(--line)}
 .expl h2{font-size:1.05rem;margin:0 0 14px;font-weight:620}
 .expl ol{margin:0;padding-left:20px;color:var(--mut);font-size:.9rem}
@@ -100,7 +90,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   <div class="notice"><b>How this demo works:</b> the retrieval pipeline — BM25, hashed
     embeddings, Reciprocal Rank Fusion, citation verification, confidence scoring — is ported
     from the Python service to JavaScript so it runs entirely in your browser. No server, no API
-    key, no network calls. Same algorithm and same parameters as
+    key, no network calls. Same algorithm and parameters as
     <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/01-support-knowledge-copilot">the repo</a>;
     answer generation is extractive in both.</div>
 </div></header>
@@ -112,36 +102,46 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
     <button class="go" id="go">Ask</button>
   </div>
   <div class="chips" id="chips"></div>
-
   <div class="strat">
     <span class="lbl">Retrieval strategy</span>
     <button class="sbtn on" data-s="hybrid">Hybrid (RRF)</button>
     <button class="sbtn" data-s="dense">Dense only</button>
     <button class="sbtn" data-s="sparse">Sparse only (BM25)</button>
   </div>
-
   <div id="out"></div>
 
   <div class="expl">
     <h2>What happens when you press Ask</h2>
     <ol>
-      <li><b>Chunking.</b> The sample corpus is split on headings into 26 passages, each keeping
-        its document and section label so a citation can point somewhere specific.</li>
-      <li><b>Sparse retrieval.</b> BM25 (k₁ = 1.5, b = 0.75) ranks passages on term overlap.
-        Strong on exact matches — product names, error codes, specific numbers.</li>
+      <li><b>Chunking.</b> The corpus is split on headings into 26 passages. The heading is
+        indexed with the body — a section called "Refund window" should match the word
+        <code>window</code> even when the prose never uses it.</li>
+      <li><b>Normalisation.</b> Tokens are stopword-filtered and suffix-stemmed, so
+        <code>refund</code>, <code>refunds</code> and <code>refunded</code> collapse to one term.
+        The stemmer is deliberately conservative: aggressive rules collapse <code>apply</code>
+        into <code>app</code>, which makes unrelated passages look relevant.</li>
+      <li><b>Sparse retrieval.</b> BM25 (k₁ = 1.5, b = 0.75) on term overlap. Strong on exact
+        matches — product names, error codes, specific numbers.</li>
       <li><b>Dense retrieval.</b> A deterministic stub embedder hashes tokens and character
-        trigrams into a 256-dimension signed vector, compared by cosine. Trigrams are what let
-        it match <code>cancel</code> against <code>cancellation</code> where BM25 sees two
-        unrelated terms. It's a stand-in for a real embedding model — the interface is identical,
-        so swapping one in changes one function.</li>
-      <li><b>Fusion.</b> Reciprocal Rank Fusion combines the two rankings — <code>Σ 1/(60 + rank)</code>
-        — which needs no score calibration between the two very differently-scaled methods.</li>
-      <li><b>Answer + verification.</b> Sentences are selected extractively from the top passages.
-        Each citation is then re-checked against its source text; one that doesn't carry the
-        answer's content is flagged rather than shown as support.</li>
-      <li><b>Confidence.</b> 0.5 × retrieval strength + 0.3 × citation support rate + 0.2 ×
-        query-term coverage. Below the floor, the system declines instead of guessing.</li>
+        trigrams into a 256-dimension signed vector, compared by cosine. A stand-in for a real
+        embedding model with an identical interface, so swapping one in changes one function.</li>
+      <li><b>Fusion.</b> Reciprocal Rank Fusion — <code>Σ 1/(60 + rank)</code> — needs no score
+        calibration between two very differently-scaled methods.</li>
+      <li><b>Grounding check.</b> If the top passage doesn't contain at least a third of the
+        query's content terms, the system declines. This gate exists because the failure that
+        matters isn't a missing answer, it's a confident wrong one.</li>
+      <li><b>Answer + verification.</b> Sentences are scored by IDF-weighted overlap and weighted
+        by their parent passage's rank, so a weak sentence from an unrelated passage can't
+        outrank a strong one from the best passage. Each citation is then re-checked against its
+        source; one that doesn't carry the answer's content is flagged, not hidden.</li>
+      <li><b>Confidence.</b> 0.5 × retrieval strength + 0.3 × citation support + 0.2 × query
+        coverage.</li>
     </ol>
+    <p class="note"><b>Known limitation.</b> Selection is extractive and lexical — it has no model
+      of what "how long" means. Ask "how long is the free trial" and it returns true sentences
+      about the trial without necessarily leading with "14 days". Fixing that needs either
+      question-type classification or an abstractive generation step; both are noted in the repo's
+      roadmap rather than papered over here.</p>
   </div>
 </div></main>
 
@@ -150,7 +150,6 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
 </div></footer>
 
 <script>
-/* ---------- sample corpus ---------- */
 const DOCS=[
 ["billing.md","Plans and pricing","Meridian is sold in three plans: Starter, Team, and Enterprise. Starter is billed at 19 dollars per seat per month. Team is 39 dollars per seat per month and Enterprise is quoted individually. Annual billing is discounted by 20 percent compared to paying monthly."],
 ["billing.md","Invoices and payment methods","Invoices are issued on the first day of each billing period and are available under Settings, Billing, Invoices. We accept credit card, ACH transfer, and wire for Enterprise accounts. Card payments retry automatically three times over six days before the account is suspended."],
@@ -181,10 +180,25 @@ const DOCS=[
 ];
 const CHUNKS=DOCS.map((d,i)=>({id:i,doc:d[0],section:d[1],text:d[2]}));
 
-/* ---------- tokenisation ---------- */
+/* ---------- normalisation ---------- */
 const STOP=new Set("a an and are as at be but by can do does for from had has have how i if in into is it its of on or that the this to was what when where which who why will with you your".split(" "));
-const tok=s=>(s.toLowerCase().match(/[a-z0-9]+/g)||[]).filter(t=>t.length>1&&!STOP.has(t));
-const CT=new Map(CHUNKS.map(c=>[c.id,tok(c.text)]));
+const SUF=["ational","ization","ations","ation","ments","ment","ings","ing","edly","ies","ied","ate","ed","es","s"];
+function stem(w){
+  if(w.length<=3)return w;
+  let b=w;
+  for(const s of SUF){
+    if(w.endsWith(s)&&w.length-s.length>=3){
+      b=w.slice(0,w.length-s.length);
+      if(s==="ies"||s==="ied")b+="y";
+      break;
+    }
+  }
+  if(b.length>3&&b.endsWith("e"))b=b.slice(0,-1);
+  return b;
+}
+const tok=s=>(s.toLowerCase().match(/[a-z0-9]+/g)||[]).filter(t=>t.length>1&&!STOP.has(t)).map(stem);
+/* heading indexed with the body */
+const CT=new Map(CHUNKS.map(c=>[c.id,tok(c.section+" "+c.text)]));
 
 /* ---------- BM25 ---------- */
 const N=CHUNKS.length, K1=1.5, B=0.75;
@@ -216,9 +230,7 @@ function feats(tokens){
 }
 function embed(tokens){
   const v=new Float64Array(D);
-  for(const f of feats(tokens)){
-    v[hsh(f,2166136261)%D]+=(hsh(f,99991)%2?1:-1);
-  }
+  for(const f of feats(tokens))v[hsh(f,2166136261)%D]+=(hsh(f,99991)%2?1:-1);
   let n=0;for(let i=0;i<D;i++)n+=v[i]*v[i];n=Math.sqrt(n)||1;
   for(let i=0;i<D;i++)v[i]/=n;
   return v;
@@ -227,7 +239,7 @@ const EMB=new Map(CHUNKS.map(c=>[c.id,embed(CT.get(c.id))]));
 const cos=(a,b)=>{let s=0;for(let i=0;i<D;i++)s+=a[i]*b[i];return s;};
 
 /* ---------- retrieval ---------- */
-const RRF_K=60, TOPK=4, FLOOR=0.12;
+const RRF_K=60, TOPK=4, COV_FLOOR=0.34;
 function retrieve(q,strategy){
   const qt=tok(q); if(!qt.length)return null;
   const qv=embed(qt);
@@ -248,23 +260,20 @@ function retrieve(q,strategy){
 }
 
 /* ---------- extractive answer ---------- */
-const sents=t=>t.match(/[^.!?]+[.!?]+/g)||[t];
+const sents=t=>t.split(/(?<=[.!?])\s+(?=[A-Z])/).map(x=>x.trim()).filter(Boolean);
 function generate(qt,top){
   const qs=new Set(qt), cand=[];
-  for(const c of top)for(const s of sents(c.text)){
-    const st=tok(s); if(!st.length)continue;
-    let hit=0; for(const w of new Set(st))if(qs.has(w))hit++;
-    cand.push({s:s.trim(),chunk:c,score:hit/Math.sqrt(st.length),hit});
-  }
+  top.forEach((c,ri)=>{
+    const w=1/(1+0.8*ri);                       /* parent-passage rank weight */
+    for(const s of sents(c.text)){
+      const st=tok(s); if(!st.length)continue;
+      let hit=0; for(const x of new Set(st))if(qs.has(x))hit+=idf(x);   /* idf-weighted */
+      cand.push({s,chunk:c,score:w*hit/Math.sqrt(st.length),raw:hit});
+    }
+  });
   cand.sort((a,b)=>b.score-a.score);
-  const picked=[],used=new Set();
-  for(const c of cand){
-    if(picked.length>=3)break;
-    if(c.hit===0)continue;
-    if(used.has(c.s))continue;
-    picked.push(c);used.add(c.s);
-  }
-  return picked;
+  const best=cand.length?cand[0].score:0;
+  return cand.filter(c=>c.raw>0&&c.score>=0.6*best).slice(0,2);
 }
 function verify(answerText,chunk){
   const at=new Set(tok(answerText)), ct=new Set(CT.get(chunk.id));
@@ -277,7 +286,7 @@ const el=id=>document.getElementById(id);
 let strategy="hybrid";
 const EXAMPLES=["How long is the refund window?","What happens if I hit the rate limit?",
   "Is SSO available on the Team plan?","How long do you keep data after I delete a workspace?",
-  "How do I paginate the API?","Do you have a mobile app?"];
+  "Can I pay by wire transfer?","Do you have a mobile app?"];
 el("chips").innerHTML=EXAMPLES.map(e=>`<button class="chip">${e}</button>`).join("");
 el("chips").onclick=e=>{if(e.target.classList.contains("chip")){el("q").value=e.target.textContent;run();}};
 document.querySelectorAll(".sbtn").forEach(b=>b.onclick=()=>{
@@ -287,30 +296,32 @@ el("go").onclick=run;
 el("q").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
 const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const hl=(text,qt)=>{const set=new Set(qt);
-  return esc(text).replace(/[A-Za-z0-9]+/g,w=>set.has(w.toLowerCase())?`<mark>${w}</mark>`:w);};
+  return esc(text).replace(/[A-Za-z0-9]+/g,w=>set.has(stem(w.toLowerCase()))?`<mark>${w}</mark>`:w);};
 
 function run(){
   const q=el("q").value.trim(); if(!q){el("out").innerHTML="";return;}
   const r=retrieve(q,strategy); if(!r)return;
   const {qt,top}=r;
-  const best=Math.max(...top.map(t=>t.rel));
+  const qs=new Set(qt);
+  const topTok=new Set(CT.get(top[0].id));
+  const grounding=[...qs].filter(w=>topTok.has(w)).length/(qs.size||1);
   let html="";
 
-  if(best<FLOOR){
+  if(grounding<COV_FLOOR){
     html+=card("answer","<p class='refusal'>I could not find this in the documentation.</p>"+
-      "<p class='note'>Best retrieval relevance was "+best.toFixed(3)+", below the "+FLOOR+
-      " floor. Rather than assembling a plausible-sounding answer from weakly related passages, "+
-      "the system declines. This is the behaviour that matters most in a support context — a "+
-      "confident wrong answer costs more than no answer.</p>");
+      "<p class='note'>The best-matching passage contained "+(grounding*100).toFixed(0)+
+      "% of the question's content terms, below the "+(COV_FLOOR*100).toFixed(0)+"% floor. "+
+      "Rather than assembling a plausible-sounding answer out of weakly related passages, the "+
+      "system declines. In a support context a confident wrong answer costs more than no answer.</p>");
     html+=trace(top,qt);
-    el("out").innerHTML=html; wire(qt); return;
+    el("out").innerHTML=html; wire(); return;
   }
 
   const picked=generate(qt,top);
   if(!picked.length){
     html+=card("answer","<p class='refusal'>I could not find this in the documentation.</p>"+
-      "<p class='note'>Passages were retrieved but no sentence in them addressed the question's terms.</p>");
-    html+=trace(top,qt); el("out").innerHTML=html; wire(qt); return;
+      "<p class='note'>Passages were retrieved, but no individual sentence addressed the question's terms.</p>");
+    html+=trace(top,qt); el("out").innerHTML=html; wire(); return;
   }
 
   const answer=picked.map(p=>p.s).join(" ");
@@ -319,10 +330,10 @@ function run(){
   const cites=[...byChunk.values()].map(c=>({c,ov:verify(answer,c)}));
   const verified=cites.filter(x=>x.ov>=0.25);
   const supportRate=cites.length?verified.length/cites.length:0;
-
   const at=new Set(tok(answer)); let cov=0;
-  for(const w of new Set(qt))if(at.has(w))cov++;
-  const coverage=new Set(qt).size?cov/new Set(qt).size:0;
+  for(const w of qs)if(at.has(w))cov++;
+  const coverage=qs.size?cov/qs.size:0;
+  const best=Math.max(...top.map(t=>t.rel));
   const conf=0.5*Math.min(1,best/0.6)+0.3*supportRate+0.2*coverage;
 
   html+=card("answer",
@@ -332,9 +343,9 @@ function run(){
       x.c.doc+" · "+x.c.section+" "+(x.ov>=0.25?"✓":"⚠ weak")+"</button>").join("")+"</div>"+
     cites.map(x=>"<div class='src' id='src"+x.c.id+"'><span class='sh'>"+x.c.doc+" — "+
       x.c.section+" · overlap with answer "+x.ov.toFixed(2)+"</span>"+hl(x.c.text,qt)+"</div>").join("")+
-    "<p class='note'>Click a citation to read the passage it points at, with your query terms "+
-    "highlighted. A citation marked <b>weak</b> was retrieved and used, but its overlap with the "+
-    "final answer fell below 0.25 — surfaced rather than hidden.</p>");
+    "<p class='note'>Click a citation to read the passage it points at, with matched terms "+
+    "highlighted. A citation marked <b>weak</b> was used but its overlap with the final answer "+
+    "fell below 0.25 — surfaced rather than hidden.</p>");
 
   html+=card("confidence",
     bar("Retrieval strength",Math.min(1,best/0.6),"weight 0.5")+
@@ -345,7 +356,7 @@ function run(){
     "'>"+conf.toFixed(2)+"</span></div>");
 
   html+=trace(top,qt);
-  el("out").innerHTML=html; wire(qt);
+  el("out").innerHTML=html; wire();
 }
 function card(h,b){return "<div class='card'><div class='hd'>"+h+"</div><div class='bd'>"+b+"</div></div>";}
 function bar(name,v,w){return "<div class='mrow'><span class='mn'>"+name+
@@ -365,7 +376,7 @@ function trace(top,qt){
     "strategy above to see how the two disagree — the case for fusing them is that neither wins "+
     "on every query.</p>");
 }
-function wire(qt){
+function wire(){
   document.querySelectorAll(".cbtn").forEach(b=>b.onclick=()=>{
     const s=el("src"+b.dataset.src); if(s)s.classList.toggle("show");});
 }
