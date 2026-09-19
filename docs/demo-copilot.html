@@ -1,0 +1,374 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Support Knowledge Copilot — live demo</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050409;--panel:#0d0a18;--panel2:#120e20;--line:#241d3a;
+  --fg:#ece9f5;--mut:#9289ad;--dim:#65597f;--acc:#7c3aed;--acc2:#a78bfa;
+  --ok:#4ade80;--warn:#fbbf24;--bad:#fb7185}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:15px/1.65 -apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+a{color:var(--acc2)}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+header{padding:44px 0 30px;border-bottom:1px solid var(--line)}
+.back{font-size:.86rem;text-decoration:none;color:var(--mut)}
+.back:hover{color:var(--fg)}
+h1{font-size:1.75rem;margin:18px 0 10px;letter-spacing:-.02em;font-weight:660}
+.lede{color:var(--mut);margin:0;font-size:.97rem;max-width:660px}
+
+.notice{margin:24px 0 0;padding:14px 16px;border-radius:9px;font-size:.87rem;
+  background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.3);color:#cbbdf0}
+.notice b{color:#e2d8fb}
+
+main{padding:34px 0 70px}
+label.fl{display:block;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:9px}
+.ask{display:flex;gap:9px}
+input[type=text]{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--fg);
+  border-radius:9px;padding:13px 15px;font-size:.95rem;font-family:inherit}
+input[type=text]:focus{outline:none;border-color:var(--acc)}
+button.go{background:var(--acc);color:#fff;border:0;border-radius:9px;padding:0 22px;
+  font-size:.92rem;font-weight:570;cursor:pointer;font-family:inherit}
+button.go:hover{background:#8b5cf6}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0 0}
+.chip{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--mut);
+  border-radius:999px;padding:6px 12px;font-size:.81rem;cursor:pointer;font-family:inherit}
+.chip:hover{border-color:var(--acc);color:var(--fg)}
+
+.strat{display:flex;align-items:center;gap:8px;margin:22px 0 0;flex-wrap:wrap}
+.strat .lbl{font-size:.8rem;color:var(--dim);margin-right:4px}
+.sbtn{background:transparent;border:1px solid var(--line);color:var(--mut);border-radius:7px;
+  padding:7px 13px;font-size:.82rem;cursor:pointer;font-family:inherit}
+.sbtn.on{background:rgba(124,58,237,.18);border-color:var(--acc);color:#d9cdf7}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-top:22px;overflow:hidden}
+.card .hd{padding:11px 16px;border-bottom:1px solid var(--line);background:var(--panel2);
+  font:.75rem/1 ui-monospace,monospace;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+.card .bd{padding:18px 16px}
+
+.answer{font-size:1rem;line-height:1.72;margin:0}
+.refusal{color:var(--warn);font-size:.97rem;margin:0}
+.cites{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+.cbtn{font:.76rem/1 ui-monospace,monospace;padding:7px 10px;border-radius:6px;cursor:pointer;
+  border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.08);color:var(--ok);font-family:ui-monospace,monospace}
+.cbtn.unv{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08);color:var(--warn)}
+.src{margin-top:13px;padding:13px 15px;border-radius:8px;background:#08060f;
+  border:1px solid var(--line);font-size:.87rem;color:var(--mut);display:none}
+.src.show{display:block}
+.src .sh{font:.72rem/1 ui-monospace,monospace;color:var(--dim);margin-bottom:8px;display:block}
+mark{background:rgba(124,58,237,.35);color:#fff;border-radius:2px;padding:0 2px}
+
+.mrow{display:grid;grid-template-columns:150px 1fr 54px;gap:11px;align-items:center;
+  margin-bottom:11px;font-size:.84rem}
+.mrow:last-child{margin-bottom:0}
+.mrow .mn{color:var(--mut)}
+.trk{height:6px;border-radius:4px;background:#221b36;overflow:hidden}
+.fil{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c3aed,#a78bfa)}
+.mv{font:.8rem/1 ui-monospace,monospace;color:var(--fg);text-align:right}
+.total{margin-top:15px;padding-top:14px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:baseline}
+.total .tl{font-size:.86rem;color:var(--mut)}
+.total .tv{font:700 1.3rem/1 ui-monospace,monospace}
+
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th{text-align:left;font:.71rem/1 ui-monospace,monospace;color:var(--dim);
+  text-transform:uppercase;letter-spacing:.07em;padding:0 8px 10px;border-bottom:1px solid var(--line)}
+th.r,td.r{text-align:right}
+td{padding:9px 8px;border-bottom:1px solid rgba(36,29,58,.55);color:var(--mut)}
+tr:last-child td{border-bottom:0}
+td.nm{font:.79rem/1.4 ui-monospace,monospace;color:#c5bcdb}
+td.win{color:var(--acc2);font-weight:600}
+.note{font-size:.82rem;color:var(--dim);margin:13px 0 0;line-height:1.6}
+
+.expl{margin-top:34px;padding-top:28px;border-top:1px solid var(--line)}
+.expl h2{font-size:1.05rem;margin:0 0 14px;font-weight:620}
+.expl ol{margin:0;padding-left:20px;color:var(--mut);font-size:.9rem}
+.expl li{margin-bottom:9px}
+.expl b{color:var(--fg);font-weight:600}
+footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+</style></head><body>
+
+<header><div class="wrap">
+  <a class="back" href="./index.html">← All projects</a>
+  <h1>Support Knowledge Copilot</h1>
+  <p class="lede">Ask a question about the sample product documentation. The system retrieves
+    candidate passages, verifies that every citation actually supports the answer, and scores its
+    own confidence — or tells you the answer isn't in the docs.</p>
+  <div class="notice"><b>How this demo works:</b> the retrieval pipeline — BM25, hashed
+    embeddings, Reciprocal Rank Fusion, citation verification, confidence scoring — is ported
+    from the Python service to JavaScript so it runs entirely in your browser. No server, no API
+    key, no network calls. Same algorithm and same parameters as
+    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/01-support-knowledge-copilot">the repo</a>;
+    answer generation is extractive in both.</div>
+</div></header>
+
+<main><div class="wrap">
+  <label class="fl" for="q">Your question</label>
+  <div class="ask">
+    <input type="text" id="q" placeholder="e.g. How long is the refund window?" autocomplete="off">
+    <button class="go" id="go">Ask</button>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div class="strat">
+    <span class="lbl">Retrieval strategy</span>
+    <button class="sbtn on" data-s="hybrid">Hybrid (RRF)</button>
+    <button class="sbtn" data-s="dense">Dense only</button>
+    <button class="sbtn" data-s="sparse">Sparse only (BM25)</button>
+  </div>
+
+  <div id="out"></div>
+
+  <div class="expl">
+    <h2>What happens when you press Ask</h2>
+    <ol>
+      <li><b>Chunking.</b> The sample corpus is split on headings into 26 passages, each keeping
+        its document and section label so a citation can point somewhere specific.</li>
+      <li><b>Sparse retrieval.</b> BM25 (k₁ = 1.5, b = 0.75) ranks passages on term overlap.
+        Strong on exact matches — product names, error codes, specific numbers.</li>
+      <li><b>Dense retrieval.</b> A deterministic stub embedder hashes tokens and character
+        trigrams into a 256-dimension signed vector, compared by cosine. Trigrams are what let
+        it match <code>cancel</code> against <code>cancellation</code> where BM25 sees two
+        unrelated terms. It's a stand-in for a real embedding model — the interface is identical,
+        so swapping one in changes one function.</li>
+      <li><b>Fusion.</b> Reciprocal Rank Fusion combines the two rankings — <code>Σ 1/(60 + rank)</code>
+        — which needs no score calibration between the two very differently-scaled methods.</li>
+      <li><b>Answer + verification.</b> Sentences are selected extractively from the top passages.
+        Each citation is then re-checked against its source text; one that doesn't carry the
+        answer's content is flagged rather than shown as support.</li>
+      <li><b>Confidence.</b> 0.5 × retrieval strength + 0.3 × citation support rate + 0.2 ×
+        query-term coverage. Below the floor, the system declines instead of guessing.</li>
+    </ol>
+  </div>
+</div></main>
+
+<footer><div class="wrap">
+  Gaurav Warke · <a href="https://github.com/GauravWarke/rag-and-agent-systems">source on GitHub</a>
+</div></footer>
+
+<script>
+/* ---------- sample corpus ---------- */
+const DOCS=[
+["billing.md","Plans and pricing","Meridian is sold in three plans: Starter, Team, and Enterprise. Starter is billed at 19 dollars per seat per month. Team is 39 dollars per seat per month and Enterprise is quoted individually. Annual billing is discounted by 20 percent compared to paying monthly."],
+["billing.md","Invoices and payment methods","Invoices are issued on the first day of each billing period and are available under Settings, Billing, Invoices. We accept credit card, ACH transfer, and wire for Enterprise accounts. Card payments retry automatically three times over six days before the account is suspended."],
+["billing.md","Changing seats mid-cycle","Seats added mid-cycle are prorated to the day and appear on the following invoice. Seats removed mid-cycle take effect at the end of the current period, and no credit is issued for the unused portion."],
+["refunds.md","Refund window","Annual plans can be refunded in full within 30 days of the original purchase date. After 30 days, refunds are prorated against the unused whole months remaining in the term. Monthly plans are not refundable, but you can cancel to stop the next charge."],
+["refunds.md","How to request a refund","Refund requests go through Settings, Billing, Request refund, or by replying to any invoice email. Approved refunds are returned to the original payment method within 5 to 10 business days. We cannot refund to a different card or account than the one charged."],
+["refunds.md","Chargebacks and disputes","Opening a chargeback with your bank immediately suspends the workspace until the dispute resolves. Contacting us directly is almost always faster, since we can usually issue a refund the same day."],
+["security.md","Encryption","All data is encrypted in transit with TLS 1.3 and at rest with AES-256. Encryption keys are managed in a dedicated KMS and rotated every 90 days. Customer data is never used to train models."],
+["security.md","Certifications and testing","Meridian maintains SOC 2 Type II certification, renewed annually. Third-party penetration tests run twice a year and a summary report is available to Enterprise customers under NDA. We publish a subprocessor list and update it 30 days before any change takes effect."],
+["security.md","Access controls","Internal access to customer data requires a documented support ticket, expires after 8 hours, and is logged immutably. Production access requires hardware security keys."],
+["onboarding.md","Free trial","Every new workspace starts with a 14-day trial of the Team plan with no card required. The trial includes all Team features and a cap of 5 seats. At the end of the trial the workspace moves to read-only until a plan is selected, and nothing is deleted."],
+["onboarding.md","Initial setup","Setup takes about 20 minutes: connect your identity provider, import users from CSV or SCIM, then choose which sources to index. Indexing a typical 10,000-document source takes under an hour."],
+["onboarding.md","Inviting teammates","Admins invite teammates by email or by sharing a domain-restricted join link. Invitations expire after 14 days and can be resent without consuming a seat."],
+["api-reference.md","Authentication","The API authenticates with a bearer token sent in the Authorization header. Tokens are created under Settings, Developers, API keys, and are scoped to read or read-write. A token is shown once at creation and cannot be retrieved later, only rotated."],
+["api-reference.md","Versioning","The API is versioned by date in the URL path, for example 2026-01-15. A version is supported for 18 months after release. Breaking changes are never made inside a version, and additive changes may be."],
+["api-reference.md","Pagination","List endpoints return a maximum of 100 records per request and use cursor pagination. Pass the next_cursor value from the response as the cursor parameter to fetch the following page. Offset pagination is not supported because results shift as records change."],
+["api-reference.md","Errors","Errors return a JSON body with a code, a human-readable message, and a request_id. Include the request_id when contacting support. 4xx responses should not be retried without changing the request; 5xx responses are safe to retry with backoff."],
+["rate-limits.md","Limits by plan","Rate limits are applied per token, per minute: Starter allows 60 requests, Team allows 600, and Enterprise is negotiated and defaults to 3000. Limits are shared across all endpoints."],
+["rate-limits.md","Handling 429 responses","Exceeding the limit returns HTTP 429 with a Retry-After header in seconds. Clients should honour Retry-After and apply exponential backoff with jitter. Repeatedly ignoring 429 responses can lead to temporary token suspension."],
+["rate-limits.md","Burst capacity","A burst allowance of twice the per-minute limit absorbs short spikes, refilling over 60 seconds. Bulk jobs should be spread deliberately rather than relying on burst capacity."],
+["sso.md","SAML single sign-on","SAML 2.0 single sign-on is available on the Team and Enterprise plans. It is not included on Starter. Meridian works with any SAML 2.0 identity provider, and configuration guides exist for Okta, Entra ID, and Google Workspace."],
+["sso.md","SCIM provisioning","SCIM 2.0 user provisioning and deprovisioning is Enterprise only. With SCIM enabled, deactivating a user in your identity provider removes their Meridian access within about a minute and frees the seat."],
+["sso.md","Enforcing SSO","Admins can require SSO for all members, which disables password login. We recommend keeping one break-glass admin account with a password in case the identity provider becomes unavailable."],
+["data-retention.md","Retention periods","Active workspace data is retained for as long as the workspace exists. Audit logs are retained for 12 months on Team and 24 months on Enterprise. Backups are kept for 35 days on a rolling basis."],
+["data-retention.md","Deletion requests","Deleting a workspace starts a 30-day grace period during which it can be restored by an admin. After the grace period, data is purged from primary storage within 7 days and from backups within 35 days."],
+["data-retention.md","Exporting your data","Admins can export all workspace content as JSON or CSV from Settings, Data, Export. Large exports are prepared asynchronously and a download link is emailed, valid for 72 hours."],
+["status.md","Incident communication","Service status is published at status.meridian.example and subscribers receive email updates. Incidents are posted within 15 minutes of detection and updated at least every 30 minutes until resolved. A postmortem follows any Sev-1 within 5 business days."]
+];
+const CHUNKS=DOCS.map((d,i)=>({id:i,doc:d[0],section:d[1],text:d[2]}));
+
+/* ---------- tokenisation ---------- */
+const STOP=new Set("a an and are as at be but by can do does for from had has have how i if in into is it its of on or that the this to was what when where which who why will with you your".split(" "));
+const tok=s=>(s.toLowerCase().match(/[a-z0-9]+/g)||[]).filter(t=>t.length>1&&!STOP.has(t));
+const CT=new Map(CHUNKS.map(c=>[c.id,tok(c.text)]));
+
+/* ---------- BM25 ---------- */
+const N=CHUNKS.length, K1=1.5, B=0.75;
+const DF=new Map(), LEN=new Map(); let AVG=0;
+for(const c of CHUNKS){const t=CT.get(c.id);LEN.set(c.id,t.length);AVG+=t.length;
+  for(const w of new Set(t))DF.set(w,(DF.get(w)||0)+1);}
+AVG/=N;
+const idf=w=>{const df=DF.get(w)||0;return Math.log(1+(N-df+0.5)/(df+0.5));};
+function bm25(qt,id){
+  const t=CT.get(id), L=LEN.get(id), tf=new Map();
+  for(const w of t)tf.set(w,(tf.get(w)||0)+1);
+  let s=0;
+  for(const w of qt){const f=tf.get(w);if(!f)continue;
+    s+=idf(w)*(f*(K1+1))/(f+K1*(1-B+B*L/AVG));}
+  return s;
+}
+
+/* ---------- hashed stub embedder ---------- */
+const D=256;
+function hsh(s,seed){let x=seed>>>0;for(let i=0;i<s.length;i++){x=(Math.imul(x,31)+s.charCodeAt(i))>>>0;}return x;}
+function feats(tokens){
+  const f=[];
+  for(const t of tokens){
+    f.push(t);
+    const p="^"+t+"$";
+    for(let i=0;i+3<=p.length;i++)f.push(p.slice(i,i+3));
+  }
+  return f;
+}
+function embed(tokens){
+  const v=new Float64Array(D);
+  for(const f of feats(tokens)){
+    v[hsh(f,2166136261)%D]+=(hsh(f,99991)%2?1:-1);
+  }
+  let n=0;for(let i=0;i<D;i++)n+=v[i]*v[i];n=Math.sqrt(n)||1;
+  for(let i=0;i<D;i++)v[i]/=n;
+  return v;
+}
+const EMB=new Map(CHUNKS.map(c=>[c.id,embed(CT.get(c.id))]));
+const cos=(a,b)=>{let s=0;for(let i=0;i<D;i++)s+=a[i]*b[i];return s;};
+
+/* ---------- retrieval ---------- */
+const RRF_K=60, TOPK=4, FLOOR=0.12;
+function retrieve(q,strategy){
+  const qt=tok(q); if(!qt.length)return null;
+  const qv=embed(qt);
+  const dense=CHUNKS.map(c=>({id:c.id,s:cos(qv,EMB.get(c.id))})).sort((a,b)=>b.s-a.s);
+  const sparse=CHUNKS.map(c=>({id:c.id,s:bm25(qt,c.id)})).sort((a,b)=>b.s-a.s);
+  const dR=new Map(dense.map((x,i)=>[x.id,i+1])), sR=new Map(sparse.map((x,i)=>[x.id,i+1]));
+  const dS=new Map(dense.map(x=>[x.id,x.s])), sS=new Map(sparse.map(x=>[x.id,x.s]));
+  let ranked;
+  if(strategy==="dense")      ranked=dense.map(x=>({id:x.id,f:x.s}));
+  else if(strategy==="sparse")ranked=sparse.map(x=>({id:x.id,f:x.s}));
+  else ranked=CHUNKS.map(c=>({id:c.id,f:1/(RRF_K+dR.get(c.id))+1/(RRF_K+sR.get(c.id))})).sort((a,b)=>b.f-a.f);
+  const top=ranked.slice(0,TOPK).map(r=>({
+    ...CHUNKS[r.id],fused:r.f,
+    cosine:dS.get(r.id),bm:sS.get(r.id),dRank:dR.get(r.id),sRank:sR.get(r.id),
+    rel:0.5*Math.max(0,dS.get(r.id))+0.5*(sS.get(r.id)/(sS.get(r.id)+3))
+  }));
+  return {qt,top};
+}
+
+/* ---------- extractive answer ---------- */
+const sents=t=>t.match(/[^.!?]+[.!?]+/g)||[t];
+function generate(qt,top){
+  const qs=new Set(qt), cand=[];
+  for(const c of top)for(const s of sents(c.text)){
+    const st=tok(s); if(!st.length)continue;
+    let hit=0; for(const w of new Set(st))if(qs.has(w))hit++;
+    cand.push({s:s.trim(),chunk:c,score:hit/Math.sqrt(st.length),hit});
+  }
+  cand.sort((a,b)=>b.score-a.score);
+  const picked=[],used=new Set();
+  for(const c of cand){
+    if(picked.length>=3)break;
+    if(c.hit===0)continue;
+    if(used.has(c.s))continue;
+    picked.push(c);used.add(c.s);
+  }
+  return picked;
+}
+function verify(answerText,chunk){
+  const at=new Set(tok(answerText)), ct=new Set(CT.get(chunk.id));
+  let ov=0; for(const w of at)if(ct.has(w))ov++;
+  return at.size?ov/at.size:0;
+}
+
+/* ---------- render ---------- */
+const el=id=>document.getElementById(id);
+let strategy="hybrid";
+const EXAMPLES=["How long is the refund window?","What happens if I hit the rate limit?",
+  "Is SSO available on the Team plan?","How long do you keep data after I delete a workspace?",
+  "How do I paginate the API?","Do you have a mobile app?"];
+el("chips").innerHTML=EXAMPLES.map(e=>`<button class="chip">${e}</button>`).join("");
+el("chips").onclick=e=>{if(e.target.classList.contains("chip")){el("q").value=e.target.textContent;run();}};
+document.querySelectorAll(".sbtn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".sbtn").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");strategy=b.dataset.s;if(el("q").value.trim())run();});
+el("go").onclick=run;
+el("q").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const hl=(text,qt)=>{const set=new Set(qt);
+  return esc(text).replace(/[A-Za-z0-9]+/g,w=>set.has(w.toLowerCase())?`<mark>${w}</mark>`:w);};
+
+function run(){
+  const q=el("q").value.trim(); if(!q){el("out").innerHTML="";return;}
+  const r=retrieve(q,strategy); if(!r)return;
+  const {qt,top}=r;
+  const best=Math.max(...top.map(t=>t.rel));
+  let html="";
+
+  if(best<FLOOR){
+    html+=card("answer","<p class='refusal'>I could not find this in the documentation.</p>"+
+      "<p class='note'>Best retrieval relevance was "+best.toFixed(3)+", below the "+FLOOR+
+      " floor. Rather than assembling a plausible-sounding answer from weakly related passages, "+
+      "the system declines. This is the behaviour that matters most in a support context — a "+
+      "confident wrong answer costs more than no answer.</p>");
+    html+=trace(top,qt);
+    el("out").innerHTML=html; wire(qt); return;
+  }
+
+  const picked=generate(qt,top);
+  if(!picked.length){
+    html+=card("answer","<p class='refusal'>I could not find this in the documentation.</p>"+
+      "<p class='note'>Passages were retrieved but no sentence in them addressed the question's terms.</p>");
+    html+=trace(top,qt); el("out").innerHTML=html; wire(qt); return;
+  }
+
+  const answer=picked.map(p=>p.s).join(" ");
+  const byChunk=new Map();
+  for(const p of picked)if(!byChunk.has(p.chunk.id))byChunk.set(p.chunk.id,p.chunk);
+  const cites=[...byChunk.values()].map(c=>({c,ov:verify(answer,c)}));
+  const verified=cites.filter(x=>x.ov>=0.25);
+  const supportRate=cites.length?verified.length/cites.length:0;
+
+  const at=new Set(tok(answer)); let cov=0;
+  for(const w of new Set(qt))if(at.has(w))cov++;
+  const coverage=new Set(qt).size?cov/new Set(qt).size:0;
+  const conf=0.5*Math.min(1,best/0.6)+0.3*supportRate+0.2*coverage;
+
+  html+=card("answer",
+    "<p class='answer'>"+esc(answer)+"</p>"+
+    "<div class='cites'>"+cites.map(x=>
+      "<button class='cbtn"+(x.ov>=0.25?"":" unv")+"' data-src='"+x.c.id+"'>"+
+      x.c.doc+" · "+x.c.section+" "+(x.ov>=0.25?"✓":"⚠ weak")+"</button>").join("")+"</div>"+
+    cites.map(x=>"<div class='src' id='src"+x.c.id+"'><span class='sh'>"+x.c.doc+" — "+
+      x.c.section+" · overlap with answer "+x.ov.toFixed(2)+"</span>"+hl(x.c.text,qt)+"</div>").join("")+
+    "<p class='note'>Click a citation to read the passage it points at, with your query terms "+
+    "highlighted. A citation marked <b>weak</b> was retrieved and used, but its overlap with the "+
+    "final answer fell below 0.25 — surfaced rather than hidden.</p>");
+
+  html+=card("confidence",
+    bar("Retrieval strength",Math.min(1,best/0.6),"weight 0.5")+
+    bar("Citation support",supportRate,"weight 0.3")+
+    bar("Query-term coverage",coverage,"weight 0.2")+
+    "<div class='total'><span class='tl'>Composite confidence</span>"+
+    "<span class='tv' style='color:"+(conf>=.7?"var(--ok)":conf>=.45?"var(--warn)":"var(--bad)")+
+    "'>"+conf.toFixed(2)+"</span></div>");
+
+  html+=trace(top,qt);
+  el("out").innerHTML=html; wire(qt);
+}
+function card(h,b){return "<div class='card'><div class='hd'>"+h+"</div><div class='bd'>"+b+"</div></div>";}
+function bar(name,v,w){return "<div class='mrow'><span class='mn'>"+name+
+  "<br><span style='color:var(--dim);font-size:.76rem'>"+w+"</span></span>"+
+  "<span class='trk'><span class='fil' style='width:"+(v*100).toFixed(0)+"%'></span></span>"+
+  "<span class='mv'>"+v.toFixed(2)+"</span></div>";}
+function trace(top,qt){
+  const rows=top.map((t,i)=>"<tr><td class='r'>"+(i+1)+"</td><td class='nm'>"+t.doc+" · "+t.section+
+    "</td><td class='r"+(t.dRank<=t.sRank?" win":"")+"'>"+t.dRank+"</td><td class='r"+
+    (t.sRank<t.dRank?" win":"")+"'>"+t.sRank+"</td><td class='r'>"+t.cosine.toFixed(3)+
+    "</td><td class='r'>"+t.bm.toFixed(2)+"</td></tr>").join("");
+  return card("retrieval trace — strategy: "+strategy,
+    "<table><thead><tr><th class='r'>#</th><th>Passage</th><th class='r'>dense rank</th>"+
+    "<th class='r'>bm25 rank</th><th class='r'>cosine</th><th class='r'>bm25</th></tr></thead>"+
+    "<tbody>"+rows+"</tbody></table>"+
+    "<p class='note'>The highlighted rank is whichever method found the passage first. Switch "+
+    "strategy above to see how the two disagree — the case for fusing them is that neither wins "+
+    "on every query.</p>");
+}
+function wire(qt){
+  document.querySelectorAll(".cbtn").forEach(b=>b.onclick=()=>{
+    const s=el("src"+b.dataset.src); if(s)s.classList.toggle("show");});
+}
+el("q").value="How long is the refund window?"; run();
+</script>
+</body></html>
