@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gaurav Warke — AI Systems Showcase</title>
+<title>Building AI Systems — five interactive labs</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#050409;--panel:#0d0a18;--panel2:#120e20;--line:#241d3a;
@@ -31,7 +31,7 @@ header{position:relative;overflow:hidden;padding:104px 0 150px;text-align:center
 h1{font-size:clamp(2.1rem,5.6vw,3.6rem);line-height:1.14;margin:0 0 22px;
   letter-spacing:-.026em;font-weight:700}
 h1 em{font-style:normal;color:var(--acc2)}
-.lede{max-width:630px;margin:0 auto 38px;color:var(--mut);font-size:1.05rem}
+.lede{max-width:660px;margin:0 auto 38px;color:var(--mut);font-size:1.05rem}
 .cta a{display:inline-block;padding:13px 26px;border-radius:9px;text-decoration:none;
   font-size:.93rem;font-weight:570;margin:0 5px}
 .primary{background:var(--acc);color:#fff;box-shadow:0 6px 28px rgba(124,58,237,.42)}
@@ -56,6 +56,7 @@ h1 em{font-style:normal;color:var(--acc2)}
   border:1px solid var(--line);border-radius:5px;padding:5px 8px}
 .golink{color:var(--acc2);text-decoration:none;font-size:.92rem;font-weight:570}
 .golink:hover{text-decoration:underline}
+.golink.sec{color:var(--mut);margin-left:18px;font-weight:500}
 
 .vis{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;
   box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -110,7 +111,7 @@ footer a{color:var(--acc2);text-decoration:none}
 </style></head><body>
 
 <nav><div class="wrap">
-  <span class="brand">Gaurav<span>.</span></span>
+  <span class="brand">AI Systems<span>.</span>Lab</span>
   <div class="navlinks">
     <a href="#p1">Copilot</a><a href="#p2">Freshness</a><a href="#p3">Sandbox</a>
     <a href="#p4">NL→API</a><a href="#p5">Documents</a>
@@ -121,13 +122,15 @@ footer a{color:var(--acc2);text-decoration:none}
 <header>
   <div class="arc"></div>
   <div class="wrap">
-    <span class="pill">Master of Business Analytics · Computer Engineering</span>
-    <h1>Innovating with AI.<br><em>Engineering for trust.</em></h1>
-    <p class="lede">Five systems across retrieval, agents and document processing — each built
-      around the question a business asks first: can I rely on what this tells me?</p>
+    <span class="pill">A personal project · GenAI, LLMs and the systems around them</span>
+    <h1>Learn how AI systems<br><em>actually get built.</em></h1>
+    <p class="lede">Five working systems across retrieval, agents and document processing. I built
+      them to understand what separates an LLM demo from something you'd trust in production —
+      each one runs live in your browser with the parameters exposed, so you can change a
+      threshold and watch the decision change.</p>
     <p class="cta">
-      <a class="primary" href="https://github.com/GauravWarke/rag-and-agent-systems">View the code →</a>
-      <a class="secondary" href="#p1">See the systems</a>
+      <a class="primary" href="#p1">Try the labs →</a>
+      <a class="secondary" href="https://github.com/GauravWarke/rag-and-agent-systems">Read the code</a>
     </p>
   </div>
 </header>
@@ -146,7 +149,8 @@ footer a{color:var(--acc2);text-decoration:none}
       <li>Returns "I could not find this in the docs" instead of guessing</li>
     </ul>
     <div class="stack"><span>FastAPI</span><span>Pydantic v2</span><span>BM25</span><span>RRF</span></div>
-    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/01-support-knowledge-copilot">Read the code →</a>
+    <a class="golink" href="./demo-copilot.html">Try it live →</a>
+    <a class="golink sec" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/01-support-knowledge-copilot">Code</a>
   </div>
   <div class="vis">
     <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">POST /ask</span></div>
@@ -175,7 +179,8 @@ footer a{color:var(--acc2);text-decoration:none}
       <li>Emits alerts a scheduled job can act on</li>
     </ul>
     <div class="stack"><span>FastAPI</span><span>drift detection</span><span>scheduling</span></div>
-    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/07-rag-freshness-monitor">Read the code →</a>
+    <a class="golink" href="./demo-freshness.html">Try it live →</a>
+    <a class="golink sec" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/07-rag-freshness-monitor">Code</a>
   </div>
   <div class="vis">
     <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">GET /freshness/report</span></div>
@@ -203,7 +208,8 @@ footer a{color:var(--acc2);text-decoration:none}
       <li>Full audit log of every call, argument and decision</li>
     </ul>
     <div class="stack"><span>FastAPI</span><span>tool registry</span><span>audit log</span><span>HITL</span></div>
-    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/06-agent-sandbox">Read the code →</a>
+    <a class="golink" href="./demo-sandbox.html">Try it live →</a>
+    <a class="golink sec" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/06-agent-sandbox">Code</a>
   </div>
   <div class="vis">
     <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">POST /execute — audit trail</span></div>
@@ -231,7 +237,8 @@ footer a{color:var(--acc2);text-decoration:none}
       <li>Refuses cleanly when the schema can't satisfy the request</li>
     </ul>
     <div class="stack"><span>FastAPI</span><span>OpenAPI</span><span>planner</span><span>dry-run</span></div>
-    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/08-nl-to-api-assistant">Read the code →</a>
+    <a class="golink" href="./demo-nl-to-api.html">Try it live →</a>
+    <a class="golink sec" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/08-nl-to-api-assistant">Code</a>
   </div>
   <div class="vis">
     <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">POST /plan</span></div>
@@ -259,7 +266,8 @@ footer a{color:var(--acc2);text-decoration:none}
       <li>Structured output validated against the expected schema</li>
     </ul>
     <div class="stack"><span>FastAPI</span><span>OCR</span><span>vision fallback</span><span>extraction</span></div>
-    <a class="golink" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/09-multimodal-doc-reviewer">Read the code →</a>
+    <a class="golink" href="./demo-doc-reviewer.html">Try it live →</a>
+    <a class="golink sec" href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/09-multimodal-doc-reviewer">Code</a>
   </div>
   <div class="vis">
     <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="path">POST /extract — invoice_4471.pdf</span></div>
@@ -297,13 +305,14 @@ footer a{color:var(--acc2);text-decoration:none}
     system, then had a scheduled GitHub Actions pipeline implement against that roadmap. Nothing merges
     on the agent's say-so — an independent CI gate runs the linter and the test suite, and a failing
     check blocks the pull request regardless of what the agent reported. Designing that verification
-    loop was most of the engineering.</p>
+    loop was most of the engineering, and it's the part I'd point at first if you're learning this.</p>
 </div></section>
 
 <section class="plain"><div class="wrap">
   <p class="eyebrow">Run it</p>
   <h2>Two minutes, no keys</h2>
-  <p class="sub">Swagger UI at <code>/docs</code> lets you send real requests against any of the five.</p>
+  <p class="sub">The labs above run in the browser. To run the real services, Swagger UI at
+    <code>/docs</code> lets you send requests against any of the five.</p>
 <pre>git clone https://github.com/GauravWarke/rag-and-agent-systems.git
 cd rag-and-agent-systems/01-support-knowledge-copilot
 pip install -r requirements.txt
@@ -311,8 +320,8 @@ uvicorn app.main:app --reload     # → http://localhost:8000/docs</pre>
 </div></section>
 
 <footer><div class="wrap">
-  <strong style="color:var(--fg)">Gaurav Warke</strong><br>
-  <a href="https://github.com/GauravWarke">github.com/GauravWarke</a> ·
-  <a href="mailto:gauravwarke8@gmail.com">gauravwarke8@gmail.com</a>
+  <strong style="color:var(--fg)">AI Systems Lab</strong><br>
+  A personal project exploring GenAI and LLM systems · MIT licensed ·
+  <a href="https://github.com/GauravWarke/rag-and-agent-systems">source on GitHub</a>
 </div></footer>
 </body></html>
