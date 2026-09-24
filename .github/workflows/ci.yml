@@ -63,20 +63,32 @@ jobs:
         run: |
           python - <<'PY'
           import re, sys, pathlib
+          from urllib.parse import unquote, urlsplit
+
           docs = pathlib.Path("docs")
-          broken = []
-          for page in sorted(docs.glob("*.html")):
+          pages = sorted(docs.rglob("*.html"))
+          broken, checked = [], 0
+          for page in pages:
               html = page.read_text(encoding="utf-8", errors="ignore")
-              for href in re.findall(r'href="(\./[^"#?]+)"', html):
-                  target = (docs / href[2:]).resolve()
-                  if not target.exists():
-                      broken.append(f"{page.name} -> {href}")
+              # Capture the whole attribute, then strip ?query and #fragment.
+              # The previous pattern only matched hrefs starting with "./" and
+              # containing no "#", so "demo.html" and "./demo.html#top" were
+              # never checked at all.
+              for raw in re.findall(r'(?:href|src)="([^"]*)"', html):
+                  parts = urlsplit(raw)
+                  if parts.scheme or parts.netloc or not parts.path:
+                      continue  # external, protocol-relative, or bare #anchor
+                  path = unquote(parts.path)
+                  base = docs if path.startswith("/") else page.parent
+                  checked += 1
+                  if not (base / path.lstrip("/")).resolve().exists():
+                      broken.append(f"{page.relative_to(docs)} -> {raw}")
           if broken:
               print("Broken relative links:")
               for b in broken:
                   print("  " + b)
               sys.exit(1)
-          print(f"OK - checked {len(list(docs.glob('*.html')))} pages, no broken links")
+          print(f"OK - {checked} relative links across {len(pages)} pages all resolve")
           PY
 
   image:

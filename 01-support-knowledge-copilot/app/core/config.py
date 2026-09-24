@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     generation_model: str = "stub"
 
     rate_limit_per_minute: int = 60
+    # Upper bound on distinct clients the in-memory limiter tracks at once.
+    rate_limit_max_clients: int = 10_000
+    # Reverse proxies in front of the app. 0 = trust the socket peer only.
+    # Set to the real hop count behind a load balancer (e.g. 1 on Render/Fly).
+    trusted_proxy_hops: int = 0
 
 
 settings = Settings()
