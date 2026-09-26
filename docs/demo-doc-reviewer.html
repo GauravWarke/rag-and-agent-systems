@@ -80,10 +80,7 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
 <header><div class="wrap">
   <a class="back" href="./index.html">← All projects</a>
   <h1>Multimodal Document Reviewer</h1>
-  <p class="lede">There are three ways to read a scanned document: fast text recognition (cheap, sometimes
-    wrong), an AI that reads images (more accurate, costs more), or a person (most accurate, most
-    expensive). The best mix depends on how much a mistake costs you. Move the sliders and watch the
-    best choice change.</p>
+  <p class="lede">You can read a scanned document three ways. Fast text recognition is cheap but sometimes wrong. An AI that reads the image is better but costs more. A person is best of all, and the priciest. Which mix wins depends on what a mistake costs you, so move the sliders and watch the answer shift.</p>
   <div class="notice"><b>What's real:</b> the routing, costs and error estimates all recalculate live. The
     confidence score for each field is a fixed sample, because text recognition can't run inside a
     browser. The routing rules match <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/09-multimodal-doc-reviewer">the full project</a>.</div>
@@ -159,9 +156,7 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
       moves up to an AI that reads the image itself, a <dfn>vision model</dfn>. If that is still
       unsure, a person checks it. Moving up only when needed is a <dfn>cascade</dfn>, and the
       “unsure” cut-offs you can drag are its <dfn>thresholds</dfn>.</p>
-    <p><b>In short:</b> no single method is best. If mistakes are cheap, OCR alone wins. If they are
-      very costly, a person checking everything can be worth it. The cascade wins in between, where
-      most real work sits.</p>
+    <p><b>In short:</b> there's no single best method. When mistakes are cheap, OCR on its own wins. When they're very expensive, paying a person to check everything can make sense. Everything in between, which is where most real work lives, belongs to the cascade.</p>
     <p><b>Things to try:</b> set <b>cost of a wrong field</b> to $5, then $300, and watch the winner
       change. Notice <code>signature_block</code> is hard to read on every document type: no threshold
       fixes that.</p>

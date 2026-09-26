@@ -135,10 +135,7 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
   <div class="wrap">
     <h1>Learn how AI systems<br><em>actually get built.</em></h1>
     <div class="below">
-    <p class="lede">Five small AI tools you can try in your browser, each showing a way to
-      make AI more trustworthy. Every project starts in plain English, then introduces the technical
-      terms one at a time. Later projects reuse words from earlier ones, so by
-      the end the jargon reads naturally.</p>
+    <p class="lede">I built five small AI tools, and you can try each one right here in your browser. They all tackle the same question from a different side: how do you get AI you can actually trust? Each one starts in plain English. The technical words come in slowly, and later projects lean on words you picked up earlier, so by the end the jargon stops feeling like jargon.</p>
     <p class="cta">
       <a class="primary" href="#p1">Try the demos →</a>
       <a class="secondary" href="https://github.com/GauravWarke/rag-and-agent-systems">Read the code</a>
@@ -152,17 +149,12 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
   <div class="copy">
     <div class="kicker"><span class="n">01</span><span class="label">Answering questions</span></div>
     <h2>Support Knowledge Copilot</h2>
-    <p class="desc">Ask a question about a company's help documents. It answers, and shows the exact
-      passage each part of the answer came from, so you can check it yourself.</p>
+    <p class="desc">Ask it something about a company's help docs. You get an answer plus the exact passage behind each part of it, so you don't have to take it on trust.</p>
     <ul class="bullets">
-      <li>Finds the passages that relate to your question, then writes the answer only from them.
-        This approach is called <dfn>retrieval-augmented generation (RAG)</dfn>.</li>
-      <li>Searches two ways at once, by meaning and by exact words, and merges the two result
-        lists. That is <dfn>hybrid retrieval</dfn>.</li>
-      <li>Checks that every quoted source really says what the answer claims:
-        <dfn>citation verification</dfn>.</li>
-      <li>Says “I couldn't find this” instead of guessing, and rates how sure it is from 0 to 1.
-        That rating is a <dfn>confidence score</dfn>.</li>
+      <li>First it pulls out the passages that relate to your question. Then it writes the answer using only those. People call this <dfn>retrieval-augmented generation (RAG)</dfn>.</li>
+      <li>It searches twice: once for passages that mean the same thing, once for passages with the same words. Blending the two lists is <dfn>hybrid retrieval</dfn>.</li>
+      <li>Before replying, it rereads each quoted source to make sure it really says what the answer claims. That step is <dfn>citation verification</dfn>.</li>
+      <li>If the docs don't cover it, it says so rather than guessing. Every answer also carries a number from 0 to 1 for how sure it is: its <dfn>confidence score</dfn>.</li>
     </ul>
     <details class="terms"><summary>Go deeper</summary><dl>
       <dt>Dense embeddings (search by meaning)</dt>
@@ -196,16 +188,11 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
   <div class="copy">
     <div class="kicker"><span class="n">02</span><span class="label">Keeping answers up to date</span></div>
     <h2>RAG Freshness &amp; Drift Monitor</h2>
-    <p class="desc">Documents go out of date, and an AI that reads them starts giving old answers.
-      This tool spots outdated documents before anyone gets a wrong answer.</p>
+    <p class="desc">Docs age. When they do, an AI reading them quietly starts giving old answers. This tool catches outdated docs before a real person gets burned by one.</p>
     <ul class="bullets">
-      <li>Flags documents nobody has checked in a long time. These are called
-        <dfn>stale</dfn> documents.</li>
-      <li>Remember the <b>search by meaning</b> from project 01? Its number fingerprints
-        (<i>embeddings</i>) were made from the old text. When the text changes but the fingerprints
-        don't, that gap is <dfn>index drift</dfn>.</li>
-      <li>Fixes the most-used documents first, ranked by <dfn>blast radius</dfn>: how many answers
-        each stale document could spoil.</li>
+      <li>It flags docs nobody has looked at in ages. The usual word for these is <dfn>stale</dfn>.</li>
+      <li>Think back to <b>search by meaning</b> in project 01. It works from number fingerprints of each passage (<i>embeddings</i>), made from the text as it was then. Edit the text without redoing the fingerprints and the two start to disagree. That gap is <dfn>index drift</dfn>.</li>
+      <li>The docs people ask about most get fixed first. The ranking uses <dfn>blast radius</dfn>, meaning how many answers one stale doc could spoil.</li>
     </ul>
     <details class="terms"><summary>Go deeper</summary><dl>
       <dt>Re-embedding and rebuild cadence</dt>
@@ -236,16 +223,12 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
   <div class="copy">
     <div class="kicker"><span class="n">03</span><span class="label">Safe AI assistants</span></div>
     <h2>Permissioned Agent Sandbox</h2>
-    <p class="desc">An AI assistant that can take actions, like searching files or sending an email,
-      but only the ones it is allowed to. Risky actions wait for a person to approve them.</p>
+    <p class="desc">This assistant can actually do things, like search files or send an email. It can only do what it's been allowed to, though, and anything risky waits until a person says yes.</p>
     <ul class="bullets">
-      <li>An AI that chooses actions to finish a task is called an <dfn>agent</dfn>. Each action
-        it can take, like “send email”, is a <dfn>tool</dfn>.</li>
-      <li>Before any tool runs, it checks the user's role is allowed to use it. That allowed list
-        is a <dfn>permission scope</dfn>.</li>
-      <li>Risky tools pause until a person approves. Keeping a person in charge of key decisions is
-        called <dfn>human-in-the-loop (HITL)</dfn>.</li>
-      <li>Every action and decision is written to an <dfn>audit log</dfn>.</li>
+      <li>When an AI picks its own actions to get a job done, it's called an <dfn>agent</dfn>. Every action on its menu, “send email” for example, is a <dfn>tool</dfn>.</li>
+      <li>No tool runs until the user's role is checked against the tools that role may use. That list is its <dfn>permission scope</dfn>.</li>
+      <li>Risky tools stop and wait for a human. Keeping a person responsible for the big calls is known as <dfn>human-in-the-loop (HITL)</dfn>.</li>
+      <li>Everything it does, and every decision about it, lands in an <dfn>audit log</dfn>.</li>
     </ul>
     <details class="terms"><summary>Go deeper</summary><dl>
       <dt>Rate limit</dt>
@@ -276,16 +259,12 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
   <div class="copy">
     <div class="kicker"><span class="n">04</span><span class="label">Plain English to actions</span></div>
     <h2>Natural Language to API Assistant</h2>
-    <p class="desc">Type a request like “move the Acme order to express shipping.” It works out the
-      steps, checks them, and shows you a preview before changing anything.</p>
+    <p class="desc">Type something like “move the Acme order to express shipping.” It figures out the steps, double-checks them, and shows you exactly what would change before touching anything.</p>
     <ul class="bullets">
-      <li>Software systems talk to each other through an <dfn>API</dfn>. Here, every step the
-        assistant takes is one API call to a sample business app.</li>
-      <li>The API comes with an <dfn>OpenAPI schema</dfn>: a machine-readable list of every action it
-        supports. The assistant plans only from that list, and says no if your request isn't in it.</li>
-      <li>Like the <b>agent</b> in project 03, it chooses tools. Picking a function and filling in its
-        inputs, instead of writing free text, is called <dfn>tool calling</dfn>.</li>
-      <li>Changes are simulated first and shown to you as a preview: a <dfn>dry run</dfn>.</li>
+      <li>Programs talk to each other through an <dfn>API</dfn>. Each step this assistant takes is one API call to a sample business app.</li>
+      <li>That API ships with an <dfn>OpenAPI schema</dfn>, basically a menu of every action it supports, written for machines. The assistant only plans from that menu. Ask for something that isn't on it and you get a no.</li>
+      <li>It picks tools the same way the <b>agent</b> in project 03 does. Choosing a function and filling in its inputs, rather than just writing text, is <dfn>tool calling</dfn>.</li>
+      <li>Anything that changes data gets rehearsed first and shown to you as a preview. That rehearsal is a <dfn>dry run</dfn>.</li>
     </ul>
     <details class="terms"><summary>Go deeper</summary><dl>
       <dt>Intent extraction</dt>
@@ -316,16 +295,12 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
   <div class="copy">
     <div class="kicker"><span class="n">05</span><span class="label">Reading documents</span></div>
     <h2>Multimodal Document Reviewer</h2>
-    <p class="desc">Upload a scanned form or invoice. It pulls out the key details, like names, dates
-      and totals, and sends anything it isn't sure about to a person to check.</p>
+    <p class="desc">Give it a scanned form or invoice. It pulls out the details that matter (names, dates, totals) and hands anything it isn't sure of to a person.</p>
     <ul class="bullets">
-      <li>Clean pages are read with <dfn>OCR</dfn> (optical character recognition), which turns a picture
-        of text into text. Fast and cheap.</li>
-      <li>Hard pages go to a <dfn>vision model</dfn>, an AI that reads images directly. Working with
-        both text and images is what <dfn>multimodal</dfn> means.</li>
-      <li>Trying the cheap method first and moving up only when needed is called a <dfn>cascade</dfn>.</li>
-      <li>Each field gets its own <b>confidence score</b> (project 01). Low scores go to a person:
-        the <b>human-in-the-loop</b> idea from project 03.</li>
+      <li>Clean pages go through <dfn>OCR</dfn> (optical character recognition), which turns a photo of text into actual text. It's quick and cheap.</li>
+      <li>Messy pages get passed to a <dfn>vision model</dfn>, an AI that looks at the image itself. Handling text and images together is what <dfn>multimodal</dfn> means.</li>
+      <li>Start cheap, and only step up when you have to. That pattern is a <dfn>cascade</dfn>.</li>
+      <li>Every field gets its own <b>confidence score</b>, same idea as project 01. Low scores go to a person, which is the <b>human-in-the-loop</b> idea from project 03.</li>
     </ul>
     <details class="terms"><summary>Go deeper</summary><dl>
       <dt>Thresholds</dt>
@@ -354,36 +329,30 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
 <!-- purple band -->
 <section class="band"><div class="wrap">
   <h2>Built to be checked.</h2>
-  <p class="sub">Four rules every project follows.</p>
+  <p class="sub">Four rules I held every project to.</p>
   <div class="cards4">
     <div class="c4"><div class="big">01</div><h4>Show a source, or say no</h4>
-      <p>No answer goes out without a source you can check. “I don't know” is an allowed answer.</p></div>
+      <p>Nothing goes out without a source you can check for yourself. “I don't know” counts as a fine answer.</p></div>
     <div class="c4"><div class="big">02</div><h4>Ask before risky actions</h4>
-      <p>Anything that could cause harm waits for a person. Permission is checked before acting, not after.</p></div>
+      <p>If an action could do damage, a person signs off first. Permissions get checked up front, not after the fact.</p></div>
     <div class="c4"><div class="big">03</div><h4>Checked by something else</h4>
-      <p>Automated tests run separately from the AI that wrote the code. If they fail, the change can't go in.</p></div>
+      <p>The tests run apart from the AI that wrote the code. A failing test blocks the change, full stop.</p></div>
     <div class="c4"><div class="big">04</div><h4>Works offline</h4>
-      <p>No API key or internet needed. The same input always gives the same result.</p></div>
+      <p>No API key, no internet. Run it twice with the same input and you get the same result.</p></div>
   </div>
 </div></section>
 
 <section class="plain" id="approach"><div class="wrap">
   <p class="eyebrow">How it's built</p>
   <h2>How these were built</h2>
-  <p class="sub">The process is part of what these projects show.</p>
-  <p class="desc" style="max-width:700px">I designed each system and wrote down what “done” means for
-    it. An AI coding agent then wrote the code, on a schedule. Before any change is accepted, a separate
-    set of automated checks runs on it: a style checker (<i>Ruff</i>) and the test suite (<i>pytest</i>).
-    Engineers call this <i>continuous integration</i>, or CI. If a check fails, the change is blocked,
-    whatever the agent reported. Building that checking step was most of the work.</p>
+  <p class="sub">How they were made is part of the point.</p>
+  <p class="desc" style="max-width:700px">I designed each system and spelled out what “done” meant for it. Then an AI coding agent wrote the code on a schedule. Every change had to get past a separate set of automated checks before it could go in: a style checker (<i>Ruff</i>) and the test suite (<i>pytest</i>). Engineers call this <i>continuous integration</i>, or CI. A failed check blocked the change no matter what the agent claimed. Getting that checking step right took most of the effort.</p>
 </div></section>
 
 <section class="plain"><div class="wrap">
   <p class="eyebrow">Run it yourself</p>
   <h2>Two minutes, no keys</h2>
-  <p class="sub">The demos above run in your browser. To run the real software on your own computer,
-    you need Python. Paste these four lines into a terminal, then open the link on the last line.
-    It opens an interactive page (<code>/docs</code>) where you can send the service questions.</p>
+  <p class="sub">The demos above run right in your browser. If you'd rather run the real thing on your own machine, you'll need Python. Paste these four lines into a terminal and open the link on the last one. It takes you to an interactive page (<code>/docs</code>) where you can send the service questions.</p>
 <pre>git clone https://github.com/GauravWarke/rag-and-agent-systems.git
 cd rag-and-agent-systems/01-support-knowledge-copilot
 pip install -r requirements.txt
