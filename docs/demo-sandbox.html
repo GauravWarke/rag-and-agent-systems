@@ -89,21 +89,27 @@ button{font-family:inherit;cursor:pointer;border-radius:9px;font-size:.9rem;font
 .expl ol{margin:0;padding-left:20px;color:var(--mut);font-size:.9rem}
 .expl li{margin-bottom:9px}.expl b{color:var(--fg);font-weight:600}
 footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+.deep{margin-top:20px;border:1px solid var(--line);border-radius:10px;background:rgba(124,58,237,.04)}
+.deep>summary{cursor:pointer;padding:11px 15px;font-size:.88rem;color:#a78bfa;font-weight:570;list-style:none}
+.deep>summary::-webkit-details-marker{display:none}
+.deep>summary::before{content:"+ "}
+.deep[open]>summary::before{content:"\2212  "}
+.deep>*:not(summary){margin-left:18px;margin-right:18px}
+.deep[open]{padding-bottom:10px}
+.plain-steps li{margin-bottom:6px}
+dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a78bfa}
+.ramp{font-size:.8rem;color:var(--dim);margin:-6px 0 12px}
 </style></head><body>
 
 <header><div class="wrap">
   <a class="back" href="./index.html">← All projects</a>
   <h1>Permissioned Agent Sandbox</h1>
-  <p class="lede">Pick a role, choose a tool call, and watch it move through the policy pipeline.
-    Scope checks, rate limiting, risk classification, budget ceilings and the human approval gate
-    all evaluate for real — including the rate limiter, which is stateful, so calling repeatedly
-    will get you throttled.</p>
-  <div class="notice"><b>What's real here:</b> the entire policy engine. In the production service
-    an LLM decides <em>which</em> tool to call; that choice is yours in this demo. Everything after
-    it — the gating logic that is the actual point of the project — is the same logic as
-    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/06-agent-sandbox">the repo</a>,
-    ported to run in your browser. Tool effects are simulated; the decisions about whether they'd
-    run are not.</div>
+  <p class="lede">Choose who you are and an action for the AI assistant to take. Then watch the safety
+    checks decide whether it runs, is blocked, or waits for a person to approve it. Press the
+    button many times in a row and it will slow you down.</p>
+  <div class="notice"><b>What's real:</b> all of the safety checks. In the full project an AI chooses the
+    action; here you choose it. The actions themselves are pretend, but the decisions about whether
+    they may run are the same as in <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/06-agent-sandbox">the full project</a>.</div>
 </div></header>
 
 <main><div class="wrap">
@@ -136,15 +142,29 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   </div>
 
   <div class="card">
-    <div class="hd"><span>audit log — hash-chained</span><span id="acount"></span></div>
+    <div class="hd"><span>activity log — tamper-evident</span><span id="acount"></span></div>
     <div class="bd"><div class="audit" id="audit"><p class="empty">No entries yet.</p></div>
-      <p class="note">Each entry hashes the entry before it. Altering or removing any line breaks
-        every hash that follows, which is what makes the log tamper-evident rather than merely
-        append-only.</p></div>
+      <p class="note">Each entry is linked to the one before it (a <i>hash chain</i>).
+        Changing or deleting any entry breaks every link after it, so tampering is easy to spot.</p></div>
   </div>
 
   <div class="expl">
-    <h2>The pipeline, stage by stage</h2>
+    <h2>The checks, in order</h2>
+    <ol class="plain-steps">
+      <li><b>Is this a known action?</b> Each action (a <em>tool</em>) must be listed in a registry
+        before it can be used. Matching the request to that entry is called <dfn>bind</dfn>.</li>
+      <li><b>Is this person allowed?</b> Their role's allowed list, the <dfn>scope</dfn>, is checked
+        before the action runs, not after.</li>
+      <li><b>Too many, too fast?</b> More than 10 actions a minute must wait: a <dfn>rate limit</dfn>.</li>
+      <li><b>How risky is it?</b> Every tool is labelled low, medium, high or critical: its <dfn>risk tier</dfn>.</li>
+      <li><b>Is there money left?</b> Tools that spend money can't exceed the session <dfn>budget</dfn>.</li>
+      <li><b>Does a person need to say yes?</b> High and critical actions wait at the <dfn>human gate</dfn>.</li>
+      <li><b>Run it and write it down.</b> Every result, including refusals, is recorded:
+        <dfn>execute &amp; audit</dfn>.</li>
+    </ol>
+    <p class="ramp">Each highlighted term is the name of the matching stage in the walkthrough below,
+      which explains why each check sits where it does.</p>
+    <details class="deep"><summary>Go deeper: the full technical walkthrough</summary>
     <ol>
       <li><b>Bind.</b> The tool name is resolved against a registry that declares its required
         scope, risk tier and cost. A tool not in the registry cannot be called at all — the agent
@@ -167,6 +187,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
         rejected — is written to the hash-chained log. Denials are recorded as carefully as
         successes, since a refused call is exactly what an incident review needs to see.</li>
     </ol>
+    </details>
   </div>
 </div></main>
 

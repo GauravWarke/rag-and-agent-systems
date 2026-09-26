@@ -85,21 +85,28 @@ button{font-family:inherit;cursor:pointer;border-radius:9px;font-weight:560}
 .expl ol{margin:0;padding-left:20px;color:var(--mut);font-size:.9rem}
 .expl li{margin-bottom:9px}.expl b{color:var(--fg);font-weight:600}
 footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+.deep{margin-top:20px;border:1px solid var(--line);border-radius:10px;background:rgba(124,58,237,.04)}
+.deep>summary{cursor:pointer;padding:11px 15px;font-size:.88rem;color:#a78bfa;font-weight:570;list-style:none}
+.deep>summary::-webkit-details-marker{display:none}
+.deep>summary::before{content:"+ "}
+.deep[open]>summary::before{content:"\2212  "}
+.deep>*:not(summary){margin-left:18px;margin-right:18px}
+.deep[open]{padding-bottom:10px}
+.plain-steps li{margin-bottom:6px}
+dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a78bfa}
+.ramp{font-size:.8rem;color:var(--dim);margin:-6px 0 12px}
 </style></head><body>
 
 <header><div class="wrap">
   <a class="back" href="./index.html">← All projects</a>
   <h1>Natural Language to API Assistant</h1>
-  <p class="lede">Type a request against the sample OpenAPI schema below. The planner resolves which
-    endpoints are needed and in what order, validates every parameter against the spec, and
-    dry-runs anything that writes before it commits.</p>
-  <div class="notice"><b>Where the LLM sits:</b> exactly one stage — turning your sentence into a
-    structured intent. In this demo that stage is pattern-matched so the page runs offline; it's
-    drawn with a dashed border below. Every stage after it — endpoint selection, dependency
-    planning, schema validation, write classification, dry-run — is deterministic and is the same
-    logic as
-    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/08-nl-to-api-assistant">the repo</a>.
-    That boundary is the design: the model proposes, the schema disposes.</div>
+  <p class="lede">Type a request in plain English, like “move the Acme order to express shipping.” The
+    assistant works out which steps are needed, checks each one, and shows you a preview of any
+    change before making it.</p>
+  <div class="notice"><b>Where the AI fits:</b> only the first step, understanding your sentence. In this
+    demo that step uses simple pattern-matching so the page works offline; it has a dashed border
+    below. Every step after it follows fixed rules, the same as in <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/08-nl-to-api-assistant">the full project</a>.
+    The AI suggests; the rules decide.</div>
 </div></header>
 
 <main><div class="wrap">
@@ -114,15 +121,30 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   <div id="out"></div>
 
   <div class="card">
-    <div class="hd">available schema — openapi 3.1</div>
+    <div class="hd">what the assistant can do — API schema (OpenAPI 3.1)</div>
     <div class="bd"><div class="spec" id="spec"></div>
-      <p class="note">The planner can only compose calls from these endpoints. A request that
-        can't be satisfied by the schema is refused rather than approximated — an assistant that
-        invents an endpoint is worse than one that says no.</p></div>
+      <p class="note">The assistant can only use the
+        actions listed here. If your request needs something that isn't listed, it says no rather
+        than making something up.</p></div>
   </div>
 
   <div class="expl">
-    <h2>The pipeline, stage by stage</h2>
+    <h2>What happens when you press Plan</h2>
+    <ol class="plain-steps">
+      <li><b>Understand what you want.</b> Your sentence becomes a structured request, your
+        <dfn>intent</dfn>. This is the only step that needs an AI.</li>
+      <li><b>Find matching actions</b> in the list above. Each action is an <em>endpoint</em>, so this is
+        <dfn>endpoint selection</dfn>. No match means a clear “no”.</li>
+      <li><b>Put the steps in order</b> so later ones can use earlier results (find the customer, then
+        their order): <dfn>dependency planning</dfn>.</li>
+      <li><b>Check every input</b> against the list's rules before anything runs: <dfn>validation</dfn>.</li>
+      <li><b>Separate look-ups from changes.</b> Look-ups run; changes are held:
+        <dfn>write classification</dfn>.</li>
+      <li><b>Preview the change</b> without making it: a <dfn>dry-run</dfn>.</li>
+      <li><b>Wait for your yes</b> before changing anything: <dfn>confirm</dfn>.</li>
+    </ol>
+    <p class="ramp">Each highlighted term is the name of the matching stage in the walkthrough below.</p>
+    <details class="deep"><summary>Go deeper: the full technical walkthrough</summary>
     <ol>
       <li><b>Intent.</b> The one model-dependent step: free text becomes a structured intent plus
         extracted entities. Isolating it to a single stage means everything downstream is testable
@@ -143,6 +165,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
       <li><b>Confirm.</b> Nothing that writes executes without an explicit yes. The confirmation
         shows the concrete diff, not a restatement of the original request.</li>
     </ol>
+    </details>
   </div>
 </div></main>
 

@@ -65,23 +65,29 @@ tr.best td:first-child{box-shadow:inset 2px 0 0 var(--ok)}
 .expl p{color:var(--mut);font-size:.92rem}
 .expl b{color:var(--fg);font-weight:600}
 footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+.deep{margin-top:20px;border:1px solid var(--line);border-radius:10px;background:rgba(124,58,237,.04)}
+.deep>summary{cursor:pointer;padding:11px 15px;font-size:.88rem;color:#a78bfa;font-weight:570;list-style:none}
+.deep>summary::-webkit-details-marker{display:none}
+.deep>summary::before{content:"+ "}
+.deep[open]>summary::before{content:"\2212  "}
+.deep>*:not(summary){margin-left:18px;margin-right:18px}
+.deep[open]{padding-bottom:10px}
+.plain-steps li{margin-bottom:6px}
+dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a78bfa}
+.ramp{font-size:.8rem;color:var(--dim);margin:-6px 0 12px}
 </style></head><body>
 
 <header><div class="wrap">
   <a class="back" href="./index.html">← All projects</a>
   <h1>RAG Freshness &amp; Drift Monitor</h1>
-  <p class="lede">A retrieval index is a photograph of a corpus that keeps moving. Between one
-    rebuild and the next, some share of what you serve is quietly out of date — and the documents
-    that change fastest are usually the ones people ask about most. The interesting question isn't
-    how to make staleness zero. It's whether detecting change is worth more than simply rebuilding
-    everything on a timer.</p>
-  <div class="notice"><b>What's real:</b> the staleness windows, query-weighted exposure and cost
-    comparison all compute live. The document classes, their change rates and their share of query
-    traffic are a stated sample corpus of 12,000 chunks — the honest version of those numbers comes
-    from your own retrieval logs, not from a demo. Detector recall is assumed at <b>88%</b>, which
-    is the single assumption that decides the whole comparison; see the note below the cost table.
-    The scan-and-compare logic being modelled lives in
-    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/07-rag-freshness-monitor">the repo</a>.</div>
+  <p class="lede">An AI answers questions using a search index built from your documents. When a
+    document changes, the index is out of date until it is rebuilt. This page answers a practical
+    question: is it cheaper to rebuild on a fixed schedule, or to watch for changes and update
+    only what changed?</p>
+  <div class="notice"><b>What's real:</b> every number recalculates live as you move the sliders. The
+    documents are a made-up sample of 12,000 passages; real numbers would come from your own usage
+    data. One assumption matters most: the change detector catches <b>88%</b> of changes (see the
+    note under the cost table). The logic matches <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/07-rag-freshness-monitor">the full project</a>.</div>
 </div></header>
 
 <main><div class="wrap">
@@ -89,7 +95,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   <div class="panel">
     <div class="ctls">
       <div class="ctl">
-        <label for="p">Corpus profile</label>
+        <label for="p">Type of documents</label>
         <select id="p">
           <option value="product" selected>Product documentation</option>
           <option value="support">Support knowledge base</option>
@@ -100,27 +106,27 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
           query traffic each attracts.</p>
       </div>
       <div class="ctl">
-        <label for="t">Your cadence: every <span id="tv">7 days</span></label>
+        <label for="t">Rebuild the index every <span id="tv">7 days</span></label>
         <input type="range" id="t" min="1" max="120" step="1" value="7">
-        <p class="hint">Average staleness is roughly half this, because a change can land at any
-          point in the cycle.</p>
+        <p class="hint">On average, a changed document waits about half this long
+          before the index catches up.</p>
       </div>
       <div class="ctl">
         <label for="r">Cost per full rebuild <span id="rv">$180</span></label>
         <input type="range" id="r" min="1" max="600" step="1" value="180">
-        <p class="hint">Embedding spend plus pipeline time for the whole corpus. This is the number
-          that decides whether detection is worth building.</p>
+        <p class="hint">What it costs to re-process every
+          document once. This number decides whether watching for changes is worth building.</p>
       </div>
       <div class="ctl">
-        <label for="e">Cost of one stale answer <span id="ev">$12</span></label>
+        <label for="e">Cost of one out-of-date answer <span id="ev">$12</span></label>
         <input type="range" id="e" min="1" max="400" step="1" value="12">
         <p class="hint">A support escalation, a wrong quote, a compliance miss. A business number,
           not an engineering one.</p>
       </div>
       <div class="ctl">
-        <label for="q">Monthly queries <span id="qv">40,000</span></label>
+        <label for="q">Questions asked per month <span id="qv">40,000</span></label>
         <input type="range" id="q" min="500" max="500000" step="500" value="40000">
-        <p class="hint">Staleness is a rate. Volume turns it into a bill.</p>
+        <p class="hint">More questions means more people see out-of-date answers.</p>
       </div>
     </div>
   </div>
@@ -128,7 +134,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   <div class="chips" id="kpis"></div>
 
   <div class="card">
-    <div class="hd"><span>exposure by document class — at your cadence</span><span id="plabel"></span></div>
+    <div class="hd"><span>out-of-date risk by document type</span><span id="plabel"></span></div>
     <div class="bd">
       <table><thead><tr>
         <th>Class</th><th class="r">of corpus</th><th class="r">of queries</th>
@@ -141,7 +147,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   </div>
 
   <div class="card">
-    <div class="hd"><span>all-in monthly cost</span><span id="winner"></span></div>
+    <div class="hd"><span>total monthly cost</span><span id="winner"></span></div>
     <div class="bd">
       <table><thead><tr>
         <th>Strategy</th><th class="r">index spend</th><th class="r">stale answers</th>
@@ -158,7 +164,19 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   </div>
 
   <div class="expl">
-    <h2>Reading the trade-off</h2>
+    <h2>Reading the results</h2>
+    <p>Each document that has changed since the last rebuild is <dfn>stale</dfn>: answers built
+      from it may be wrong. How often you rebuild is your <dfn>cadence</dfn>. A slower cadence means
+      more stale documents at any moment.</p>
+    <p>Not all stale documents matter equally. The table weights each type by how often people ask
+      about it, not by how many pages it has. That is <dfn>query-weighted</dfn> staleness, and it is
+      why a tiny pricing section can matter more than a huge policy library.</p>
+    <p><b>In short:</b> rebuilding on a schedule is often cheaper than watching for changes.
+      Watching wins when a full rebuild is expensive, or when only a small part of your documents
+      changes often. How well the watcher notices changes, its <dfn>recall</dfn>, decides the rest.</p>
+    <p><b>Things to try:</b> drag <b>cost per full rebuild</b> above about $220 and watch the winner
+      switch. Then choose <b>Policy &amp; HR library</b> and see watching for changes win.</p>
+    <details class="deep"><summary>Go deeper: the full analysis</summary>
     <p>Start with the gap between <b>of corpus</b> and <b>of queries</b>. On the product profile,
       pricing pages are 4% of the index and 14% of the traffic, and they change roughly eighteen
       times faster than the policy library. A freshness metric averaged over the corpus would call
@@ -189,6 +207,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
       single class — <code>announcements</code> is 6% of the index and changes about seven times
       faster than anything else in that corpus. A slow corpus with one fast class buried inside it
       is the best case for detection, not the worst.</p>
+    </details>
   </div>
 </div></main>
 

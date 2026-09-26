@@ -65,20 +65,28 @@ tr.best td:first-child{box-shadow:inset 2px 0 0 var(--ok)}
 .expl p{color:var(--mut);font-size:.92rem}
 .expl b{color:var(--fg);font-weight:600}
 footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+.deep{margin-top:20px;border:1px solid var(--line);border-radius:10px;background:rgba(124,58,237,.04)}
+.deep>summary{cursor:pointer;padding:11px 15px;font-size:.88rem;color:#a78bfa;font-weight:570;list-style:none}
+.deep>summary::-webkit-details-marker{display:none}
+.deep>summary::before{content:"+ "}
+.deep[open]>summary::before{content:"\2212  "}
+.deep>*:not(summary){margin-left:18px;margin-right:18px}
+.deep[open]{padding-bottom:10px}
+.plain-steps li{margin-bottom:6px}
+dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a78bfa}
+.ramp{font-size:.8rem;color:var(--dim);margin:-6px 0 12px}
 </style></head><body>
 
 <header><div class="wrap">
   <a class="back" href="./index.html">← All projects</a>
   <h1>Multimodal Document Reviewer</h1>
-  <p class="lede">OCR is cheap and sometimes wrong. A vision model is accurate and expensive. A
-    human is the most accurate and by far the most expensive. There is no strategy that wins
-    everywhere — which one is correct depends on what a wrong field costs you. Move the controls
-    and watch the winner change.</p>
-  <div class="notice"><b>What's real:</b> the cascade routing, cost model and error projection
-    compute live. The per-field OCR and vision confidences are a fixed sample set standing in for
-    real model output — running OCR in a browser isn't possible, and regenerating confidences on
-    every keystroke would be less honest than using a stated sample. Routing logic matches
-    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/09-multimodal-doc-reviewer">the repo</a>.</div>
+  <p class="lede">There are three ways to read a scanned document: fast text recognition (cheap, sometimes
+    wrong), an AI that reads images (more accurate, costs more), or a person (most accurate, most
+    expensive). The best mix depends on how much a mistake costs you. Move the sliders and watch the
+    best choice change.</p>
+  <div class="notice"><b>What's real:</b> the routing, costs and error estimates all recalculate live. The
+    confidence score for each field is a fixed sample, because text recognition can't run inside a
+    browser. The routing rules match <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/09-multimodal-doc-reviewer">the full project</a>.</div>
 </div></header>
 
 <main><div class="wrap">
@@ -93,18 +101,17 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
           <option value="fax">Faxed copy, low contrast</option>
           <option value="hand">Handwritten annotations</option>
         </select>
-        <p class="hint">Sets the OCR confidence profile. Real intake is a mix — thresholds have to
-          work across all of these.</p>
+        <p class="hint">Worse scans make text recognition (OCR) less sure of itself.</p>
       </div>
       <div class="ctl">
-        <label for="o">Vision if OCR below <span id="ov">0.90</span></label>
+        <label for="o">Use the image AI if OCR is below <span id="ov">0.90</span></label>
         <input type="range" id="o" min="0" max="100" step="1" value="90">
-        <p class="hint">OCR confidence under this escalates the field to the vision model.</p>
+        <p class="hint">If text recognition is less sure than this, the field goes to the image AI (a <i>vision model</i>).</p>
       </div>
       <div class="ctl">
-        <label for="v">Human if vision below <span id="vv">0.85</span></label>
+        <label for="v">Send to a person if the image AI is below <span id="vv">0.85</span></label>
         <input type="range" id="v" min="0" max="100" step="1" value="85">
-        <p class="hint">The expensive threshold. A human costs roughly 50 vision calls.</p>
+        <p class="hint">The expensive step. One person check costs about as much as 50 image-AI checks.</p>
       </div>
       <div class="ctl">
         <label for="e">Cost of a wrong field <span id="ev">$40</span></label>
@@ -123,7 +130,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   <div class="chips" id="kpis"></div>
 
   <div class="card">
-    <div class="hd"><span>field-level routing — invoice_4471.pdf</span><span id="qlabel"></span></div>
+    <div class="hd"><span>how each field was read — invoice_4471.pdf</span><span id="qlabel"></span></div>
     <div class="bd">
       <table><thead><tr>
         <th>Field</th><th>OCR</th><th>Vision</th><th>Final</th><th>Route</th><th class="r">cost</th>
@@ -132,7 +139,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   </div>
 
   <div class="card">
-    <div class="hd"><span>all-in cost per <span id="volx"></span> documents</span>
+    <div class="hd"><span>total cost per <span id="volx"></span> documents</span>
       <span id="winner"></span></div>
     <div class="bd">
       <table><thead><tr>
@@ -140,14 +147,25 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
         <th class="r">error cost</th><th class="r">all-in</th><th></th>
       </tr></thead><tbody id="cmp"></tbody></table>
       <div class="lesson" id="lesson"></div>
-      <p class="note">Wrong fields is an expectation, not a count — each accepted field contributes
-        its own (1 − confidence). Human review is modelled at 99.5% accurate: better than either
-        model, not free and not perfect.</p>
+      <p class="note">“Wrong fields” is an estimate: a field that is 90%
+        certain counts as 0.1 of a mistake. People are assumed to be 99.5% accurate: better than
+        either AI, but not perfect.</p>
     </div>
   </div>
 
   <div class="expl">
-    <h2>Reading the trade-off</h2>
+    <h2>Reading the results</h2>
+    <p>Every field starts with fast text recognition, <dfn>OCR</dfn>. If OCR is unsure, the field
+      moves up to an AI that reads the image itself, a <dfn>vision model</dfn>. If that is still
+      unsure, a person checks it. Moving up only when needed is a <dfn>cascade</dfn>, and the
+      “unsure” cut-offs you can drag are its <dfn>thresholds</dfn>.</p>
+    <p><b>In short:</b> no single method is best. If mistakes are cheap, OCR alone wins. If they are
+      very costly, a person checking everything can be worth it. The cascade wins in between, where
+      most real work sits.</p>
+    <p><b>Things to try:</b> set <b>cost of a wrong field</b> to $5, then $300, and watch the winner
+      change. Notice <code>signature_block</code> is hard to read on every document type: no threshold
+      fixes that.</p>
+    <details class="deep"><summary>Go deeper: the full analysis</summary>
     <p>Push <b>vision if OCR below</b> to 1.00 and every field goes to the vision model. Errors
       drop, processing cost climbs roughly tenfold. Drop it to 0.00 and you're running OCR alone —
       almost free, and on a faxed document about a third of the fields come out wrong.</p>
@@ -165,6 +183,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
     <p><b>Worth noticing:</b> <code>signature_block</code> is the weakest field on every profile.
       Some fields are hard for reasons no threshold fixes — the right response is a schema that
       marks the field optional, or a different capture process, not a more expensive model.</p>
+    </details>
   </div>
 </div></main>
 
