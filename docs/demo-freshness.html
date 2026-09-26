@@ -80,10 +80,7 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
 <header><div class="wrap">
   <a class="back" href="./index.html">← All projects</a>
   <h1>RAG Freshness &amp; Drift Monitor</h1>
-  <p class="lede">An AI answers questions using a search index built from your documents. When a
-    document changes, the index is out of date until it is rebuilt. This page answers a practical
-    question: is it cheaper to rebuild on a fixed schedule, or to watch for changes and update
-    only what changed?</p>
+  <p class="lede">An AI answers questions from a search index built out of your documents. Change a document and the index lags behind until someone rebuilds it. So here's the practical question this page tackles: is it cheaper to rebuild on a fixed schedule, or to watch for changes and update only what moved?</p>
   <div class="notice"><b>What's real:</b> every number recalculates live as you move the sliders. The
     documents are a made-up sample of 12,000 passages; real numbers would come from your own usage
     data. One assumption matters most: the change detector catches <b>88%</b> of changes (see the
@@ -171,9 +168,7 @@ dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a7
     <p>Not all stale documents matter equally. The table weights each type by how often people ask
       about it, not by how many pages it has. That is <dfn>query-weighted</dfn> staleness, and it is
       why a tiny pricing section can matter more than a huge policy library.</p>
-    <p><b>In short:</b> rebuilding on a schedule is often cheaper than watching for changes.
-      Watching wins when a full rebuild is expensive, or when only a small part of your documents
-      changes often. How well the watcher notices changes, its <dfn>recall</dfn>, decides the rest.</p>
+    <p><b>In short:</b> a plain rebuild schedule often beats watching for changes on cost. Watching pulls ahead when a full rebuild is expensive, or when only a small slice of your docs changes much. The rest comes down to how many changes the watcher actually notices, its <dfn>recall</dfn>.</p>
     <p><b>Things to try:</b> drag <b>cost per full rebuild</b> above about $220 and watch the winner
       switch. Then choose <b>Policy &amp; HR library</b> and see watching for changes win.</p>
     <details class="deep"><summary>Go deeper: the full analysis</summary>
