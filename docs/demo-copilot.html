@@ -79,20 +79,27 @@ td.win{color:var(--acc2);font-weight:600}
 .expl li{margin-bottom:9px}
 .expl b{color:var(--fg);font-weight:600}
 footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
+.deep{margin-top:20px;border:1px solid var(--line);border-radius:10px;background:rgba(124,58,237,.04)}
+.deep>summary{cursor:pointer;padding:11px 15px;font-size:.88rem;color:#a78bfa;font-weight:570;list-style:none}
+.deep>summary::-webkit-details-marker{display:none}
+.deep>summary::before{content:"+ "}
+.deep[open]>summary::before{content:"\2212  "}
+.deep>*:not(summary){margin-left:18px;margin-right:18px}
+.deep[open]{padding-bottom:10px}
+.plain-steps li{margin-bottom:6px}
+dfn{font-style:normal;color:#c4b5fd;font-weight:570;border-bottom:1px dotted #a78bfa}
+.ramp{font-size:.8rem;color:var(--dim);margin:-6px 0 12px}
 </style></head><body>
 
 <header><div class="wrap">
   <a class="back" href="./index.html">← All projects</a>
   <h1>Support Knowledge Copilot</h1>
-  <p class="lede">Ask a question about the sample product documentation. The system retrieves
-    candidate passages, verifies that every citation actually supports the answer, and scores its
-    own confidence — or tells you the answer isn't in the docs.</p>
-  <div class="notice"><b>How this demo works:</b> the retrieval pipeline — BM25, hashed
-    embeddings, Reciprocal Rank Fusion, citation verification, confidence scoring — is ported
-    from the Python service to JavaScript so it runs entirely in your browser. No server, no API
-    key, no network calls. Same algorithm and parameters as
-    <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/01-support-knowledge-copilot">the repo</a>;
-    answer generation is extractive in both.</div>
+  <p class="lede">Ask a question about a sample set of product help documents. You get an answer,
+    the passages it came from, and a score for how sure it is. If the answer isn't in the
+    documents, it says so instead of guessing.</p>
+  <div class="notice"><b>Runs in your browser.</b> Nothing is sent to a server and no AI service is
+    called. Answers are built from sentences in the documents themselves, using the same
+    method as <a href="https://github.com/GauravWarke/rag-and-agent-systems/tree/main/01-support-knowledge-copilot">the full project</a>.</div>
 </div></header>
 
 <main><div class="wrap">
@@ -103,15 +110,32 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
   </div>
   <div class="chips" id="chips"></div>
   <div class="strat">
-    <span class="lbl">Retrieval strategy</span>
-    <button class="sbtn on" data-s="hybrid">Hybrid (RRF)</button>
-    <button class="sbtn" data-s="dense">Dense only</button>
-    <button class="sbtn" data-s="sparse">Sparse only (BM25)</button>
+    <span class="lbl">Search method</span>
+    <button class="sbtn on" data-s="hybrid">Both (recommended)</button>
+    <button class="sbtn" data-s="dense">By meaning only</button>
+    <button class="sbtn" data-s="sparse">By keywords only</button>
   </div>
   <div id="out"></div>
 
   <div class="expl">
     <h2>What happens when you press Ask</h2>
+    <ol class="plain-steps">
+      <li>The documents are cut into short sections, one per heading. This is called <dfn>chunking</dfn>.</li>
+      <li>Words are simplified so “refund”, “refunds” and “refunded” count as the same word:
+        <dfn>normalisation</dfn>.</li>
+      <li>It looks for sections that share the exact words in your question. Search by exact words is
+        <dfn>sparse retrieval</dfn>.</li>
+      <li>It also looks for sections with the same <em>meaning</em>, even in different words. Search by
+        meaning is <dfn>dense retrieval</dfn>.</li>
+      <li>The two result lists are merged into one. Merging lists like this is called <dfn>fusion</dfn>.</li>
+      <li>If the best section doesn't really match your question, it stops and says it couldn't find
+        an answer. This safety step is a <dfn>grounding check</dfn>.</li>
+      <li>It picks the best sentences and re-checks each quoted source: <dfn>answer + verification</dfn>.</li>
+      <li>Finally it rates how sure it is, from 0 to 1: its <dfn>confidence</dfn>.</li>
+    </ol>
+    <p class="ramp">Each highlighted term is the name of the matching step in the walkthrough below,
+      which adds the exact numbers and formulas.</p>
+    <details class="deep"><summary>Go deeper: the full technical walkthrough</summary>
     <ol>
       <li><b>Chunking.</b> The corpus is split on headings into 26 passages. The heading is
         indexed with the body — a section called "Refund window" should match the word
@@ -142,6 +166,7 @@ footer{padding:26px 0 60px;color:var(--dim);font-size:.85rem}
       about the trial without necessarily leading with "14 days". Fixing that needs either
       question-type classification or an abstractive generation step; both are noted in the repo's
       roadmap rather than papered over here.</p>
+    </details>
   </div>
 </div></main>
 
